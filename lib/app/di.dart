@@ -1,6 +1,7 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -55,12 +56,12 @@ Future<void> initAppModule() async {
       () => NetworkInfoImpl(Connectivity()),
     );
   }
-  final clientId = '8e1f4c38cf5543f5929e19c1d503205c';
-  final redirectUrl = 'spotify-sdk://auth';
-
   if (!instance.isRegistered<SpotifyService>()) {
     instance.registerLazySingleton<SpotifyService>(
-      () => SpotifyService(clientId: clientId, redirectUrl: redirectUrl),
+      () => SpotifyService(
+        clientId: _requiredEnv('SPOTIFY_CLIENT_ID'),
+        redirectUrl: _requiredEnv('SPOTIFY_REDIRECT_URL'),
+      ),
     );
   }
 
@@ -135,4 +136,18 @@ void disposeFaqsModule() {
 Future<void> resetModules() async {
   await instance.reset(); // zera tudo
   await initAppModule(); // ou re-registra o que precisar
+}
+
+/// Lê uma variável obrigatória do `.env` (carregado via flutter_dotenv
+/// em main.dart antes de initAppModule()). Lança um erro claro se a
+/// variável não estiver definida, em vez de seguir com um valor vazio.
+String _requiredEnv(String key) {
+  final value = dotenv.env[key];
+  if (value == null || value.isEmpty) {
+    throw StateError(
+      'Variável de ambiente "$key" não definida. Copie .env.example '
+      'para .env e preencha os valores antes de rodar o app.',
+    );
+  }
+  return value;
 }

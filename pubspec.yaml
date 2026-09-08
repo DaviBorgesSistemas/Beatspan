@@ -28,6 +28,7 @@ dependencies:
   proximity_sensor: ^1.0.3
   firebase_core: ^3.8.0
   cloud_firestore: ^5.5.0
+  flutter_dotenv: ^5.2.1
 
 
 dev_dependencies:
@@ -46,6 +47,7 @@ flutter:
     - assets/images/
     - assets/images/splash/
     - assets/json/
+    - .env
   fonts:
     - family: Montserrat
       fonts:
