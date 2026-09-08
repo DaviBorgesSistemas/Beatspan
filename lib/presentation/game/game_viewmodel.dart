@@ -1,7 +1,15 @@
 enum QrValidationResult { invalid, beatspanCode }
 
 class GameViewModel {
-  static const String _beatspanHost = 'beatspangame.com';
+  /// Domínios aceitos como links de carta do BEATSPAN. `beatspangame.com`
+  /// é o domínio definitivo (impresso nas cartas); `beatspan.web.app` é
+  /// a URL padrão do Firebase Hosting, usada enquanto o domínio próprio
+  /// não está configurado.
+  static const List<String> _beatspanHosts = [
+    'beatspangame.com',
+    'beatspan.web.app',
+    'beatspan.firebaseapp.com',
+  ];
 
   QrValidationResult validate(String rawValue) {
     final isBeatspanLink = extractCodigo(rawValue) != null;
@@ -11,9 +19,11 @@ class GameViewModel {
     return QrValidationResult.beatspanCode;
   }
 
-  /// Aceita links do domínio próprio, com ou sem "www.", ex:
+  /// Aceita links de qualquer domínio reconhecido do BEATSPAN, com ou
+  /// sem "www.", ex:
   /// `https://www.beatspangame.com/0006`
   /// `https://beatspangame.com/0006`
+  /// `https://beatspan.web.app/0006`
   ///
   /// Retorna o código curto (ex: "0006") ou `null` se a URL não for
   /// reconhecida como um link válido do BEATSPAN.
@@ -25,7 +35,7 @@ class GameViewModel {
     final host = uri.host.startsWith('www.')
         ? uri.host.substring(4)
         : uri.host;
-    if (host != _beatspanHost) return null;
+    if (!_beatspanHosts.contains(host)) return null;
 
     final segments = uri.pathSegments.where((s) => s.isNotEmpty).toList();
     if (segments.isEmpty) return null;
