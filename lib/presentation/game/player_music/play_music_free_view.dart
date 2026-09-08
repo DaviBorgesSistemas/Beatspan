@@ -35,10 +35,6 @@ class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
   bool _isSavingTrack = false;
   bool _isTrackSaved = false;
 
-  static const _purple = Color(0xFF6C2BFF);
-  static const _pink = Color(0xFFE84BC7);
-  static const _cyan = Color(0xFF2CCBF5);
-
   @override
   void initState() {
     super.initState();
@@ -227,88 +223,6 @@ class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
           SizedBox(height: 32),
           _nextCardButton(),
         ],
-      ),
-    );
-  }
-
-  // Widget _buildPlayer() {
-  //   return Padding(
-  //     padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-  //     child: Column(
-  //       children: [
-  // Align(
-  //   alignment: Alignment.topRight,
-  //   child: GestureDetector(
-  //     onTap: () => Navigator.of(context).pop(),
-  //     child: Container(
-  //       width: 44,
-  //       height: 44,
-  //       decoration: BoxDecoration(
-  //         shape: BoxShape.circle,
-  //         color: Colors.white.withValues(alpha: 0.08),
-  //         border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-  //       ),
-  //       child: const Icon(Icons.close, color: Colors.white),
-  //     ),
-  //   ),
-  // ),
-  //         const Spacer(),
-  //         _albumArt(),
-  //         const SizedBox(height: 32),
-  //         Text(
-  //           widget.trackName ?? 'Faixa desconhecida',
-  //           textAlign: TextAlign.center,
-  //           style: const TextStyle(
-  //             color: Colors.white,
-  //             fontSize: 22,
-  //             fontWeight: FontWeight.w800,
-  //           ),
-  //         ),
-  //         const SizedBox(height: 8),
-  //         Row(
-  //           mainAxisAlignment: MainAxisAlignment.center,
-  //           children: [
-  //             Flexible(
-  //               child: Text(
-  //                 widget.artistName ?? '',
-  //                 textAlign: TextAlign.center,
-  //                 overflow: TextOverflow.ellipsis,
-  //                 style: TextStyle(
-  //                   color: Colors.white.withValues(alpha: 0.7),
-  //                   fontSize: 16,
-  //                 ),
-  //               ),
-  //             ),
-  //             if (widget.artistName != null) ...[
-  //               const SizedBox(width: 8),
-  //               _previaBadge(),
-  //             ],
-  //           ],
-  //         ),
-  //         const Spacer(),
-  //         _playButton(),
-  //         const SizedBox(height: 32),
-  //         _nextCardButton(),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  Widget _previaBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _cyan),
-      ),
-      child: const Text(
-        'PRÉVIA',
-        style: TextStyle(
-          color: _cyan,
-          fontSize: 12,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 1.0,
-        ),
       ),
     );
   }
