@@ -2,13 +2,14 @@
 
 *[Leia em português](README.md)*
 
-Beatspan is a Flutter app that companions a **Hitster**-style music card game: each physical card has a QR code, the player scans it with their phone, the app resolves the corresponding Spotify track and plays it, while players try to guess the song, artist and year by placing the card on a timeline.
+Beatspan is a Flutter app that companions a **Hitster**-style music card game: each physical card has a QR code pointing to `beatspangame.com/<code>`. Scanned inside the app, the code is resolved on Firestore (`musicas` collection) to the corresponding Spotify track and played; scanned by any other QR reader, it opens the download landing page hosted on Firebase Hosting (`hosting/`). Players try to guess the song, artist and year by placing the card on a timeline.
 
 ## Features
 
 - **Splash screen, language and country selection** on first launch, with local persistence of preferences.
-- **QR code scanning** via camera (`mobile_scanner`), validating Spotify track links.
-- **Track playback via Spotify** — Premium users play the full track through Spotify App Remote (`spotify_sdk`); Free plan users fetch the 30s preview via the Spotify Web API.
+- **QR code scanning** via camera (`mobile_scanner`), validating links from the `beatspangame.com` domain (and the Firebase Hosting domains used during development).
+- **Track resolution via Firestore** — the code extracted from the URL is looked up in the `musicas` collection, which returns the track's `spotify_uri` (see `docs/2-SECURITY_REPORT.md` for the schema and security rules).
+- **Track playback via Spotify** — Premium users play the full track through Spotify App Remote (`spotify_sdk`); Free plan users fetch the 30s preview via the Spotify Web API, with a fallback to the iTunes Search API.
 - **Rules screen** with illustrations.
 - **FAQ** loaded from a local JSON file (`assets/json/faq.json`), with a dedicated repository and use case.
 - **Settings**: switch Spotify account, upgrade to Premium, language, country, contact, and app sharing.
@@ -20,6 +21,8 @@ Beatspan is a Flutter app that companions a **Hitster**-style music card game: e
 | Dependency injection | `get_it` |
 | Result/Either | `dartz` |
 | Local persistence | `shared_preferences` |
+| Environment configuration | `flutter_dotenv` |
+| Backend / music catalog | `firebase_core`, `cloud_firestore` |
 | Network / connectivity | `http`, `connectivity_plus` |
 | Spotify integration | `spotify_sdk` (App Remote + Auth), Web API via `http` |
 | QR code scanning | `mobile_scanner` |
@@ -35,40 +38,57 @@ lib/
 ├── app/            # App widget, AppPreferences (shared_preferences), DI setup (get_it)
 ├── data/
 │   ├── data_source/    # e.g. FaqLocalDataSource (reads assets/json/faq.json)
-│   ├── network/         # SpotifyService (App Remote), SpotifyWebApi (REST), NetworkInfo
-│   └── repository/      # repository implementations
+│   ├── network/         # SpotifyService (App Remote), SpotifyWebApi (REST), MusicaFirestoreDataSource, ItunesSearchApi, NetworkInfo
+│   └── repository/      # repository implementations (FaqRepositoryImpl, MusicaRepositoryImpl)
 ├── domain/
 │   ├── enum/            # FlowState, PlanType, CountryType, LanguageType
-│   ├── model/            # domain models (e.g. Faqs)
-│   ├── repository/       # abstract contracts
-│   └── usecase/          # use cases (e.g. FaqsUsecase)
+│   ├── exception/        # domain exceptions (e.g. MusicaNaoEncontradaException)
+│   ├── model/            # domain models (e.g. Faqs, Musica)
+│   ├── repository/       # abstract contracts (FaqRepository, MusicaRepository)
+│   └── usecase/          # use cases (e.g. FaqsUsecase, GetMusicaUseCase)
 └── presentation/
     ├── splash, home, game, rules, settings, faqs, contact,
     │   country, language, change_spotify, connect_spotify_premium, share
     └── resource/         # color, font, style, theme, screen and asset managers
 ```
 
-> Note: today only the FAQ feature implements the full stack (repository + usecase + datasource). The other screens talk directly to `SpotifyService`/`AppPreferences`.
+> Note: the FAQ and music-lookup-by-code (Firestore) features implement the full stack (repository + usecase + datasource). The Spotify/iTunes playback flow inside `GameView` still talks directly to `SpotifyService`/`SpotifyWebApi`/`ItunesSearchApi`, without a repository/usecase — see `docs/1-ARCHITECTURAL_REVIEW.md`, finding `ARQ-003`.
 
 ## Main game flow
 
 1. From `HomeView`, the player taps "Start a game".
 2. `GameView` opens the camera to scan the card's QR code.
-3. The app validates that the scanned URL is a Spotify track link and extracts the track ID.
-4. Based on the saved plan (`PlanType`):
+3. The app validates that the scanned URL belongs to the `beatspangame.com` domain and extracts the short code (e.g. `0006`).
+4. The code is looked up in the `musicas` Firestore collection, which returns the track's `spotify_uri`.
+5. Based on the saved plan (`PlanType`):
    - **Premium**: connects to Spotify App Remote and plays the full track.
-   - **Free**: fetches the 30s preview URL via the Spotify Web API.
+   - **Free**: fetches the 30s preview URL via the Spotify Web API, with a fallback to the iTunes Search API if the preview is unavailable.
 
 ## Prerequisites
 
 - [Flutter SDK](https://docs.flutter.dev/get-started/install) `^3.9.2`
 - A developer account on [Spotify for Developers](https://developer.spotify.com/) to obtain a `Client ID` and `Redirect URI`
 - Spotify app installed on the test device (required for App Remote)
+- A [Firebase Console](https://console.firebase.google.com/) project with Firestore and Hosting enabled
 - Android Studio / Xcode configured to run on an emulator or physical device
 
 ## Spotify setup
 
-The app needs Spotify credentials (Client ID and Redirect URI) to authenticate and play tracks. Check the files under `lib/data/network/` and the playback screens (`lib/presentation/game/player_music/`) to configure these credentials before running the app — see also [docs/TROUBLESHOOTING_SPOTIFY.md](docs/TROUBLESHOOTING_SPOTIFY.md) for setup tips and common issues.
+The app needs Spotify credentials (Client ID and Redirect URI) to authenticate and play tracks.
+
+- Copy `.env.example` to `.env` and fill in `SPOTIFY_CLIENT_ID` and `SPOTIFY_REDIRECT_URL` with your credentials. The app loads this file via `flutter_dotenv` on startup ([lib/main.dart](lib/main.dart)) and reads the variables in [lib/app/di.dart](lib/app/di.dart) — without them defined, the app throws a clear error on launch.
+
+## Firebase setup
+
+The app uses Firestore to resolve the QR code's short code into a Spotify track (`musicas` collection) and Firebase Hosting for the landing page served to anyone who scans the card outside the app.
+
+```bash
+dart pub global activate flutterfire_cli
+firebase login
+flutterfire configure
+```
+
+This generates `lib/firebase_options.dart` and the native config files. See `firestore.rules` for the already-versioned security rules.
 
 ## Getting started
 
@@ -87,24 +107,21 @@ dart run flutter_launcher_icons
 dart run flutter_native_splash:create
 ```
 
+## Commit convention
+
+The project follows [Conventional Commits](https://www.conventionalcommits.org/): `<type>: <description>`, with types `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `security`, `style`, `perf`. Generic messages (`...`, `..`, bare screen names) should no longer be used — commits predating this convention were not rewritten (see `docs/1-ARCHITECTURAL_REVIEW.md`, finding `DOC-005`).
+
+Example: `fix: correctly validates track links without a locale prefix`.
+
 ## Documentation
 
-The [docs/](docs/) folder contains planning and tracking material for the project:
+The [docs/](docs/) folder contains a full architectural analysis (fundamentals, security, experience, operations, documentation, performance):
 
-- [ESTADO-ATUAL.md](docs/ESTADO-ATUAL.md) — current state of the codebase (Portuguese; may lag behind the latest code — see `docs/ARCHITECTURAL_REVIEW.md` for the most current assessment)
-- [PROPOSTA-ROADMAP.md](docs/PROPOSTA-ROADMAP.md) — proposed roadmap (Portuguese)
-- [ROADMAP_CONCLUSAO.md](docs/ROADMAP_CONCLUSAO.md) — roadmap completion tracking (Portuguese)
-- [TROUBLESHOOTING_SPOTIFY.md](docs/TROUBLESHOOTING_SPOTIFY.md) — Spotify integration troubleshooting (Portuguese)
-
-### Architectural analysis
-
-The `docs/` folder also contains a full architectural analysis (fundamentals, security, experience, operations, documentation, performance):
-
-- [ARCHITECTURAL_REVIEW.md](docs/ARCHITECTURAL_REVIEW.md) — full technical report, all findings with an ID
-- [SECURITY_REPORT.md](docs/SECURITY_REPORT.md) — security findings, LGPD/GDPR checklist, supply chain status
-- [TECH_DEBT_REGISTER.md](docs/TECH_DEBT_REGISTER.md) — prioritized technical debt catalog
-- [ACTION_PLAN.md](docs/ACTION_PLAN.md) — action plan by timeframe
-- [IMPROVEMENT_ROADMAP.md](docs/IMPROVEMENT_ROADMAP.md) — improvement roadmap by phase
+- [1-ARCHITECTURAL_REVIEW.md](docs/1-ARCHITECTURAL_REVIEW.md) — full technical report, all findings with an ID (Portuguese)
+- [2-SECURITY_REPORT.md](docs/2-SECURITY_REPORT.md) — security findings, LGPD/GDPR checklist, supply chain status (Portuguese)
+- [3-TECH_DEBT_REGISTER.md](docs/3-TECH_DEBT_REGISTER.md) — prioritized technical debt catalog (Portuguese)
+- [4-ACTION_PLAN.md](docs/4-ACTION_PLAN.md) — action plan by timeframe, with a progress checklist (Portuguese)
+- [5-IMPROVEMENT_ROADMAP.md](docs/5-IMPROVEMENT_ROADMAP.md) — improvement roadmap by phase (Portuguese)
 
 ## Project status
 
@@ -112,8 +129,8 @@ Actively under development, pre-launch (not yet published on app stores). Known 
 
 - No game logic yet (rounds, scoring, timeline, winning) — the app currently covers the scan-and-play flow only.
 - No multiplayer or state sync across devices.
-- No automated tests (no `test/` folder in the repository).
-- No CI/CD pipeline.
+- Test coverage still early-stage (see `test/`) — `GameView`/players still need coverage.
+- No observability/crash reporting in production (Crashlytics/Sentry).
 - iOS build not configured — only Android is functional today.
 
-See [docs/ARCHITECTURAL_REVIEW.md](docs/ARCHITECTURAL_REVIEW.md) for the full technical breakdown and [docs/ACTION_PLAN.md](docs/ACTION_PLAN.md) for the prioritized fix plan.
+See [docs/1-ARCHITECTURAL_REVIEW.md](docs/1-ARCHITECTURAL_REVIEW.md) for the full technical breakdown and [docs/4-ACTION_PLAN.md](docs/4-ACTION_PLAN.md) for the prioritized fix plan, with a progress checklist.
