@@ -91,19 +91,29 @@ dart run flutter_native_splash:create
 
 The [docs/](docs/) folder contains planning and tracking material for the project:
 
-- [ESTADO-ATUAL.md](docs/ESTADO-ATUAL.md) — current state of the codebase (Portuguese)
+- [ESTADO-ATUAL.md](docs/ESTADO-ATUAL.md) — current state of the codebase (Portuguese; may lag behind the latest code — see `docs/ARCHITECTURAL_REVIEW.md` for the most current assessment)
 - [PROPOSTA-ROADMAP.md](docs/PROPOSTA-ROADMAP.md) — proposed roadmap (Portuguese)
 - [ROADMAP_CONCLUSAO.md](docs/ROADMAP_CONCLUSAO.md) — roadmap completion tracking (Portuguese)
-- [PROMPT_ANALISE_ARQUITETURAL.md](docs/PROMPT_ANALISE_ARQUITETURAL.md) — architectural analysis prompt (Portuguese)
 - [TROUBLESHOOTING_SPOTIFY.md](docs/TROUBLESHOOTING_SPOTIFY.md) — Spotify integration troubleshooting (Portuguese)
+
+### Architectural analysis
+
+The `docs/` folder also contains a full architectural analysis (fundamentals, security, experience, operations, documentation, performance):
+
+- [ARCHITECTURAL_REVIEW.md](docs/ARCHITECTURAL_REVIEW.md) — full technical report, all findings with an ID
+- [SECURITY_REPORT.md](docs/SECURITY_REPORT.md) — security findings, LGPD/GDPR checklist, supply chain status
+- [TECH_DEBT_REGISTER.md](docs/TECH_DEBT_REGISTER.md) — prioritized technical debt catalog
+- [ACTION_PLAN.md](docs/ACTION_PLAN.md) — action plan by timeframe
+- [IMPROVEMENT_ROADMAP.md](docs/IMPROVEMENT_ROADMAP.md) — improvement roadmap by phase
 
 ## Project status
 
-Actively under development. Known open points:
+Actively under development, pre-launch (not yet published on app stores). Known open points:
 
-- The Free plan playback flow does not yet navigate to its corresponding player screen.
 - No game logic yet (rounds, scoring, timeline, winning) — the app currently covers the scan-and-play flow only.
 - No multiplayer or state sync across devices.
-- No automated tests beyond the default Flutter boilerplate.
+- No automated tests (no `test/` folder in the repository).
+- No CI/CD pipeline.
+- iOS build not configured — only Android is functional today.
 
-See [docs/ESTADO-ATUAL.md](docs/ESTADO-ATUAL.md) (Portuguese) for the full breakdown.
+See [docs/ARCHITECTURAL_REVIEW.md](docs/ARCHITECTURAL_REVIEW.md) for the full technical breakdown and [docs/ACTION_PLAN.md](docs/ACTION_PLAN.md) for the prioritized fix plan.
