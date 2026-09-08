@@ -138,7 +138,7 @@ class _ChangeSpotifyViewState extends State<ChangeSpotifyView> {
                       height: 56,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(28),
-                        border: Border.all(width: 2, color: Color(0XFF6824FC),),
+                        border: Border.all(width: 2, color: Color(0XFF6824FC)),
                       ),
                       child: Material(
                         color: Colors.transparent,

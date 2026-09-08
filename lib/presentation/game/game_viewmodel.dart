@@ -32,9 +32,7 @@ class GameViewModel {
     if (uri == null) return null;
     if (uri.scheme != 'http' && uri.scheme != 'https') return null;
 
-    final host = uri.host.startsWith('www.')
-        ? uri.host.substring(4)
-        : uri.host;
+    final host = uri.host.startsWith('www.') ? uri.host.substring(4) : uri.host;
     if (!_beatspanHosts.contains(host)) return null;
 
     final segments = uri.pathSegments.where((s) => s.isNotEmpty).toList();

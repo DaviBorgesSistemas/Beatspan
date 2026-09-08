@@ -134,14 +134,14 @@ class _HomeViewState extends State<HomeView> {
                             borderRadius: BorderRadius.circular(28),
                             onTap: _onPlayNow,
                             child: Center(
-                              child:Text(
-                                    'JOGAR AGORA',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
+                              child: Text(
+                                'JOGAR AGORA',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
                             ),
                           ),
                         ),

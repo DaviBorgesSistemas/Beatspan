@@ -78,7 +78,10 @@ class _GameViewState extends State<GameView> {
   Future<void> _handleBeatspanCode(String codigo) async {
     final result = await _getMusicaUseCase.execute(codigo);
 
-    final spotifyUri = result.fold((failure) => null, (musica) => musica.spotifyUri);
+    final spotifyUri = result.fold(
+      (failure) => null,
+      (musica) => musica.spotifyUri,
+    );
 
     if (spotifyUri == null) {
       final failureCode = result.fold((failure) => failure.code, (_) => 0);

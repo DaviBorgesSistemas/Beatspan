@@ -12,9 +12,9 @@ extension ConnectivityGuard on BuildContext {
     if (isConnected) return true;
 
     if (!mounted) return false;
-    await Navigator.of(this).push(
-      MaterialPageRoute(builder: (_) => const NoInternetView()),
-    );
+    await Navigator.of(
+      this,
+    ).push(MaterialPageRoute(builder: (_) => const NoInternetView()));
     return false;
   }
 }

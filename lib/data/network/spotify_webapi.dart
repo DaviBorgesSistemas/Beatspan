@@ -33,8 +33,8 @@ class SpotifyWebApi {
         .whereType<String>()
         .toList();
 
-    final images = (j['album'] as Map<String, dynamic>?)?['images']
-        as List<dynamic>?;
+    final images =
+        (j['album'] as Map<String, dynamic>?)?['images'] as List<dynamic>?;
     final albumArtUrl = images?.isNotEmpty == true
         ? (images!.first as Map<String, dynamic>)['url'] as String?
         : null;

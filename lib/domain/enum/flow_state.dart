@@ -1,6 +1,1 @@
-enum FlowState {
-  content,
-  loading,
-  error,
-  success,
-}
+enum FlowState { content, loading, error, success }

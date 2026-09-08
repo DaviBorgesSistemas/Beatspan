@@ -45,7 +45,7 @@ class _FaqsViewState extends State<FaqsView> {
     return Scaffold(
       backgroundColor: ColorManager.bagroundColor,
       appBar: AppBar(
-         leading: GestureDetector(
+        leading: GestureDetector(
           onTap: () {
             Navigator.of(context).pop();
           },

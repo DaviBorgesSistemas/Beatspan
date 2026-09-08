@@ -22,12 +22,15 @@ class FaqsViewModel {
 
   void _getFaqs() async {
     state.value = FlowState.loading;
-    (await _faqsUseCase.execute(Void)).fold((failure) {
-      debugPrint('Erro:${failure.message}');
-      state.value = FlowState.error;
-    }, (success) {
-      faqs.value = success;
-      state.value = FlowState.success;
-    });
+    (await _faqsUseCase.execute(Void)).fold(
+      (failure) {
+        debugPrint('Erro:${failure.message}');
+        state.value = FlowState.error;
+      },
+      (success) {
+        faqs.value = success;
+        state.value = FlowState.success;
+      },
+    );
   }
 }

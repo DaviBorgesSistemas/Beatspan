@@ -11,8 +11,7 @@ class BeatspanLoadingOverlay extends StatefulWidget {
   });
 
   @override
-  State<BeatspanLoadingOverlay> createState() =>
-      _BeatspanLoadingOverlayState();
+  State<BeatspanLoadingOverlay> createState() => _BeatspanLoadingOverlayState();
 }
 
 class _BeatspanLoadingOverlayState extends State<BeatspanLoadingOverlay>

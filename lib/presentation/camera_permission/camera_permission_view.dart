@@ -54,10 +54,7 @@ class CameraPermissionView extends StatelessWidget {
                   ),
                 ],
               ),
-              Align(
-                alignment: Alignment.center,
-                child: _CameraGraphic(),
-              ),
+              Align(alignment: Alignment.center, child: _CameraGraphic()),
               Positioned(
                 bottom: 0,
                 left: 0,
@@ -123,11 +120,7 @@ class _CameraGraphic extends StatelessWidget {
           color: Color(0XFF110B1A),
           shape: BoxShape.circle,
         ),
-        child: Icon(
-          Icons.qr_code_2,
-          size: 140,
-          color: Color(0xFF2CCBF5),
-        ),
+        child: Icon(Icons.qr_code_2, size: 140, color: Color(0xFF2CCBF5)),
       ),
     );
   }

@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 
 class LoadingDots extends StatefulWidget {
-final AnimationController controller;
-  const LoadingDots({ super.key,required this.controller });
+  final AnimationController controller;
+  const LoadingDots({super.key, required this.controller});
 
   @override
   State<LoadingDots> createState() => _LoadingDotsState();
 }
 
-class _LoadingDotsState extends State<LoadingDots> with SingleTickerProviderStateMixin {
- static const _dotCount = 5;
+class _LoadingDotsState extends State<LoadingDots>
+    with SingleTickerProviderStateMixin {
+  static const _dotCount = 5;
   static const _dotColors = [
     Color(0xFF6C5CE7),
     Color(0xFF9C4FE0),

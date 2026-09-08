@@ -45,9 +45,8 @@ class CardBorder extends StatelessWidget {
           color: Color(0XFF110B1A),
           borderRadius: _inset(borderRadius),
         ),
-        child: child, 
+        child: child,
       ),
-    );  
+    );
   }
 }
- 

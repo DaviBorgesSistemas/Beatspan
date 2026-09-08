@@ -44,7 +44,10 @@ class _ScannerOverlayState extends State<ScannerOverlay>
               gradient: RadialGradient(
                 center: Alignment.center,
                 radius: 0.85,
-                colors: [Colors.transparent, Colors.black.withValues(alpha: 0.8)],
+                colors: [
+                  Colors.transparent,
+                  Colors.black.withValues(alpha: 0.8),
+                ],
                 stops: const [0.4, 1.0],
               ),
             ),
@@ -65,7 +68,9 @@ class _ScannerOverlayState extends State<ScannerOverlay>
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.white.withValues(alpha: 0.08),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.1),
+                      ),
                     ),
                     child: const Icon(Icons.close, color: Colors.white),
                   ),
@@ -86,22 +91,29 @@ class _ScannerOverlayState extends State<ScannerOverlay>
                   builder: (context, _) {
                     return Stack(
                       children: [
-                        _corner(top: 0, left: 0, borders: const [
-                          _CornerSide.top,
-                          _CornerSide.left,
-                        ]),
-                        _corner(top: 0, right: 0, borders: const [
-                          _CornerSide.top,
-                          _CornerSide.right,
-                        ]),
-                        _corner(bottom: 0, left: 0, borders: const [
-                          _CornerSide.bottom,
-                          _CornerSide.left,
-                        ]),
-                        _corner(bottom: 0, right: 0, borders: const [
-                          _CornerSide.bottom,
-                          _CornerSide.right,
-                        ]),
+                        _corner(
+                          top: 0,
+                          left: 0,
+                          borders: const [_CornerSide.top, _CornerSide.left],
+                        ),
+                        _corner(
+                          top: 0,
+                          right: 0,
+                          borders: const [_CornerSide.top, _CornerSide.right],
+                        ),
+                        _corner(
+                          bottom: 0,
+                          left: 0,
+                          borders: const [_CornerSide.bottom, _CornerSide.left],
+                        ),
+                        _corner(
+                          bottom: 0,
+                          right: 0,
+                          borders: const [
+                            _CornerSide.bottom,
+                            _CornerSide.right,
+                          ],
+                        ),
                         Positioned(
                           top: 260 * _scanPosition.value - 1,
                           left: 0,
@@ -184,9 +196,7 @@ class _ScannerOverlayState extends State<ScannerOverlay>
                 ? side
                 : BorderSide.none,
             left: borders.contains(_CornerSide.left) ? side : BorderSide.none,
-            right: borders.contains(_CornerSide.right)
-                ? side
-                : BorderSide.none,
+            right: borders.contains(_CornerSide.right) ? side : BorderSide.none,
           ),
           borderRadius: BorderRadius.circular(4),
           boxShadow: [

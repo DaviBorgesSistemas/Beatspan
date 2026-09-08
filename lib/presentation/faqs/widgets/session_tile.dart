@@ -48,11 +48,7 @@ class _SessionTileState extends State<SessionTile> {
             ),
           ),
         ),
-        children: [
-          getContent(
-            widget.s.content ?? '',
-          ),
-        ],
+        children: [getContent(widget.s.content ?? '')],
       ),
     );
   }
@@ -84,13 +80,12 @@ class _SessionTileState extends State<SessionTile> {
       spans.add(
         TextSpan(
           text: displayText,
-          style: getRegularStyle(
-            color: ColorManager.yellowLink,
-            fontSize: 14,
-          ).copyWith(
-            decoration:
-                isExternal ? TextDecoration.underline : TextDecoration.none,
-          ),
+          style: getRegularStyle(color: ColorManager.yellowLink, fontSize: 14)
+              .copyWith(
+                decoration: isExternal
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
+              ),
           recognizer: TapGestureRecognizer()
             ..onTap = () async {
               if (isExternal) {

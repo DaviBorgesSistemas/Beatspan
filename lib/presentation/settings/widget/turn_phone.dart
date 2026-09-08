@@ -143,11 +143,11 @@ class _TurnPhoneState extends State<TurnPhone> {
                     onTap: () {
                       turnPhoneMode.value = 0;
                     },
-                    child: CardBorder( 
+                    child: CardBorder(
                       selected: turnPhoneMode.value == 0,
                       borderRadius: BorderRadius.all(Radius.zero),
                       child: Container(
-                        padding: const EdgeInsets.all(16), 
+                        padding: const EdgeInsets.all(16),
                         child: Row(
                           children: [
                             buttonRadio(turnPhoneMode.value == 0),

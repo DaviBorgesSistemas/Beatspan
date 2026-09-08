@@ -6,7 +6,8 @@ import 'app/di.dart';
 import 'firebase_options.dart';
 
 void main() async {
-  final WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  final WidgetsBinding widgetsBinding =
+      WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   systemChromeConfigure();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);

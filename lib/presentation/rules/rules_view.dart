@@ -23,13 +23,13 @@ class _RulesViewState extends State<RulesView> {
       backgroundColor: ColorManager.bagroundColor,
       appBar: AppBar(
         leading: GestureDetector(
-          onTap: () { 
+          onTap: () {
             Navigator.of(context).pop();
           },
           child: Padding(
             padding: const EdgeInsets.only(left: 16),
             child: Container(
-              decoration: BoxDecoration( 
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(width: 1, color: Color(0X33CDBDFF)),
               ),

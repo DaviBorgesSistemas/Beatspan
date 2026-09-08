@@ -29,11 +29,7 @@ class FaqTile extends StatelessWidget {
                 ),
               ),
               Column(
-                children: faq!.session!
-                    .map(
-                      (s) => SessionTile(s),
-                    )
-                    .toList(),
+                children: faq!.session!.map((s) => SessionTile(s)).toList(),
               ),
             ],
           )
