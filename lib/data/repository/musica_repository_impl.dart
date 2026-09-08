@@ -1,9 +1,9 @@
 import 'package:dartz/dartz.dart';
 
 import '../../domain/exception/musica_exceptions.dart';
+import '../../domain/failure.dart';
 import '../../domain/model/musica.dart';
 import '../../domain/repository/musica_repository.dart';
-import '../failure.dart';
 import '../network/musica_firestore_data_source.dart';
 
 class MusicaRepositoryImpl implements MusicaRepository {

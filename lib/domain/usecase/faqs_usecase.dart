@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
 
-import '../../data/failure.dart';
+import '../failure.dart';
 import '../model/faqs.dart';
 import '../repository/faq_repository.dart';
 import 'base_usecase.dart';

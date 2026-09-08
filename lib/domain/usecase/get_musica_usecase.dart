@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
 
-import '../../data/failure.dart';
+import '../failure.dart';
 import '../model/musica.dart';
 import '../repository/musica_repository.dart';
 import 'base_usecase.dart';

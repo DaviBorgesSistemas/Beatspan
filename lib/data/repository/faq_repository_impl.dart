@@ -1,11 +1,11 @@
 import 'package:dartz/dartz.dart';
 
-import '../failure.dart';
+import '../../domain/failure.dart';
 import '../../domain/model/faqs.dart';
 
 import '../../domain/repository/faq_repository.dart';
-import '../../presentation/resource/assets_manager.dart';
 import '../data_source/faq_local_data_source.dart';
+import '../data_source/json_assets.dart';
 
 class FaqRepositoryImpl implements FaqRepository {
   final FaqLocalDataSource _localDataSource;
