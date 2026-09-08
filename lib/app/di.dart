@@ -5,11 +5,15 @@ import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/data_source/faq_local_data_source.dart';
+import '../data/network/musica_firestore_data_source.dart';
 import '../data/network/network_info.dart';
 import '../data/network/spotify_service.dart';
 import '../data/repository/faq_repository_impl.dart';
+import '../data/repository/musica_repository_impl.dart';
 import '../domain/repository/faq_repository.dart';
+import '../domain/repository/musica_repository.dart';
 import '../domain/usecase/faqs_usecase.dart';
+import '../domain/usecase/get_musica_usecase.dart';
 import '../presentation/change_spotify/connect_spotify_premium_view_model.dart';
 import '../presentation/faqs/faqs_view_model.dart';
 import 'app_prefs.dart';
@@ -57,6 +61,22 @@ Future<void> initAppModule() async {
   if (!instance.isRegistered<SpotifyService>()) {
     instance.registerLazySingleton<SpotifyService>(
       () => SpotifyService(clientId: clientId, redirectUrl: redirectUrl),
+    );
+  }
+
+  if (!instance.isRegistered<MusicaFirestoreDataSource>()) {
+    instance.registerLazySingleton<MusicaFirestoreDataSource>(
+      () => MusicaFirestoreDataSource(),
+    );
+  }
+  if (!instance.isRegistered<MusicaRepository>()) {
+    instance.registerLazySingleton<MusicaRepository>(
+      () => MusicaRepositoryImpl(instance()),
+    );
+  }
+  if (!instance.isRegistered<GetMusicaUseCase>()) {
+    instance.registerFactory<GetMusicaUseCase>(
+      () => GetMusicaUseCase(instance()),
     );
   }
 }

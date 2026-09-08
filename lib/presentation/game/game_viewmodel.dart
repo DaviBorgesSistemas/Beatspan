@@ -1,40 +1,36 @@
-enum QrValidationResult { invalid, spotifyTrack }
+enum QrValidationResult { invalid, beatspanCode }
 
 class GameViewModel {
-  static const String _spotifyHost = 'open.spotify.com';
+  static const String _beatspanHost = 'beatspangame.com';
 
   QrValidationResult validate(String rawValue) {
-    final isSpotifyTrack = isValidSpotifyLink(rawValue);
-    if (!isSpotifyTrack) {
+    final isBeatspanLink = extractCodigo(rawValue) != null;
+    if (!isBeatspanLink) {
       return QrValidationResult.invalid;
     }
-    return QrValidationResult.spotifyTrack;
+    return QrValidationResult.beatspanCode;
   }
 
-  bool isValidSpotifyLink(String value) {
-    return extractTrackId(value) != null;
-  }
-
-  /// Aceita links de faixa do Spotify com ou sem prefixo de locale, ex:
-  /// `https://open.spotify.com/track/<id>`
-  /// `https://open.spotify.com/intl-pt/track/<id>`
-  String? extractTrackId(String url) {
+  /// Aceita links do domínio próprio, com ou sem "www.", ex:
+  /// `https://www.beatspangame.com/0006`
+  /// `https://beatspangame.com/0006`
+  ///
+  /// Retorna o código curto (ex: "0006") ou `null` se a URL não for
+  /// reconhecida como um link válido do BEATSPAN.
+  String? extractCodigo(String url) {
     final uri = Uri.tryParse(url);
     if (uri == null) return null;
     if (uri.scheme != 'http' && uri.scheme != 'https') return null;
-    if (uri.host != _spotifyHost) return null;
 
-    final segments = uri.pathSegments;
-    final trackIndex = segments.indexOf('track');
-    if (trackIndex == -1 || trackIndex + 1 >= segments.length) return null;
+    final host = uri.host.startsWith('www.')
+        ? uri.host.substring(4)
+        : uri.host;
+    if (host != _beatspanHost) return null;
 
-    final id = segments[trackIndex + 1];
-    return id.isEmpty ? null : id;
-  }
+    final segments = uri.pathSegments.where((s) => s.isNotEmpty).toList();
+    if (segments.isEmpty) return null;
 
-  String? toSpotifyUri(String url) {
-    final id = extractTrackId(url);
-    if (id == null) return null;
-    return 'spotify:track:$id';
+    final codigo = segments.last;
+    return codigo.isEmpty ? null : codigo;
   }
 }

@@ -418,29 +418,39 @@ class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
   }
 
   Widget _nextCardButton() {
-    return SizedBox(
-      width: double.infinity,
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24),
       height: 56,
-      child: ElevatedButton(
-        onPressed: () => Navigator.of(context).pop(),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _purple,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
-          ),
-          elevation: 0,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF6C2BFF), Color(0xFFFF469E)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
         ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'PRÓXIMA CARTA',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(28),
+          onTap: () => Navigator.of(context).pop(),
+          child: Center(
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'PRÓXIMA CARTA',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+                SizedBox(width: 8),
+                Icon(Icons.arrow_forward, size: 18),
+              ],
             ),
-            SizedBox(width: 8),
-            Icon(Icons.arrow_forward, size: 18),
-          ],
+          ),
         ),
       ),
     );

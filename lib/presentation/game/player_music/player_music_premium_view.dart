@@ -266,36 +266,6 @@ class _PlayerMusicPremiumViewState extends State<PlayerMusicPremiumView> {
         ),
       ),
     );
-    return SizedBox(
-      width: 280,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: () => Navigator.of(context).pop(),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _purple,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
-          ),
-          elevation: 0,
-        ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'PRÓXIMA CARTA',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.0,
-              ),
-            ),
-            SizedBox(width: 8),
-            Icon(Icons.arrow_forward, size: 18),
-          ],
-        ),
-      ),
-    );
   }
 }
 

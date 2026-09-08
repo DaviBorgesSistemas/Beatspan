@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "352039512110",
+    "project_id": "beatspan",
+    "storage_bucket": "beatspan.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:352039512110:android:c0a65b918c82ce470317bf",
+        "android_client_info": {
+          "package_name": "br.com.dcbsys.beatspan"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCzPWfLTNBJvmzPIW7ZFH2IN0prESvyaSQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

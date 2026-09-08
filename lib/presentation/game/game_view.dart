@@ -7,6 +7,7 @@ import '../../data/network/itunes_search_api.dart';
 import '../../data/network/spotify_service.dart';
 import '../../data/network/spotify_webapi.dart';
 import '../../domain/enum/settings_enum.dart';
+import '../../domain/usecase/get_musica_usecase.dart';
 import '../share/widgets/beatspan_loading_overlay.dart';
 import 'game_viewmodel.dart';
 import 'game_error_view.dart';
@@ -26,6 +27,7 @@ class _GameViewState extends State<GameView> {
   final MobileScannerController qrController = MobileScannerController();
   final GameViewModel controller = GameViewModel();
   final AppPreferences _appPreferences = instance<AppPreferences>();
+  final GetMusicaUseCase _getMusicaUseCase = instance<GetMusicaUseCase>();
 
   bool _isHandlingCode = false;
   bool _isLoading = false;
@@ -57,7 +59,13 @@ class _GameViewState extends State<GameView> {
         return;
       }
 
-      await _handleSpotifyTrack(value);
+      final codigo = controller.extractCodigo(value);
+      if (codigo == null) {
+        await _goToError();
+        return;
+      }
+
+      await _handleBeatspanCode(codigo);
     } finally {
       if (mounted) {
         _isHandlingCode = false;
@@ -67,12 +75,25 @@ class _GameViewState extends State<GameView> {
     }
   }
 
-  Future<void> _handleSpotifyTrack(String rawUrl) async {
-    final spotifyUri = controller.toSpotifyUri(rawUrl);
+  Future<void> _handleBeatspanCode(String codigo) async {
+    final result = await _getMusicaUseCase.execute(codigo);
+
+    final spotifyUri = result.fold((failure) => null, (musica) => musica.spotifyUri);
+
     if (spotifyUri == null) {
-      await _goToError();
+      final failureCode = result.fold((failure) => failure.code, (_) => 0);
+      if (failureCode == 404) {
+        await _goToMusicaNaoEncontrada();
+      } else {
+        await _goToConnectionError();
+      }
       return;
     }
+
+    await _handleSpotifyTrack(spotifyUri);
+  }
+
+  Future<void> _handleSpotifyTrack(String spotifyUri) async {
     final plan = await _appPreferences.getAppPlanType();
     if (plan == null) return;
     final gameMode = _appPreferences.getGameMode();
@@ -85,7 +106,7 @@ class _GameViewState extends State<GameView> {
       return;
     }
 
-    final trackId = controller.extractTrackId(rawUrl);
+    final trackId = _extractTrackId(spotifyUri);
     if (trackId == null) {
       await _goToError();
       return;
@@ -135,9 +156,31 @@ class _GameViewState extends State<GameView> {
     );
   }
 
+  /// Extrai o id da faixa a partir de uma URI no formato
+  /// `spotify:track:<id>`.
+  String? _extractTrackId(String spotifyUri) {
+    final parts = spotifyUri.split(':');
+    if (parts.length != 3 || parts[0] != 'spotify' || parts[1] != 'track') {
+      return null;
+    }
+    final id = parts[2];
+    return id.isEmpty ? null : id;
+  }
+
   Future<void> _goToError() async {
     if (!mounted) return;
     await _navigateTo(const GameErrorView());
+  }
+
+  Future<void> _goToMusicaNaoEncontrada() async {
+    if (!mounted) return;
+    await _navigateTo(
+      const GameErrorView(
+        title: 'MÚSICA NÃO ENCONTRADA',
+        message:
+            'Não encontramos essa carta no nosso catálogo. Tente escanear novamente.',
+      ),
+    );
   }
 
   Future<void> _goToPreviewUnavailable() async {
