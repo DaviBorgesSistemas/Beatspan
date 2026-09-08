@@ -43,38 +43,48 @@ class _FaqsViewState extends State<FaqsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorManager.black,
+      backgroundColor: ColorManager.bagroundColor,
       appBar: AppBar(
-        iconTheme: IconThemeData(color: ColorManager.white),
-        backgroundColor: ColorManager.black,
-        titleSpacing: 0,
-        leadingWidth: 40,
+         leading: GestureDetector(
+          onTap: () {
+            Navigator.of(context).pop();
+          },
+          child: Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(width: 1, color: Color(0X33CDBDFF)),
+              ),
+              child: Icon(Icons.arrow_back, color: Colors.white),
+            ),
+          ),
+        ),
+        backgroundColor: ColorManager.bagroundColor,
         title: SizedBox(
-          width: context.percentWidth(.3),
-          child: Image.asset(ImageAssets.logoSplash),
+          width: context.percentWidth(.5),
+          child: Image.asset(ImageAssets.splashWordmark),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppPadding.p22,
-          AppPadding.p16,
-          AppPadding.p22,
-          AppPadding.zero,
-        ),
-        child: SingleChildScrollView(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppPadding.p22,
+            AppPadding.p32,
+            AppPadding.p22,
+            AppPadding.p46,
+          ),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppPadding.p46),
-                child: Text(
-                  'FAQ (FREQUENTLY ASKED QUESTIONS - PERGUNTAS MAIS FREQUENTES)',
-                  textAlign: TextAlign.center,
-                  style: getBoldStyle(
-                    color: ColorManager.white,
-                    fontSize: FontSize.s32,
-                  ),
+              Text(
+                'Perguntas frequentes',
+                style: getBoldStyle(
+                  color: ColorManager.white,
+                  fontSize: FontSize.s24,
                 ),
               ),
+              const SizedBox(height: AppPadding.p16),
               ListenableBuilder(
                 listenable: Listenable.merge([
                   _viewModel.state,

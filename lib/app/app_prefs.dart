@@ -64,6 +64,10 @@ class AppPreferences {
     await _sharedPreferences.setString(prefsKeyGameMode, mode.name);
   }
 
+  bool hasGameMode() {
+    return _sharedPreferences.containsKey(prefsKeyGameMode);
+  }
+
   GameModeType getGameMode() {
     final mode = _sharedPreferences.getString(prefsKeyGameMode);
     return mode != null

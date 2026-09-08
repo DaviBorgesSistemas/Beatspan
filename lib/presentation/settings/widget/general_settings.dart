@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../routes_manager.dart';
+
 class GeneralSettings extends StatelessWidget {
 
   const GeneralSettings({ super.key });
@@ -18,7 +20,9 @@ class GeneralSettings extends StatelessWidget {
               ),
               SizedBox(height: 12),
               GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  Navigator.of(context).pushNamed(Routes.rulesRoute);
+                },
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                   decoration: BoxDecoration(
@@ -49,7 +53,9 @@ class GeneralSettings extends StatelessWidget {
               ),
               SizedBox(height: 8),
               GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  Navigator.of(context).pushNamed(Routes.faqRoute);
+                },
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                   decoration: BoxDecoration(

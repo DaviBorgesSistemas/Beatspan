@@ -55,6 +55,9 @@ class ConnectSpotifyPremiumViewModel {
       }
 
       _appPreferences.setAppPlanType(PlanType.premium);
+      if (!_appPreferences.hasGameMode()) {
+        _appPreferences.setGameMode(GameModeType.fullTrack);
+      }
       state.value = FlowState.success;
     } on MissingPluginException catch (_) {
       state.value = FlowState.error;

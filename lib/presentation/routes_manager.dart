@@ -18,7 +18,6 @@ class Routes {
   static const String rulesRoute = '/rules';
   static const String changeSpotifyRoute = '/change-spotify';
   static const String changeSpotifyFreeRoute = '/connect-spotify-free';
-
   static const String homeRoute = '/home';
   static const String faqRoute = '/faq';
   static const String settingsRoute = '/settings';

@@ -163,9 +163,7 @@ class _PlayerMusicPremiumViewState extends State<PlayerMusicPremiumView> {
 
   Widget _buildBody() {
     if (_loading) {
-      return const BeatspanLoadingOverlay(
-        message: 'CONECTANDO AO SPOTIFY...',
-      );
+      return const BeatspanLoadingOverlay(message: 'CONECTANDO AO SPOTIFY...');
     }
 
     if (_error != null || !_pluginAvailable || _playerStateStream == null) {
@@ -199,7 +197,11 @@ class _PlayerMusicPremiumViewState extends State<PlayerMusicPremiumView> {
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+              const Icon(
+                Icons.error_outline,
+                color: Colors.redAccent,
+                size: 48,
+              ),
               const SizedBox(height: 16),
               Text(
                 'Erro na stream de estado do player:\n${snap.error}',
@@ -228,6 +230,42 @@ class _PlayerMusicPremiumViewState extends State<PlayerMusicPremiumView> {
   }
 
   Widget _nextCardButton() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24),
+      height: 56,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF6C2BFF), Color(0xFFFF469E)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(28),
+          onTap: () => Navigator.of(context).pop(),
+          child: Center(
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'PRÓXIMA CARTA',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+                SizedBox(width: 8),
+                Icon(Icons.arrow_forward, size: 18),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
     return SizedBox(
       width: 280,
       height: 56,
@@ -286,8 +324,27 @@ class _VisualGlyphsCardState extends State<_VisualGlyphsCard>
       (i) => AnimationController(
         vsync: this,
         duration: Duration(milliseconds: _ringDurationsMs[i]),
-      )..repeat(reverse: false),
+      ),
     );
+    _syncAnimationState();
+  }
+
+  @override
+  void didUpdateWidget(covariant _VisualGlyphsCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.playing != widget.playing) {
+      _syncAnimationState();
+    }
+  }
+
+  void _syncAnimationState() {
+    for (final c in _controllers) {
+      if (widget.playing) {
+        c.repeat(reverse: false);
+      } else {
+        c.stop();
+      }
+    }
   }
 
   @override
@@ -378,10 +435,30 @@ class _GlyphRingsPainter extends CustomPainter {
   _GlyphRingsPainter({required this.turns});
 
   static const _rings = [
-    _RingSpec(radius: 110, strokeWidth: 6, dashes: [140, 50, 60, 40], opacity: 0.8),
-    _RingSpec(radius: 90, strokeWidth: 6, dashes: [100, 40, 70, 30], opacity: 0.9),
-    _RingSpec(radius: 70, strokeWidth: 5, dashes: [80, 30, 50, 40], opacity: 0.85),
-    _RingSpec(radius: 50, strokeWidth: 4, dashes: [60, 25, 30, 20], opacity: 0.75),
+    _RingSpec(
+      radius: 110,
+      strokeWidth: 6,
+      dashes: [140, 50, 60, 40],
+      opacity: 0.8,
+    ),
+    _RingSpec(
+      radius: 90,
+      strokeWidth: 6,
+      dashes: [100, 40, 70, 30],
+      opacity: 0.9,
+    ),
+    _RingSpec(
+      radius: 70,
+      strokeWidth: 5,
+      dashes: [80, 30, 50, 40],
+      opacity: 0.85,
+    ),
+    _RingSpec(
+      radius: 50,
+      strokeWidth: 4,
+      dashes: [60, 25, 30, 20],
+      opacity: 0.75,
+    ),
   ];
 
   @override
@@ -397,13 +474,14 @@ class _GlyphRingsPainter extends CustomPainter {
         const Color(0xFFFF469E).withValues(alpha: ring.opacity),
       ];
       final paint = Paint()
-        ..shader = LinearGradient(
-          colors: gradientColors,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ).createShader(
-          Rect.fromCircle(center: center, radius: ring.radius * scale),
-        )
+        ..shader =
+            LinearGradient(
+              colors: gradientColors,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ).createShader(
+              Rect.fromCircle(center: center, radius: ring.radius * scale),
+            )
         ..style = PaintingStyle.stroke
         ..strokeWidth = ring.strokeWidth * scale
         ..strokeCap = StrokeCap.round;
