@@ -18,11 +18,16 @@ class MusicaFirestoreDataSource {
     : _firestore = firestore ?? FirebaseFirestore.instance;
 
   static const String _collection = 'musicas';
+  static const _timeout = Duration(seconds: 10);
 
   Future<Musica> getByCodigo(String codigo) async {
     DocumentSnapshot<Map<String, dynamic>> snapshot;
     try {
-      snapshot = await _firestore.collection(_collection).doc(codigo).get();
+      snapshot = await _firestore
+          .collection(_collection)
+          .doc(codigo)
+          .get()
+          .timeout(_timeout);
     } on FirebaseException catch (e) {
       throw MusicaConsultaException(
         e.message ?? 'Falha ao consultar o Firestore.',

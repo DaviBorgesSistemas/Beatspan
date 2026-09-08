@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 class SpotifyWebApi {
   final String accessToken;
 
+  static const _timeout = Duration(seconds: 10);
+
   SpotifyWebApi(this.accessToken);
 
   Map<String, String> get _h => {
@@ -21,7 +23,7 @@ class SpotifyWebApi {
 
   Future<SpotifyTrackInfo?> getTrack(String trackId) async {
     final url = Uri.parse('https://api.spotify.com/v1/tracks/$trackId');
-    final r = await http.get(url, headers: _h);
+    final r = await http.get(url, headers: _h).timeout(_timeout);
 
     if (r.statusCode != 200) return null;
 
@@ -49,7 +51,7 @@ class SpotifyWebApi {
   /// Requer o escopo `user-library-modify`.
   Future<bool> saveTrack(String trackId) async {
     final url = Uri.parse('https://api.spotify.com/v1/me/tracks?ids=$trackId');
-    final r = await http.put(url, headers: _h);
+    final r = await http.put(url, headers: _h).timeout(_timeout);
     return r.statusCode == 200 || r.statusCode == 204;
   }
 
@@ -59,7 +61,7 @@ class SpotifyWebApi {
     final url = Uri.parse(
       'https://api.spotify.com/v1/me/tracks/contains?ids=$trackId',
     );
-    final r = await http.get(url, headers: _h);
+    final r = await http.get(url, headers: _h).timeout(_timeout);
     if (r.statusCode != 200) return false;
     final list = json.decode(r.body) as List<dynamic>;
     return list.isNotEmpty && list.first == true;

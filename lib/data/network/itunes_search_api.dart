@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ItunesSearchApi {
+  static const _timeout = Duration(seconds: 10);
+
   Future<ItunesTrackInfo?> searchTrack({
     required String trackName,
     String? artist,
@@ -16,7 +18,7 @@ class ItunesSearchApi {
       'country': 'BR',
     });
 
-    final r = await http.get(url);
+    final r = await http.get(url).timeout(_timeout);
     if (r.statusCode != 200) return null;
 
     final j = json.decode(r.body) as Map<String, dynamic>;
