@@ -123,4 +123,39 @@ void main() {
     expect(result, isNull);
     verifyNever(() => itunesSearchApi.searchTrack(trackName: any(named: 'trackName')));
   });
+
+  test(
+    'reusa o resultado em cache na segunda chamada para o mesmo trackId, sem rechamar as APIs',
+    () async {
+      when(() => spotifyWebApi.getTrack(trackId)).thenAnswer(
+        (_) async => const SpotifyTrackInfo(
+          name: 'Nome',
+          artist: 'Artista',
+          previewUrl: 'https://spotify-preview',
+          albumArtUrl: 'https://album-art',
+        ),
+      );
+
+      final first = await repository.resolvePreview(trackId);
+      final second = await repository.resolvePreview(trackId);
+
+      expect(second, equals(first));
+      verify(() => spotifyService.getAccessToken()).called(1);
+      verify(() => spotifyWebApi.getTrack(trackId)).called(1);
+    },
+  );
+
+  test(
+    'também cacheia um resultado null (faixa sem preview disponível)',
+    () async {
+      when(() => spotifyWebApi.getTrack(trackId)).thenAnswer((_) async => null);
+
+      final first = await repository.resolvePreview(trackId);
+      final second = await repository.resolvePreview(trackId);
+
+      expect(first, isNull);
+      expect(second, isNull);
+      verify(() => spotifyWebApi.getTrack(trackId)).called(1);
+    },
+  );
 }

@@ -11,6 +11,11 @@ class MusicaPlaybackRepositoryImpl implements MusicaPlaybackRepository {
   final ItunesSearchApi _itunesSearchApi;
   final SpotifyWebApiFactory _spotifyWebApiFactory;
 
+  // Cache em memória por trackId: a mesma carta escaneada de novo na mesma
+  // sessão do app reaproveita a resolução anterior em vez de rechamar
+  // Spotify/iTunes. Sem TTL — o resultado não muda durante a sessão.
+  final Map<String, PreviewPlayback?> _previewCache = {};
+
   MusicaPlaybackRepositoryImpl(
     this._spotifyService,
     this._itunesSearchApi, {
@@ -19,6 +24,16 @@ class MusicaPlaybackRepositoryImpl implements MusicaPlaybackRepository {
 
   @override
   Future<PreviewPlayback?> resolvePreview(String trackId) async {
+    if (_previewCache.containsKey(trackId)) {
+      return _previewCache[trackId];
+    }
+
+    final result = await _fetchPreview(trackId);
+    _previewCache[trackId] = result;
+    return result;
+  }
+
+  Future<PreviewPlayback?> _fetchPreview(String trackId) async {
     final token = await _spotifyService.getAccessToken();
     final api = _spotifyWebApiFactory(token);
     final track = await api.getTrack(trackId);

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -233,10 +234,11 @@ class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
       decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
       clipBehavior: Clip.antiAlias,
       child: widget.albumArtUrl != null
-          ? Image.network(
-              widget.albumArtUrl!,
+          ? CachedNetworkImage(
+              imageUrl: widget.albumArtUrl!,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _albumArtFallback(),
+              placeholder: (_, __) => _albumArtFallback(),
+              errorWidget: (_, __, ___) => _albumArtFallback(),
             )
           : _albumArtFallback(),
     );
