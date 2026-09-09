@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../app/app_prefs.dart';
 import '../app/di.dart';
+import '../data/network/spotify_service.dart';
+import '../domain/usecase/get_musica_usecase.dart';
+import '../domain/usecase/musica_playback_usecase.dart';
 import 'change_spotify/change_spotify_view.dart';
+import 'change_spotify/connect_spotify_premium_view_model.dart';
 import 'contact/contact_view.dart';
 import 'faqs/faqs_view.dart';
+import 'faqs/faqs_view_model.dart';
 import 'first_time/first_time_view.dart';
 import 'game/game_view.dart';
 import 'home/home_view.dart';
@@ -30,29 +36,55 @@ class RouteGenerator {
   static Route<dynamic> getRoute(RouteSettings routeSettings) {
     switch (routeSettings.name) {
       case Routes.splashRoute:
-        return MaterialPageRoute(builder: (_) => const SplashView());
+        return MaterialPageRoute(
+          builder: (_) =>
+              SplashView(appPreferences: instance<AppPreferences>()),
+        );
       case Routes.firstTimeRoute:
         return _fadeRoute(const FirstTimeView());
       case Routes.rulesRoute:
         return MaterialPageRoute(builder: (_) => const RulesView());
       case Routes.changeSpotifyRoute:
+        initSpotifyModule();
         return MaterialPageRoute(
           settings: routeSettings,
-          builder: (_) => const ChangeSpotifyView(),
+          builder: (_) => ChangeSpotifyView(
+            appPreferences: instance<AppPreferences>(),
+            viewModel: instance<ConnectSpotifyPremiumViewModel>(),
+          ),
         );
       case Routes.changeSpotifyFreeRoute:
-        return MaterialPageRoute(builder: (_) => const SpotifyFreeTransition());
+        return MaterialPageRoute(
+          builder: (_) => SpotifyFreeTransition(
+            appPreferences: instance<AppPreferences>(),
+          ),
+        );
       case Routes.homeRoute:
         return _fadeRoute(const HomeView());
       case Routes.faqRoute:
         initFaqsModule();
-        return MaterialPageRoute(builder: (_) => const FaqsView());
+        return MaterialPageRoute(
+          builder: (_) => FaqsView(viewModel: instance<FaqsViewModel>()),
+        );
       case Routes.settingsRoute:
-        return MaterialPageRoute(builder: (_) => const SettingsView());
+        initSpotifyModule();
+        return MaterialPageRoute(
+          builder: (_) => SettingsView(
+            appPreferences: instance<AppPreferences>(),
+            viewModel: instance<ConnectSpotifyPremiumViewModel>(),
+          ),
+        );
       case Routes.contactRoute:
         return MaterialPageRoute(builder: (_) => const ContactView());
       case Routes.gameRoute:
-        return MaterialPageRoute(builder: (_) => const GameView());
+        return MaterialPageRoute(
+          builder: (_) => GameView(
+            appPreferences: instance<AppPreferences>(),
+            getMusicaUseCase: instance<GetMusicaUseCase>(),
+            musicaPlaybackUseCase: instance<MusicaPlaybackUseCase>(),
+            spotifyService: instance<SpotifyService>(),
+          ),
+        );
       default:
         return undefinedRoute();
     }

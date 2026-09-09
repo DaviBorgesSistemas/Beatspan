@@ -125,7 +125,10 @@ void initFaqsModule() {
 void initSpotifyModule() {
   if (!instance.isRegistered<ConnectSpotifyPremiumViewModel>()) {
     instance.registerFactory<ConnectSpotifyPremiumViewModel>(
-      () => ConnectSpotifyPremiumViewModel(instance<SpotifyService>()),
+      () => ConnectSpotifyPremiumViewModel(
+        instance<SpotifyService>(),
+        instance<AppPreferences>(),
+      ),
     );
   }
 }

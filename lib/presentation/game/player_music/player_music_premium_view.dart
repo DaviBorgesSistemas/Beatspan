@@ -7,14 +7,19 @@ import 'package:flutter/services.dart';
 import 'package:spotify_sdk/models/player_state.dart';
 import 'package:spotify_sdk/spotify_sdk.dart';
 
-import '../../../app/di.dart';
 import '../../../data/network/spotify_service.dart';
 import '../../share/widgets/beatspan_loading_overlay.dart';
+import '../../share/widgets/next_card_button.dart';
 
 class PlayerMusicPremiumView extends StatefulWidget {
   final String initialUri;
+  final SpotifyService spotifyService;
 
-  const PlayerMusicPremiumView({super.key, required this.initialUri});
+  const PlayerMusicPremiumView({
+    super.key,
+    required this.initialUri,
+    required this.spotifyService,
+  });
 
   @override
   State<PlayerMusicPremiumView> createState() => _PlayerMusicPremiumViewState();
@@ -54,8 +59,7 @@ class _PlayerMusicPremiumViewState extends State<PlayerMusicPremiumView> {
     }
 
     try {
-      final spotifyService = instance<SpotifyService>();
-      await spotifyService.authorizeAndConnect();
+      await widget.spotifyService.authorizeAndConnect();
 
       await SpotifySdk.play(spotifyUri: widget.initialUri);
 
@@ -214,49 +218,10 @@ class _PlayerMusicPremiumViewState extends State<PlayerMusicPremiumView> {
               onTap: () => playing ? SpotifySdk.pause() : SpotifySdk.resume(),
             ),
             const SizedBox(height: 40),
-            _nextCardButton(),
+            const NextCardButton(),
           ],
         );
       },
-    );
-  }
-
-  Widget _nextCardButton() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      height: 56,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF6C2BFF), Color(0xFFFF469E)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(28),
-          onTap: () => Navigator.of(context).pop(),
-          child: Center(
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'PRÓXIMA CARTA',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.0,
-                  ),
-                ),
-                SizedBox(width: 8),
-                Icon(Icons.arrow_forward, size: 18),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

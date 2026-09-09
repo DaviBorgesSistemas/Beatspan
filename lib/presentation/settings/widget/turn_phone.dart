@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/app_prefs.dart';
-import '../../../app/di.dart';
 import '../../../domain/enum/settings_enum.dart';
 import 'card_border.dart';
 import 'gradient_switch.dart';
 
 class TurnPhone extends StatefulWidget {
-  const TurnPhone({super.key, this.isTurnPhoneEnabled});
+  const TurnPhone({
+    super.key,
+    required this.appPreferences,
+    this.isTurnPhoneEnabled,
+  });
 
+  final AppPreferences appPreferences;
   final ValueNotifier<bool>? isTurnPhoneEnabled;
 
   @override
@@ -16,7 +20,7 @@ class TurnPhone extends StatefulWidget {
 }
 
 class _TurnPhoneState extends State<TurnPhone> {
-  final AppPreferences _appPreferences = instance<AppPreferences>();
+  late final AppPreferences _appPreferences = widget.appPreferences;
 
   late final ValueNotifier<bool> isTurnPhoneEnabled =
       widget.isTurnPhoneEnabled ??

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BEATSPAN — Política de Privacidade</title>
+<meta name="description" content="Política de Privacidade do aplicativo BEATSPAN." />
+<style>
+  :root {
+    --bg: #08050D;
+    --card: #110B1A;
+    --border: rgba(255,255,255,0.08);
+    --text: #F8F7FC;
+    --text-muted: #A9A2B5;
+    --purple: #6C2BFF;
+    --pink: #FF1B8D;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+  }
+
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  a { color: var(--pink); }
+
+  .back {
+    display: inline-block;
+    margin-bottom: 32px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 14px;
+  }
+  .back:hover { color: var(--text); }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 900;
+    margin: 0 0 8px;
+    letter-spacing: -0.02em;
+  }
+
+  .updated {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin: 0 0 40px;
+  }
+
+  h2 {
+    font-size: 19px;
+    font-weight: 800;
+    margin: 40px 0 12px;
+  }
+
+  h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 24px 0 8px;
+  }
+
+  p, li {
+    color: var(--text-muted);
+    font-size: 15px;
+  }
+
+  ul { padding-left: 20px; }
+  li { margin-bottom: 8px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin: 24px 0;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    vertical-align: top;
+  }
+  th { color: var(--text); font-weight: 700; }
+
+  footer {
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  footer a { color: var(--text-muted); text-decoration: underline; }
+</style>
+</head>
+<body>
+  <main>
+    <a class="back" href="/">← Voltar</a>
+    <h1>Política de Privacidade</h1>
+    <p class="updated">Última atualização: 9 de setembro de 2026</p>
+
+    <p>
+      Esta Política de Privacidade descreve como o <strong>BEATSPAN</strong>
+      ("nós", "aplicativo") coleta, usa e protege as informações relacionadas
+      ao uso do jogo BEATSPAN — um app que permite escanear cartas físicas
+      via QR code, ouvir trechos de músicas através do Spotify e adivinhar o
+      ano de lançamento. Ao usar o aplicativo, você concorda com as práticas
+      descritas aqui.
+    </p>
+
+    <h2>1. Quem trata os seus dados</h2>
+    <p>
+      O BEATSPAN é o controlador dos dados tratados diretamente pelo
+      aplicativo. Para dúvidas ou solicitações relacionadas a esta política,
+      entre em contato pelo e-mail
+      <a href="mailto:borges.davi.cezar@gmail.com">borges.davi.cezar@gmail.com</a>.
+    </p>
+
+    <h2>2. Dados que coletamos</h2>
+
+    <h3>2.1 Dados que você fornece ao conectar sua conta Spotify</h3>
+    <p>
+      Para reproduzir as músicas das cartas, o app usa a autenticação OAuth
+      oficial do Spotify. Ao autorizar essa conexão, o Spotify concede ao
+      BEATSPAN um token de acesso com as seguintes permissões (escopos):
+    </p>
+    <div class="card">
+      <table>
+        <tr><th>Escopo</th><th>Finalidade no BEATSPAN</th></tr>
+        <tr><td><code>app-remote-control</code></td><td>Controlar a reprodução (tocar/pausar) no app oficial do Spotify durante o jogo.</td></tr>
+        <tr><td><code>user-read-playback-state</code></td><td>Verificar o estado atual de reprodução para sincronizar o jogo.</td></tr>
+        <tr><td><code>user-modify-playback-state</code></td><td>Iniciar a reprodução da faixa correspondente à carta escaneada.</td></tr>
+        <tr><td><code>playlist-read-private</code></td><td>Ler playlists usadas para localizar a faixa de cada carta.</td></tr>
+        <tr><td><code>user-library-read</code> / <code>user-library-modify</code></td><td>Verificar/gerenciar itens da biblioteca do usuário necessários à reprodução.</td></tr>
+      </table>
+    </div>
+    <p>
+      O token de acesso é obtido e gerenciado pelo SDK oficial do Spotify
+      diretamente no seu dispositivo. O BEATSPAN <strong>não armazena, não
+      acessa e não compartilha</strong> suas credenciais do Spotify (login e
+      senha) em nenhum momento — a autenticação ocorre inteiramente dentro
+      do app oficial do Spotify ou do fluxo OAuth padrão. O uso da sua conta
+      Spotify também está sujeito à
+      <a href="https://www.spotify.com/br/legal/privacy-policy/" target="_blank" rel="noopener">Política de Privacidade do Spotify</a>.
+    </p>
+
+    <h3>2.2 Dados coletados automaticamente</h3>
+    <ul>
+      <li>
+        <strong>Relatórios de falhas (crash reports):</strong> usamos o
+        Firebase Crashlytics para identificar e corrigir travamentos e erros
+        do aplicativo. Esses relatórios podem incluir informações técnicas
+        do dispositivo (modelo, sistema operacional, identificadores
+        técnicos de instalação) e o estado do app no momento da falha. Não
+        associamos esses relatórios à sua identidade pessoal ou à sua conta
+        Spotify.
+      </li>
+      <li>
+        <strong>Catálogo de músicas:</strong> o app consulta um banco de
+        dados (Firebase Firestore) para identificar qual música corresponde
+        ao código de cada carta. Essa consulta não envia dados pessoais —
+        apenas o código lido do QR code.
+      </li>
+    </ul>
+
+    <h3>2.3 Preferências armazenadas apenas no seu dispositivo</h3>
+    <p>
+      O app salva localmente, no seu próprio celular (não em nossos
+      servidores), preferências de uso como idioma, país, modo de jogo e
+      modo de exibição da tela. Esses dados não são transmitidos a nós nem a
+      terceiros e são apagados se você desinstalar o app.
+    </p>
+
+    <h3>2.4 Câmera</h3>
+    <p>
+      O BEATSPAN solicita permissão de câmera exclusivamente para escanear o
+      QR code impresso nas cartas do jogo. Nenhuma imagem ou vídeo captado
+      pela câmera é armazenado, processado fora do dispositivo ou enviado
+      para nós — a leitura do código acontece localmente no aparelho.
+    </p>
+
+    <h2>3. Dados que <em>não</em> coletamos</h2>
+    <p>
+      O BEATSPAN não solicita nem armazena nome, e-mail, CPF, telefone,
+      localização geográfica, contatos ou qualquer dado sensível. Não
+      criamos conta de usuário própria — a única identidade envolvida é a
+      sua conta Spotify, gerenciada inteiramente pelo Spotify.
+    </p>
+
+    <h2>4. Com quem compartilhamos dados</h2>
+    <p>
+      Não vendemos nem compartilhamos dados pessoais com terceiros para fins
+      de publicidade. Os únicos serviços de terceiros envolvidos no
+      funcionamento do app são:
+    </p>
+    <ul>
+      <li><strong>Spotify</strong> — autenticação e reprodução de música.</li>
+      <li><strong>Google Firebase</strong> (Firestore e Crashlytics) — catálogo de músicas e diagnóstico técnico de falhas.</li>
+    </ul>
+    <p>Cada um desses serviços trata os dados de acordo com sua própria política de privacidade.</p>
+
+    <h2>5. Retenção de dados</h2>
+    <p>
+      Preferências locais permanecem no dispositivo até você desinstalar o
+      app ou limpar seus dados manualmente. Relatórios de falha ficam
+      armazenados no Firebase Crashlytics conforme a política de retenção
+      padrão do Google Firebase. Não mantemos token de acesso do Spotify
+      persistido pelo BEATSPAN além do necessário para a sessão de jogo.
+    </p>
+
+    <h2>6. Seus direitos (LGPD)</h2>
+    <p>
+      Como titular de dados, sob a Lei Geral de Proteção de Dados (Lei nº
+      13.709/2018), você pode solicitar a qualquer momento:
+    </p>
+    <ul>
+      <li>Confirmação da existência de tratamento de dados;</li>
+      <li>Acesso, correção ou eliminação de dados;</li>
+      <li>Revogação do consentimento e desconexão da sua conta Spotify (feita diretamente pelo app ou pelas configurações da sua conta Spotify);</li>
+      <li>Informação sobre com quem compartilhamos seus dados.</li>
+    </ul>
+    <p>
+      Para revogar o acesso do BEATSPAN à sua conta Spotify a qualquer
+      momento, acesse
+      <a href="https://www.spotify.com/account/apps/" target="_blank" rel="noopener">spotify.com/account/apps</a>
+      e remova o acesso do aplicativo.
+    </p>
+    <p>
+      Para exercer qualquer um desses direitos, entre em contato pelo e-mail
+      <a href="mailto:borges.davi.cezar@gmail.com">borges.davi.cezar@gmail.com</a>.
+    </p>
+
+    <h2>7. Crianças e adolescentes</h2>
+    <p>
+      O BEATSPAN não é direcionado a menores de 13 anos e não coleta
+      intencionalmente dados de crianças. O uso do app por menores deve ser
+      supervisionado por um responsável, especialmente quanto à conexão com
+      contas Spotify de terceiros.
+    </p>
+
+    <h2>8. Alterações a esta política</h2>
+    <p>
+      Podemos atualizar esta Política de Privacidade periodicamente. A data
+      no topo desta página indica a versão mais recente. Alterações
+      relevantes serão comunicadas dentro do próprio aplicativo, quando
+      aplicável.
+    </p>
+
+    <h2>9. Contato</h2>
+    <p>
+      Dúvidas sobre esta política ou sobre o tratamento dos seus dados podem
+      ser enviadas para
+      <a href="mailto:borges.davi.cezar@gmail.com">borges.davi.cezar@gmail.com</a>.
+    </p>
+
+    <footer>
+      <p>© 2026 BEATSPAN. Todos os direitos reservados.</p>
+      <p>
+        <a href="/privacidade">Política de Privacidade</a> ·
+        <a href="/termos">Termos de Uso</a>
+      </p>
+    </footer>
+  </main>
+</body>
+</html>

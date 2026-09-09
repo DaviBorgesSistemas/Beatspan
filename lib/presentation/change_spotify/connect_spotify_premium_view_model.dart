@@ -5,20 +5,18 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../app/app_prefs.dart';
-import '../../app/di.dart';
 import '../../data/network/spotify_service.dart';
 import '../../domain/enum/flow_state.dart';
 import '../../domain/enum/settings_enum.dart';
 
 class ConnectSpotifyPremiumViewModel {
   final SpotifyService _spotify;
-  ConnectSpotifyPremiumViewModel(this._spotify);
+  final AppPreferences _appPreferences;
+  ConnectSpotifyPremiumViewModel(this._spotify, this._appPreferences);
 
   final state = ValueNotifier<FlowState>(FlowState.content);
   final isConnected = ValueNotifier<bool>(false);
   final errorMessage = ValueNotifier<String?>(null);
-
-  final AppPreferences _appPreferences = instance<AppPreferences>();
 
   void start() {
     state.value = FlowState.content;

@@ -1,23 +1,30 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_prefs.dart';
-import '../../app/di.dart';
 import '../../domain/enum/settings_enum.dart';
 import '../change_spotify/connect_spotify_premium_view_model.dart';
+import '../change_spotify/widgets/spotify_consent_dialog.dart';
 import 'widget/game_mode.dart';
 import 'widget/general_settings.dart';
 import 'widget/turn_phone.dart';
 
 class SettingsView extends StatefulWidget {
-  const SettingsView({super.key});
+  final AppPreferences appPreferences;
+  final ConnectSpotifyPremiumViewModel viewModel;
+
+  const SettingsView({
+    super.key,
+    required this.appPreferences,
+    required this.viewModel,
+  });
 
   @override
   State<SettingsView> createState() => _SettingsViewState();
 }
 
 class _SettingsViewState extends State<SettingsView> {
-  final AppPreferences _appPreferences = instance<AppPreferences>();
-  late final ConnectSpotifyPremiumViewModel _viewModel;
+  late final AppPreferences _appPreferences = widget.appPreferences;
+  late final ConnectSpotifyPremiumViewModel _viewModel = widget.viewModel;
   late final ValueNotifier<bool> _isTurnPhoneEnabled = ValueNotifier<bool>(
     _appPreferences.getTurnPhoneEnabled(),
   );
@@ -26,8 +33,6 @@ class _SettingsViewState extends State<SettingsView> {
   @override
   void initState() {
     super.initState();
-    initSpotifyModule();
-    _viewModel = instance<ConnectSpotifyPremiumViewModel>();
     _loadPlanType();
   }
 
@@ -45,6 +50,12 @@ class _SettingsViewState extends State<SettingsView> {
   }
 
   Future<void> _connectSpotify() async {
+    if (!_appPreferences.hasAcceptedSpotifyConsent()) {
+      final accepted = await SpotifyConsentDialog.show(context);
+      if (!accepted) return;
+      await _appPreferences.setSpotifyConsentAccepted(true);
+    }
+    if (!mounted) return;
     await _viewModel.connect();
     await _loadPlanType();
   }
@@ -128,13 +139,17 @@ class _SettingsViewState extends State<SettingsView> {
                 ),
                 SizedBox(height: 32),
                 GameMode(
+                  appPreferences: _appPreferences,
                   isPremium: isPremium,
                   onTap: (value) {
                     _isTurnPhoneEnabled.value = value == 1;
                   },
                 ),
                 SizedBox(height: 32),
-                TurnPhone(isTurnPhoneEnabled: _isTurnPhoneEnabled),
+                TurnPhone(
+                  appPreferences: _appPreferences,
+                  isTurnPhoneEnabled: _isTurnPhoneEnabled,
+                ),
               ],
             ),
           ),

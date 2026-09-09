@@ -1,13 +1,14 @@
 ﻿import 'package:flutter/material.dart';
 import '../../app/app_prefs.dart';
-import '../../app/di.dart';
 import '../resource/assets_manager.dart';
 import '../resource/screen_manager.dart';
 import '../routes_manager.dart';
 import 'widgets/loading_dots.dart';
 
 class SplashView extends StatefulWidget {
-  const SplashView({super.key});
+  final AppPreferences appPreferences;
+
+  const SplashView({super.key, required this.appPreferences});
 
   @override
   State<SplashView> createState() => _SplashViewState();
@@ -15,7 +16,7 @@ class SplashView extends StatefulWidget {
 
 class _SplashViewState extends State<SplashView>
     with SingleTickerProviderStateMixin {
-  final AppPreferences _appPreferences = instance<AppPreferences>();
+  late final AppPreferences _appPreferences = widget.appPreferences;
   late final AnimationController _c;
 
   late final Animation<double> _logoScale;

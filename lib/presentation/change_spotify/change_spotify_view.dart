@@ -1,29 +1,35 @@
 import 'package:flutter/material.dart';
 
-import '../../app/di.dart';
 import '../../domain/enum/flow_state.dart';
+import '../../app/app_prefs.dart';
 import '../resource/color_manager.dart';
 import '../resource/font_manager.dart';
 import '../resource/style_manager.dart';
 import '../routes_manager.dart';
 import 'connect_spotify_premium_view_model.dart';
 import 'widgets/spotify_connect_graphic.dart';
+import 'widgets/spotify_consent_dialog.dart';
 
 class ChangeSpotifyView extends StatefulWidget {
-  const ChangeSpotifyView({super.key});
+  final AppPreferences appPreferences;
+  final ConnectSpotifyPremiumViewModel viewModel;
+
+  const ChangeSpotifyView({
+    super.key,
+    required this.appPreferences,
+    required this.viewModel,
+  });
 
   @override
   State<ChangeSpotifyView> createState() => _ChangeSpotifyViewState();
 }
 
 class _ChangeSpotifyViewState extends State<ChangeSpotifyView> {
-  late final ConnectSpotifyPremiumViewModel _viewModel;
+  late final ConnectSpotifyPremiumViewModel _viewModel = widget.viewModel;
 
   @override
   void initState() {
     super.initState();
-    initSpotifyModule();
-    _viewModel = instance<ConnectSpotifyPremiumViewModel>();
     _viewModel.state.addListener(() {
       if (mounted) {
         if (_viewModel.state.value == FlowState.error) {
@@ -111,6 +117,17 @@ class _ChangeSpotifyViewState extends State<ChangeSpotifyView> {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(28),
                           onTap: () async {
+                            final appPreferences = widget.appPreferences;
+                            if (!appPreferences.hasAcceptedSpotifyConsent()) {
+                              final accepted = await SpotifyConsentDialog.show(
+                                context,
+                              );
+                              if (!accepted) return;
+                              await appPreferences.setSpotifyConsentAccepted(
+                                true,
+                              );
+                            }
+                            if (!context.mounted) return;
                             await _viewModel.connect();
                           },
                           child: Center(

@@ -6,6 +6,8 @@
 
 > Nenhum valor real de credencial é reproduzido neste documento. Onde uma credencial foi encontrada, apenas seu tipo e localização (arquivo/linha) são reportados.
 
+> **Adendo 2026-09-09**: SEC-009 (política de privacidade/termos + consentimento OAuth) e SEC-010 (scanner de dependências) foram resolvidos após a data desta análise — ver detalhes nas seções correspondentes abaixo e em [4-ACTION_PLAN.md](4-ACTION_PLAN.md). A nota do eixo e a justificativa abaixo refletem o estado em 2026-09-08 e não foram recalculadas.
+
 ---
 
 ## Nota do eixo: 6,5/10
@@ -112,11 +114,11 @@ Leitura pública é intencional e documentada (o app não autentica usuário par
 ---
 
 ### SEC-010 — Dependências desatualizadas
-**Severidade:** Média (potencial, não confirmada)
+**Severidade:** Baixa (verificado — sem CVE confirmada)
 **Localização:** [pubspec.yaml](../pubspec.yaml)
-**Descrição:** `flutter pub outdated` mostra majors mais novas disponíveis: `cloud_firestore` 5.6.12→6.9.0, `firebase_core` 3.15.2→4.14.0, `connectivity_plus` 6.1.5→7.3.1, `permission_handler` 11.4.0→13.0.2, `sensors_plus` 6.1.2→7.1.0, `proximity_sensor` 1.4.0→2.0.0, `fluttertoast` 9.0.0→10.0.0, `spotify_sdk` 3.0.2→4.0.0. **Nenhuma CVE específica foi confirmada** — requer verificação com scanner dedicado (OSV-Scanner, Snyk, ou `dart pub audit` quando disponível).
-**Impacto:** desconhecido sem scanner dedicado.
-**Recomendação:** rodar scanner de dependências integrado ao CI (ainda inexistente — ver `OPS-002` no [ARCHITECTURAL_REVIEW.md](ARCHITECTURAL_REVIEW.md)) e planejar atualização incremental, com atenção prioritária a `firebase_core`/`cloud_firestore` e `spotify_sdk`.
+**Descrição:** `flutter pub outdated` mostra majors mais novas disponíveis: `cloud_firestore` 5.6.12→6.9.0, `firebase_core` 3.15.2→4.14.0, `firebase_crashlytics` 4.3.10→5.3.0, `connectivity_plus` 6.1.5→7.3.1, `permission_handler` 11.4.0→13.0.2, `sensors_plus` 6.1.2→7.1.0, `proximity_sensor` 1.4.0→2.0.0, `fluttertoast` 9.0.0→10.0.0, `spotify_sdk` 3.0.2→4.0.0. **Atualização (2026-09-09): rodado OSV-Scanner v2.5.1 contra `pubspec.lock`** (120 pacotes) — **0 vulnerabilidades conhecidas encontradas**. Nenhuma das versões atualmente fixadas está listada na base de dados OSV.
+**Impacto:** baixo — ausência de CVE conhecida nas versões atuais. O risco remanescente é ficar cada vez mais distante das versões upstream (majors defasadas), o que aumenta o custo de migração futura, não um risco de segurança imediato.
+**Recomendação:** manter scanner de dependências rodando periodicamente (idealmente integrado ao CI — ver `OPS-002` no [ARCHITECTURAL_REVIEW.md](ARCHITECTURAL_REVIEW.md) e `DOC-007` no [ACTION_PLAN.md](4-ACTION_PLAN.md)) e planejar atualização incremental das majors defasadas como trabalho à parte (breaking changes esperadas em `firebase_core`/`cloud_firestore` e `spotify_sdk`), não como correção de segurança urgente.
 
 ---
 
@@ -142,16 +144,17 @@ Leitura pública é intencional e documentada (o app não autentica usuário par
 
 | Dependência | Instalada | Última major disponível | CVE confirmada |
 |---|---|---|---|
-| `cloud_firestore` | 5.6.12 | 6.9.0 | Pendente de verificação com scanner de dependências |
-| `firebase_core` | 3.15.2 | 4.14.0 | Pendente de verificação com scanner de dependências |
-| `connectivity_plus` | 6.1.5 | 7.3.1 | Pendente de verificação com scanner de dependências |
-| `permission_handler` | 11.4.0 | 13.0.2 | Pendente de verificação com scanner de dependências |
-| `sensors_plus` | 6.1.2 | 7.1.0 | Pendente de verificação com scanner de dependências |
-| `proximity_sensor` | 1.4.0 | 2.0.0 | Pendente de verificação com scanner de dependências |
-| `fluttertoast` | 9.0.0 | 10.0.0 | Pendente de verificação com scanner de dependências |
-| `spotify_sdk` | 3.0.2 | 4.0.0 | Pendente de verificação com scanner de dependências |
+| `cloud_firestore` | 5.6.12 | 6.9.0 | Nenhuma (OSV-Scanner, 2026-09-09) |
+| `firebase_core` | 3.15.2 | 4.14.0 | Nenhuma (OSV-Scanner, 2026-09-09) |
+| `firebase_crashlytics` | 4.3.10 | 5.3.0 | Nenhuma (OSV-Scanner, 2026-09-09) |
+| `connectivity_plus` | 6.1.5 | 7.3.1 | Nenhuma (OSV-Scanner, 2026-09-09) |
+| `permission_handler` | 11.4.0 | 13.0.2 | Nenhuma (OSV-Scanner, 2026-09-09) |
+| `sensors_plus` | 6.1.2 | 7.1.0 | Nenhuma (OSV-Scanner, 2026-09-09) |
+| `proximity_sensor` | 1.4.0 | 2.0.0 | Nenhuma (OSV-Scanner, 2026-09-09) |
+| `fluttertoast` | 9.0.0 | 10.0.0 | Nenhuma (OSV-Scanner, 2026-09-09) |
+| `spotify_sdk` | 3.0.2 | 4.0.0 | Nenhuma (OSV-Scanner, 2026-09-09) |
 
-Nenhuma CVE específica foi confirmada para nenhuma dessas versões nesta análise — todas as linhas requerem verificação com um scanner de dependências dedicado (OSV-Scanner, Snyk, GitHub Dependabot) antes de qualquer priorização.
+**Atualizado em 2026-09-09**: rodado OSV-Scanner v2.5.1 contra `pubspec.lock` (120 pacotes resolvidos, incluindo transitivos) — **0 vulnerabilidades conhecidas encontradas** na base de dados OSV para nenhuma dependência do projeto, nas versões atualmente fixadas. As majors defasadas na tabela acima representam débito de atualização, não risco de segurança confirmado; recomenda-se reavaliar com o scanner a cada atualização relevante de dependências (ver `SEC-010`/`DOC-007` no [ACTION_PLAN.md](4-ACTION_PLAN.md)).
 
 ---
 

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 
-import '../../../app/di.dart';
 import '../../../data/network/spotify_service.dart';
 import '../../../data/network/spotify_webapi.dart';
 import '../../share/widgets/beatspan_loading_overlay.dart';
+import '../../share/widgets/next_card_button.dart';
 
 class PlayerMusicFreeView extends StatefulWidget {
   final String? trackId;
@@ -12,6 +12,7 @@ class PlayerMusicFreeView extends StatefulWidget {
   final String? trackName;
   final String? artistName;
   final String? albumArtUrl;
+  final SpotifyService spotifyService;
 
   const PlayerMusicFreeView({
     super.key,
@@ -20,6 +21,7 @@ class PlayerMusicFreeView extends StatefulWidget {
     this.trackName,
     this.artistName,
     this.albumArtUrl,
+    required this.spotifyService,
   });
 
   @override
@@ -66,8 +68,7 @@ class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
 
     setState(() => _isSavingTrack = true);
     try {
-      final spotifyService = instance<SpotifyService>();
-      final token = await spotifyService.getAccessToken();
+      final token = await widget.spotifyService.getAccessToken();
       final api = SpotifyWebApi(token);
       final saved = await api.saveTrack(trackId);
 
@@ -221,7 +222,7 @@ class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
             ),
           ),
           SizedBox(height: 32),
-          _nextCardButton(),
+          const NextCardButton(),
         ],
       ),
     );
@@ -331,42 +332,4 @@ class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
     );
   }
 
-  Widget _nextCardButton() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      height: 56,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF6C2BFF), Color(0xFFFF469E)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(28),
-          onTap: () => Navigator.of(context).pop(),
-          child: Center(
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'PRÓXIMA CARTA',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.0,
-                  ),
-                ),
-                SizedBox(width: 8),
-                Icon(Icons.arrow_forward, size: 18),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }

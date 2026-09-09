@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../share/widgets/next_card_button.dart';
+
 class GameErrorView extends StatelessWidget {
   final String title;
   final String message;
@@ -51,55 +53,18 @@ class GameErrorView extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              _nextCardButton(context),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _nextCardButton(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: 56,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFF1B8D), Color(0xFFFF5A1B)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFFF1B8D).withValues(alpha: 0.4),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(28),
-          onTap: () => Navigator.of(context).pop(),
-          child: const Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'PRÓXIMA CARTA',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.0,
+              NextCardButton(
+                expandWidth: true,
+                gradientColors: const [Color(0xFFFF1B8D), Color(0xFFFF5A1B)],
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFFF1B8D).withValues(alpha: 0.4),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
                   ),
-                ),
-                SizedBox(width: 8),
-                Icon(Icons.arrow_forward, color: Colors.white, size: 18),
-              ],
-            ),
+                ],
+              ),
+            ],
           ),
         ),
       ),

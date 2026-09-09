@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/app_prefs.dart';
-import '../../../app/di.dart';
 import '../../../domain/enum/settings_enum.dart';
 import 'card_border.dart';
 
 class GameMode extends StatefulWidget {
-  const GameMode({super.key, required this.isPremium, required this.onTap});
+  const GameMode({
+    super.key,
+    required this.appPreferences,
+    required this.isPremium,
+    required this.onTap,
+  });
+  final AppPreferences appPreferences;
   final Function(int)? onTap;
   final bool isPremium;
 
@@ -15,7 +20,7 @@ class GameMode extends StatefulWidget {
 }
 
 class _GameModeState extends State<GameMode> {
-  final AppPreferences _appPreferences = instance<AppPreferences>();
+  late final AppPreferences _appPreferences = widget.appPreferences;
 
   late final ValueNotifier<int> isTrackMode = ValueNotifier<int>(
     _appPreferences.getGameMode() == GameModeType.fullTrack ? 0 : 1,

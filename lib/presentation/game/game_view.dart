@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../app/app_prefs.dart';
-import '../../app/di.dart';
+import '../../data/network/spotify_service.dart';
 import '../../domain/model/musica_playback_result.dart';
 import '../../domain/usecase/get_musica_usecase.dart';
 import '../../domain/usecase/musica_playback_usecase.dart';
@@ -15,7 +15,18 @@ import 'turn_phone_ready_view.dart';
 import 'widget/scanner_overlay.dart';
 
 class GameView extends StatefulWidget {
-  const GameView({super.key});
+  final AppPreferences appPreferences;
+  final GetMusicaUseCase getMusicaUseCase;
+  final MusicaPlaybackUseCase musicaPlaybackUseCase;
+  final SpotifyService spotifyService;
+
+  const GameView({
+    super.key,
+    required this.appPreferences,
+    required this.getMusicaUseCase,
+    required this.musicaPlaybackUseCase,
+    required this.spotifyService,
+  });
 
   @override
   State<GameView> createState() => _GameViewState();
@@ -24,10 +35,10 @@ class GameView extends StatefulWidget {
 class _GameViewState extends State<GameView> {
   final MobileScannerController qrController = MobileScannerController();
   final GameViewModel controller = GameViewModel();
-  final AppPreferences _appPreferences = instance<AppPreferences>();
-  final GetMusicaUseCase _getMusicaUseCase = instance<GetMusicaUseCase>();
-  final MusicaPlaybackUseCase _musicaPlaybackUseCase =
-      instance<MusicaPlaybackUseCase>();
+  late final AppPreferences _appPreferences = widget.appPreferences;
+  late final GetMusicaUseCase _getMusicaUseCase = widget.getMusicaUseCase;
+  late final MusicaPlaybackUseCase _musicaPlaybackUseCase =
+      widget.musicaPlaybackUseCase;
 
   bool _isHandlingCode = false;
   bool _isLoading = false;
@@ -125,7 +136,10 @@ class _GameViewState extends State<GameView> {
         switch (playback) {
           case FullTrackPlayback(:final spotifyUri):
             await _navigateToPlayer(
-              PlayerMusicPremiumView(initialUri: spotifyUri),
+              PlayerMusicPremiumView(
+                initialUri: spotifyUri,
+                spotifyService: widget.spotifyService,
+              ),
             );
           case PreviewPlayback():
             await _navigateToPlayer(
@@ -135,6 +149,7 @@ class _GameViewState extends State<GameView> {
                 trackName: playback.trackName,
                 artistName: playback.artistName,
                 albumArtUrl: playback.albumArtUrl,
+                spotifyService: widget.spotifyService,
               ),
             );
         }

@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_prefs.dart';
-import '../../app/di.dart';
 import '../../domain/enum/settings_enum.dart';
 import '../resource/assets_manager.dart';
 import '../resource/color_manager.dart';
 import '../routes_manager.dart';
 
 class SpotifyFreeTransition extends StatelessWidget {
-  const SpotifyFreeTransition({super.key});
+  final AppPreferences appPreferences;
+
+  const SpotifyFreeTransition({super.key, required this.appPreferences});
 
   @override
   Widget build(BuildContext context) {
@@ -76,9 +77,7 @@ class SpotifyFreeTransition extends StatelessWidget {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(28),
                           onTap: () {
-                            instance<AppPreferences>().setAppPlanType(
-                              PlanType.free,
-                            );
+                            appPreferences.setAppPlanType(PlanType.free);
                             Navigator.of(
                               context,
                             ).pushReplacementNamed(Routes.homeRoute);

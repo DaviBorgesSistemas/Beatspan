@@ -5,7 +5,6 @@ import '../resource/color_manager.dart';
 import '../resource/font_manager.dart';
 import '../resource/screen_manager.dart';
 
-import '../../app/di.dart';
 import '../resource/style_manager.dart';
 import '../resource/value_manager.dart';
 import '../share/widgets/empty_container.dart';
@@ -13,31 +12,25 @@ import 'faqs_view_model.dart';
 import 'widgets/faq_tile.dart';
 
 class FaqsView extends StatefulWidget {
-  const FaqsView({super.key});
+  final FaqsViewModel viewModel;
+
+  const FaqsView({super.key, required this.viewModel});
 
   @override
   State<FaqsView> createState() => _FaqsViewState();
 }
 
 class _FaqsViewState extends State<FaqsView> {
-  late final FaqsViewModel _viewModel;
+  late final FaqsViewModel _viewModel = widget.viewModel;
 
   @override
   void initState() {
     super.initState();
-    initFaqsModule();
-    _viewModel = instance<FaqsViewModel>();
     _bind();
   }
 
   void _bind() {
     _viewModel.start();
-  }
-
-  @override
-  void dispose() {
-    disposeFaqsModule();
-    super.dispose();
   }
 
   @override

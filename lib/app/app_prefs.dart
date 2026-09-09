@@ -8,6 +8,8 @@ const String prefsKeyCountry = 'PREFS_KEY_CONTRY';
 const String prefsKeyTurnPhoneEnabled = 'PREFS_KEY_TURN_PHONE_ENABLED';
 const String prefsKeyTurnPhoneMode = 'PREFS_KEY_TURN_PHONE_MODE';
 const String prefsKeyGameMode = 'PREFS_KEY_GAME_MODE';
+const String prefsKeySpotifyConsentAccepted =
+    'PREFS_KEY_SPOTIFY_CONSENT_ACCEPTED';
 
 class AppPreferences {
   final SharedPreferences _sharedPreferences;
@@ -73,5 +75,17 @@ class AppPreferences {
     return mode != null
         ? GameModeType.values.byName(mode)
         : GameModeType.preview;
+  }
+
+  Future<void> setSpotifyConsentAccepted(bool accepted) async {
+    await _sharedPreferences.setBool(
+      prefsKeySpotifyConsentAccepted,
+      accepted,
+    );
+  }
+
+  bool hasAcceptedSpotifyConsent() {
+    return _sharedPreferences.getBool(prefsKeySpotifyConsentAccepted) ??
+        false;
   }
 }
