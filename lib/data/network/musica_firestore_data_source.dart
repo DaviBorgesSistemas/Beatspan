@@ -3,14 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/exception/musica_exceptions.dart';
 import '../../domain/model/musica.dart';
 
-/// Acesso à coleção `musicas` no Firestore.
-///
-/// Schema esperado do documento (id do documento = código curto do QR,
-/// ex: "0006"):
-/// {
-///   "spotify_id": "3n3Ppam7vgaVa1iaRUc9Lp",
-///   "spotify_uri": "spotify:track:3n3Ppam7vgaVa1iaRUc9Lp"
-/// }
 class MusicaFirestoreDataSource {
   final FirebaseFirestore _firestore;
 

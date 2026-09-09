@@ -28,17 +28,11 @@ void main() async {
       FlutterNativeSplash.remove();
     },
     (error, stackTrace) {
-      // Erros assíncronos não capturados (fora da árvore de widgets),
-      // ex.: exceções em Future/Stream sem try/catch.
       FirebaseCrashlytics.instance.recordError(error, stackTrace, fatal: true);
     },
   );
 }
 
-/// Encaminha erros de framework (ex.: exceções durante build/layout de
-/// widgets) e erros não tratados do runtime (ex.: em isolates) para o
-/// Crashlytics. Desabilitado em debug para não poluir o dashboard com
-/// erros de desenvolvimento local.
 Future<void> _setupCrashlytics() async {
   await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(
     !kDebugMode,

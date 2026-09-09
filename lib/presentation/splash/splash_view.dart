@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../app/app_prefs.dart';
 import '../../app/di.dart';
 import '../resource/assets_manager.dart';
@@ -18,7 +18,6 @@ class _SplashViewState extends State<SplashView>
   final AppPreferences _appPreferences = instance<AppPreferences>();
   late final AnimationController _c;
 
-  // Entrada
   late final Animation<double> _logoScale;
   late final Animation<double> _logoOpacity;
   late final Animation<Offset> _nameOffset;
@@ -26,7 +25,6 @@ class _SplashViewState extends State<SplashView>
   late final Animation<Offset> _taglineOffset;
   late final Animation<double> _taglineOpacity;
 
-  // Saída
   late final Animation<double> _dotsExitOpacity;
   late final Animation<double> _taglineExitOpacity;
   late final Animation<double> _nameExitOpacity;
@@ -60,7 +58,6 @@ class _SplashViewState extends State<SplashView>
       duration: const Duration(milliseconds: totalMs),
     );
 
-    // --- Entrada ---
     _logoScale = Tween(begin: 0.7, end: 1.0).animate(
       CurvedAnimation(
         parent: _c,
@@ -95,7 +92,6 @@ class _SplashViewState extends State<SplashView>
       end: 1.0,
     ).animate(CurvedAnimation(parent: _c, curve: const Interval(0.216, 0.38)));
 
-    // --- Saída (cascata reversa) ---
     _dotsExitOpacity = Tween(begin: 1.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _c,
@@ -151,14 +147,12 @@ class _SplashViewState extends State<SplashView>
         animation: _c,
         builder: (context, _) {
           return Stack(
-            // alignment: Alignment.center,
             children: [
               Align(
                 alignment: Alignment.center,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Logo (entrada + saída combinadas)
                     Transform.translate(
                       offset: _logoExitOffset.value * 100,
                       child: Transform.scale(
@@ -184,7 +178,6 @@ class _SplashViewState extends State<SplashView>
                       ),
                     ),
                     const SizedBox(height: 10),
-                    // Tagline
                     Opacity(
                       opacity:
                           _taglineOpacity.value * _taglineExitOpacity.value,
@@ -213,7 +206,6 @@ class _SplashViewState extends State<SplashView>
                   ],
                 ),
               ),
-              // Dots (posicionados perto da base)
               Positioned(
                 left: 0,
                 right: 0,
@@ -244,78 +236,3 @@ class _SplashViewState extends State<SplashView>
     );
   }
 }
-
-// class _LoadingDots extends StatefulWidget {
-//   final AnimationController controller;
-//   const _LoadingDots({required this.controller});
-
-//   @override
-//   State<_LoadingDots> createState() => _LoadingDotsState();
-// }
-
-// class _LoadingDotsState extends State<_LoadingDots>
-//     with SingleTickerProviderStateMixin {
-//   static const _dotCount = 5;
-//   static const _dotColors = [
-//     Color(0xFF6C5CE7),
-//     Color(0xFF9C4FE0),
-//     Color(0xFFE84BC7),
-//     Color(0xFFFF6F5C),
-//     Color(0xFFFF8A3D),
-//   ];
-
-//   late final AnimationController _loop;
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     _loop = AnimationController(
-//       vsync: this,
-//       duration: const Duration(milliseconds: 1200),
-//     )..repeat();
-//   }
-
-//   @override
-//   void dispose() {
-//     _loop.dispose();
-//     super.dispose();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return AnimatedBuilder(
-//       animation: Listenable.merge([widget.controller, _loop]),
-//       builder: (context, _) {
-//         return Row(
-//           mainAxisSize: MainAxisSize.min,
-//           children: List.generate(_dotCount, (i) {
-//             final delay = i / _dotCount;
-//             final t = ((_loop.value - delay) % 1.0 + 1.0) % 1.0;
-//             final pulse = Curves.easeInOut.transform(
-//               t < 0.5 ? 1 - (t * 2) : (t - 0.5) * 2,
-//             );
-//             final color = Color.lerp(
-//               Colors.grey.shade800,
-//               _dotColors[i],
-//               pulse,
-//             );
-//             return Padding(
-//               padding: const EdgeInsets.symmetric(horizontal: 8),
-//               child: Transform.scale(
-//                 scale: 0.85 + (0.15 * pulse),
-//                 child: Container(
-//                   width: 12,
-//                   height: 12,
-//                   decoration: BoxDecoration(
-//                     color: color,
-//                     shape: BoxShape.circle,
-//                   ),
-//                 ),
-//               ),
-//             );
-//           }),
-//         );
-//       },
-//     );
-//   }
-// }

@@ -7,8 +7,8 @@ import '../../../data/network/spotify_webapi.dart';
 import '../../share/widgets/beatspan_loading_overlay.dart';
 
 class PlayerMusicFreeView extends StatefulWidget {
-  final String? trackId; // ID da faixa no Spotify
-  final String previewUrl; // URL de 30s
+  final String? trackId;
+  final String previewUrl;
   final String? trackName;
   final String? artistName;
   final String? albumArtUrl;
@@ -45,7 +45,7 @@ class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
     try {
       await _player.setUrl(widget.previewUrl);
       setState(() => _isLoading = false);
-      _player.play(); // começa a tocar automaticamente
+      _player.play();
     } catch (e) {
       setState(() {
         _isLoading = false;

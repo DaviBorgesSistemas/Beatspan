@@ -16,8 +16,6 @@ class SpotifyWebApi {
 
   Future<String?> getTrackPreviewUrl(String trackId) async {
     final track = await getTrack(trackId);
-    // A Spotify Web API deixou de fornecer preview_url para a maioria dos
-    // apps/faixas desde nov/2024 — geralmente vem null independente da faixa.
     return track?.previewUrl;
   }
 
@@ -47,16 +45,12 @@ class SpotifyWebApi {
     );
   }
 
-  /// Salva a faixa na biblioteca do usuário ("Músicas Curtidas").
-  /// Requer o escopo `user-library-modify`.
   Future<bool> saveTrack(String trackId) async {
     final url = Uri.parse('https://api.spotify.com/v1/me/tracks?ids=$trackId');
     final r = await http.put(url, headers: _h).timeout(_timeout);
     return r.statusCode == 200 || r.statusCode == 204;
   }
 
-  /// Verifica se a faixa já está salva na biblioteca do usuário.
-  /// Requer o escopo `user-library-read`.
   Future<bool> isTrackSaved(String trackId) async {
     final url = Uri.parse(
       'https://api.spotify.com/v1/me/tracks/contains?ids=$trackId',

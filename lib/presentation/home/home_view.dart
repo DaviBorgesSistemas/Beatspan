@@ -24,13 +24,12 @@ class _HomeViewState extends State<HomeView> {
     final now = DateTime.now();
     if (_lastPressedAt == null ||
         now.difference(_lastPressedAt!) > const Duration(seconds: 3)) {
-      // Primeira pressão ou passou 3 segundos
       _lastPressedAt = now;
       Fluttertoast.showToast(
         msg: 'Pressione novamente para sair',
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
-        timeInSecForIosWeb: 2, // tempo de exibição (segundos) – opcional
+        timeInSecForIosWeb: 2,
         backgroundColor: Colors.grey[800],
         textColor: Colors.white,
         fontSize: 16.0,

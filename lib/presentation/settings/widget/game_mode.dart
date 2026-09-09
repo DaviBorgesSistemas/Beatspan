@@ -86,7 +86,6 @@ class _GameModeState extends State<GameMode> {
                         crossAxisAlignment: widget.isPremium
                             ? CrossAxisAlignment.start
                             : CrossAxisAlignment.center,
-                        // crossAxisAlignment: widget.isPremium?CrossAxisAlignment.center:CrossAxisAlignment.start,
                         children: [
                           widget.isPremium
                               ? buttonRadio(trackMode == 0)

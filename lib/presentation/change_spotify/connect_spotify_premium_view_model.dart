@@ -75,9 +75,7 @@ class ConnectSpotifyPremiumViewModel {
     try {
       await _spotify.disconnect();
       isConnected.value = false;
-    } catch (_) {
-      // silencioso
-    }
+    } catch (_) {}
   }
 
   void _handlePlatformException(PlatformException e) {

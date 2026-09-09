@@ -41,7 +41,7 @@ class _ScaffoldHitsterState extends State<ScaffoldHitster> {
           _ => AppSize.zero,
         },
         'position': switch (widget.bubbles) {
-          2 => [null, 235.0, -96.0, null], //left, top, right, bottom
+          2 => [null, 235.0, -96.0, null],
           3 => [57.0, 13.0, null, null],
           4 => [8.0, 64.0, null, null],
           _ => 0,
@@ -55,7 +55,7 @@ class _ScaffoldHitsterState extends State<ScaffoldHitster> {
           _ => AppSize.zero,
         },
         'position': switch (widget.bubbles) {
-          2 => [0.0, null, 0.0, 85.0], //left, top, right, bottom
+          2 => [0.0, null, 0.0, 85.0],
           3 => [null, 0.0, 64.0, 100.0],
           4 => [null, 32.0, 12.0, 0.0],
           _ => 0,
@@ -69,7 +69,7 @@ class _ScaffoldHitsterState extends State<ScaffoldHitster> {
           _ => AppSize.zero,
         },
         'position': switch (widget.bubbles) {
-          2 => [null, null, null, null], //left, top, right, bottom
+          2 => [null, null, null, null],
           3 => [0.0, null, 0.0, 0.0],
           4 => [null, null, 20.0, 64.0],
           _ => 0,

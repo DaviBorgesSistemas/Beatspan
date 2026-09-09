@@ -3,11 +3,9 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../app/app_prefs.dart';
 import '../../app/di.dart';
-import '../../data/network/itunes_search_api.dart';
-import '../../data/network/spotify_service.dart';
-import '../../data/network/spotify_webapi.dart';
-import '../../domain/enum/settings_enum.dart';
+import '../../domain/model/musica_playback_result.dart';
 import '../../domain/usecase/get_musica_usecase.dart';
+import '../../domain/usecase/musica_playback_usecase.dart';
 import '../share/widgets/beatspan_loading_overlay.dart';
 import 'game_viewmodel.dart';
 import 'game_error_view.dart';
@@ -28,6 +26,8 @@ class _GameViewState extends State<GameView> {
   final GameViewModel controller = GameViewModel();
   final AppPreferences _appPreferences = instance<AppPreferences>();
   final GetMusicaUseCase _getMusicaUseCase = instance<GetMusicaUseCase>();
+  final MusicaPlaybackUseCase _musicaPlaybackUseCase =
+      instance<MusicaPlaybackUseCase>();
 
   bool _isHandlingCode = false;
   bool _isLoading = false;
@@ -100,74 +100,46 @@ class _GameViewState extends State<GameView> {
     final plan = await _appPreferences.getAppPlanType();
     if (plan == null) return;
     final gameMode = _appPreferences.getGameMode();
-    final usePreview =
-        plan == PlanType.free || gameMode == GameModeType.preview;
 
-    if (!usePreview) {
-      if (!mounted) return;
-      await _navigateToPlayer(PlayerMusicPremiumView(initialUri: spotifyUri));
-      return;
-    }
-
-    final trackId = _extractTrackId(spotifyUri);
-    if (trackId == null) {
-      await _goToError();
-      return;
-    }
-
-    String? previewUrl;
-    String? trackName;
-    String? artistName;
-    String? albumArtUrl;
-    try {
-      final spotifyService = instance<SpotifyService>();
-      final token = await spotifyService.getAccessToken();
-      final api = SpotifyWebApi(token);
-      final track = await api.getTrack(trackId);
-      previewUrl = track?.previewUrl;
-      trackName = track?.name;
-      artistName = track?.artist;
-      albumArtUrl = track?.albumArtUrl;
-
-      if (previewUrl == null && track?.name != null) {
-        final itunesTrack = await ItunesSearchApi().searchTrack(
-          trackName: track!.name!,
-          artist: track.artist,
-        );
-        previewUrl = itunesTrack?.previewUrl;
-        albumArtUrl ??= itunesTrack?.artworkUrl;
-      }
-    } catch (_) {
-      await _goToConnectionError();
-      return;
-    }
-
-    if (previewUrl == null) {
-      await _goToPreviewUnavailable();
-      return;
-    }
-
-    if (!mounted) return;
-    await _navigateToPlayer(
-      PlayerMusicFreeView(
-        trackId: trackId,
-        previewUrl: previewUrl,
-        trackName: trackName,
-        artistName: artistName,
-        albumArtUrl: albumArtUrl,
+    final result = await _musicaPlaybackUseCase.execute(
+      MusicaPlaybackInput(
+        spotifyUri: spotifyUri,
+        plan: plan,
+        gameMode: gameMode,
       ),
     );
-  }
 
-  /// Extrai o id da faixa a partir de uma URI no formato
-  /// `spotify:track:<id>`.
-  String? _extractTrackId(String spotifyUri) {
-    final parts = spotifyUri.split(':');
-    if (parts.length != 3 || parts[0] != 'spotify' || parts[1] != 'track') {
-      return null;
-    }
-    final id = parts[2];
-    return id.isEmpty ? null : id;
+    await result.fold(
+      (failure) async {
+        switch (failure.code) {
+          case musicaPlaybackPreviewUnavailableCode:
+            await _goToPreviewUnavailable();
+          case musicaPlaybackConnectionErrorCode:
+            await _goToConnectionError();
+          default:
+            await _goToError();
+        }
+      },
+      (playback) async {
+        if (!mounted) return;
+        switch (playback) {
+          case FullTrackPlayback(:final spotifyUri):
+            await _navigateToPlayer(
+              PlayerMusicPremiumView(initialUri: spotifyUri),
+            );
+          case PreviewPlayback():
+            await _navigateToPlayer(
+              PlayerMusicFreeView(
+                trackId: playback.trackId,
+                previewUrl: playback.previewUrl,
+                trackName: playback.trackName,
+                artistName: playback.artistName,
+                albumArtUrl: playback.albumArtUrl,
+              ),
+            );
+        }
+      },
+    );
   }
 
   Future<void> _goToError() async {

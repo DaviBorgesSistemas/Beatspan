@@ -23,7 +23,6 @@ class SpotifyService {
     return connected;
   }
 
-  /// Token temporário para Web API
   Future<String> getAccessToken() async {
     final token = await SpotifySdk.getAccessToken(
       clientId: clientId,

@@ -44,7 +44,6 @@ class _PlayerMusicPremiumViewState extends State<PlayerMusicPremiumView> {
   }
 
   Future<void> _initSpotify() async {
-    // Evita chamar o plugin em plataformas não suportadas
     if (!(kIsWeb || Platform.isAndroid || Platform.isIOS)) {
       setState(() {
         _pluginAvailable = false;
@@ -55,23 +54,17 @@ class _PlayerMusicPremiumViewState extends State<PlayerMusicPremiumView> {
     }
 
     try {
-      // A conexão com o Spotify App Remote normalmente já foi feita em
-      // ConnectSpotifyPremiumView, mas a sessão pode ter caído (app em
-      // background, timeout, etc.) até o usuário chegar nesta tela.
-      // connectToSpotifyRemote é seguro chamar de novo se já conectado.
       final spotifyService = instance<SpotifyService>();
       await spotifyService.authorizeAndConnect();
 
       await SpotifySdk.play(spotifyUri: widget.initialUri);
 
-      // prepara a stream de estado do player
       _playerStateStream = SpotifySdk.subscribePlayerState();
 
       setState(() {
         _loading = false;
       });
     } on MissingPluginException catch (e) {
-      // Aqui é exatamente o erro que você está vendo
       setState(() {
         _pluginAvailable = false;
         _loading = false;
@@ -99,7 +92,6 @@ class _PlayerMusicPremiumViewState extends State<PlayerMusicPremiumView> {
       body: SafeArea(
         child: Stack(
           children: [
-            // Ambient depth glows
             Positioned(
               top: 0,
               left: 0,
@@ -434,7 +426,6 @@ class _GlyphRingsPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    // O SVG original usa viewBox 200x200; escalamos proporcionalmente.
     final scale = size.width / 200;
 
     for (var i = 0; i < _rings.length; i++) {

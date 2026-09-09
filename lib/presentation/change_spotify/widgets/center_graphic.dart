@@ -15,9 +15,9 @@ class CenterGraphic extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: Color(0xFF6824FC),
-            blurRadius: 15, // Blur: 15
-            spreadRadius: 0, // Spread: 0
-            offset: Offset(0, 0), // Position X:0, Y:0
+            blurRadius: 15,
+            spreadRadius: 0,
+            offset: Offset(0, 0),
           ),
         ],
       ),

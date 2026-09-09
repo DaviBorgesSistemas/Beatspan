@@ -6,15 +6,19 @@ import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/data_source/faq_local_data_source.dart';
+import '../data/network/itunes_search_api.dart';
 import '../data/network/musica_firestore_data_source.dart';
 import '../data/network/network_info.dart';
 import '../data/network/spotify_service.dart';
 import '../data/repository/faq_repository_impl.dart';
+import '../data/repository/musica_playback_repository_impl.dart';
 import '../data/repository/musica_repository_impl.dart';
 import '../domain/repository/faq_repository.dart';
+import '../domain/repository/musica_playback_repository.dart';
 import '../domain/repository/musica_repository.dart';
 import '../domain/usecase/faqs_usecase.dart';
 import '../domain/usecase/get_musica_usecase.dart';
+import '../domain/usecase/musica_playback_usecase.dart';
 import '../presentation/change_spotify/connect_spotify_premium_view_model.dart';
 import '../presentation/faqs/faqs_view_model.dart';
 import 'app_prefs.dart';
@@ -80,26 +84,39 @@ Future<void> initAppModule() async {
       () => GetMusicaUseCase(instance()),
     );
   }
+
+  if (!instance.isRegistered<ItunesSearchApi>()) {
+    instance.registerLazySingleton<ItunesSearchApi>(() => ItunesSearchApi());
+  }
+  if (!instance.isRegistered<MusicaPlaybackRepository>()) {
+    instance.registerLazySingleton<MusicaPlaybackRepository>(
+      () => MusicaPlaybackRepositoryImpl(
+        instance<SpotifyService>(),
+        instance<ItunesSearchApi>(),
+      ),
+    );
+  }
+  if (!instance.isRegistered<MusicaPlaybackUseCase>()) {
+    instance.registerFactory<MusicaPlaybackUseCase>(
+      () => MusicaPlaybackUseCase(instance()),
+    );
+  }
 }
 
 void initFaqsModule() {
-  // 1) Data source
   if (!instance.isRegistered<FaqLocalDataSource>()) {
     instance.registerLazySingleton<FaqLocalDataSource>(
       () => FaqLocalDataSourceImpl(),
     );
   }
-  // 2) Repository
   if (!instance.isRegistered<FaqRepository>()) {
     instance.registerLazySingleton<FaqRepository>(
       () => FaqRepositoryImpl(instance()),
     );
   }
-  // 3) UseCase
   if (!instance.isRegistered<FaqsUseCase>()) {
     instance.registerFactory<FaqsUseCase>(() => FaqsUseCase(instance()));
   }
-  // 4) ViewModel
   if (!instance.isRegistered<FaqsViewModel>()) {
     instance.registerFactory<FaqsViewModel>(() => FaqsViewModel(instance()));
   }
@@ -114,8 +131,6 @@ void initSpotifyModule() {
 }
 
 void disposeFaqsModule() {
-  // ordem inversa da criação
-
   if (instance.isRegistered<FaqsViewModel>()) {
     instance.unregister<FaqsViewModel>();
   }
@@ -134,13 +149,10 @@ void disposeFaqsModule() {
 }
 
 Future<void> resetModules() async {
-  await instance.reset(); // zera tudo
-  await initAppModule(); // ou re-registra o que precisar
+  await instance.reset();
+  await initAppModule();
 }
 
-/// Lê uma variável obrigatória do `.env` (carregado via flutter_dotenv
-/// em main.dart antes de initAppModule()). Lança um erro claro se a
-/// variável não estiver definida, em vez de seguir com um valor vazio.
 String _requiredEnv(String key) {
   final value = dotenv.env[key];
   if (value == null || value.isEmpty) {

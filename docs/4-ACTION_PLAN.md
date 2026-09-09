@@ -2,7 +2,7 @@
 
 **Projeto:** Beatspan
 **Data da análise:** 2026-09-08
-**Versão do documento:** 1.3 (OPS-003 concluído)
+**Versão do documento:** 1.4 (ARQ-003 concluído)
 
 > Todos os itens referenciam o ID de origem definido em [1-ARCHITECTURAL_REVIEW.md](1-ARCHITECTURAL_REVIEW.md), [2-SECURITY_REPORT.md](2-SECURITY_REPORT.md) ou [3-TECH_DEBT_REGISTER.md](3-TECH_DEBT_REGISTER.md). Esforço e impacto não são redefinidos aqui — seguem o que já está registrado nos arquivos de origem.
 >
@@ -21,7 +21,8 @@
   - *19 testes cobrindo os 3 componentes citados (exceto `AppPreferences`, ainda sem cobertura).*
 - [x] **Integrar Firebase Crashlytics (ou Sentry) para captura de exceções não tratadas** `[OPS-003]` — Responsável: Mobile — Critério: crash simulado em build de teste aparece no dashboard da ferramenta escolhida
   - *Código integrado: `firebase_crashlytics` + `runZonedGuarded` + `FlutterError.onError` + `PlatformDispatcher.instance.onError` em `main.dart`, coleta desabilitada em debug. Validado com build debug e release (R8/proguard ok). Pendente (fora do código): habilitar Crashlytics no Firebase Console e simular um crash para confirmar que aparece no dashboard — critério de aceite completo depende dessa etapa manual.*
-- [ ] **Extrair a lógica de decisão Spotify/iTunes de `GameView` para um `MusicaPlaybackUseCase`/`Repository` dedicado** `[ARQ-003]` — Responsável: Mobile — Critério: `GameView` não instancia `SpotifyWebApi`/`ItunesSearchApi` diretamente; lógica coberta por teste unitário
+- [x] **Extrair a lógica de decisão Spotify/iTunes de `GameView` para um `MusicaPlaybackUseCase`/`Repository` dedicado** `[ARQ-003]` — Responsável: Mobile — Critério: `GameView` não instancia `SpotifyWebApi`/`ItunesSearchApi` diretamente; lógica coberta por teste unitário
+  - *`MusicaPlaybackUseCase` + `MusicaPlaybackRepository`/`MusicaPlaybackRepositoryImpl` criados; `GameView` agora só depende do use case e navega com base em `MusicaPlaybackResult` (`FullTrackPlayback`/`PreviewPlayback`). 6 testes unitários novos cobrindo full track, preview (Spotify e fallback iTunes via repo), URI inválida, prévia indisponível e erro de conexão.*
 
 ---
 
@@ -71,4 +72,4 @@
 
 O bloco Crítico é intencionalmente pequeno e sequencial: **SEC-001 → SEC-002 → OPS-002 → OPS-001 → OPS-003 → ARQ-003**. A ordem importa — corrigir a credencial primeiro evita que o trabalho de CI/testes rode sobre uma base ainda vazando segredo; ter CI antes de escrever testes garante que os testes já nasçam rodando automaticamente; e observabilidade antes da refatoração de `ARQ-003` permite medir o impacto real da mudança em produção.
 
-**Progresso atual (críticos):** 5 de 6 concluídos (SEC-001 parcial, SEC-002/ARQ-009, OPS-002, OPS-001, OPS-003 — código pronto, falta habilitar no Console). Falta: ARQ-003.
+**Progresso atual (críticos):** 6 de 6 concluídos (SEC-001 parcial, SEC-002/ARQ-009, OPS-002, OPS-001, OPS-003 — código pronto, falta habilitar no Console —, ARQ-003).

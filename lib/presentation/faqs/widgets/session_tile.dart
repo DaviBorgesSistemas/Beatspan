@@ -54,7 +54,6 @@ class _SessionTileState extends State<SessionTile> {
   }
 
   Widget getContent(String content) {
-    // Novo padrão Markdown-like: [texto](alvo)
     final regex = RegExp(r'\[([^\]]*)\]\(([^)]+)\)');
     final spans = <TextSpan>[];
     int lastIndex = 0;
@@ -108,7 +107,6 @@ class _SessionTileState extends State<SessionTile> {
       lastIndex = match.end;
     }
 
-    // Texto final (sem links)
     if (lastIndex < content.length) {
       spans.add(
         TextSpan(

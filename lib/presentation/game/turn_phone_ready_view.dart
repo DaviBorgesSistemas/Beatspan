@@ -87,10 +87,6 @@ class _TurnPhoneReadyViewState extends State<TurnPhoneReadyView>
     });
   }
 
-  // The proximity sensor only reports state *transitions*: if the phone is
-  // already face down (sensor covered) before the listener registers, no
-  // event ever arrives. Assume "near" after a short delay so the screen
-  // doesn't get stuck waiting for an event that will never come.
   void _scheduleProximityFallback() {
     _proximityFallbackTimer?.cancel();
     _proximityFallbackTimer = Timer(_proximityFallbackDelay, () {

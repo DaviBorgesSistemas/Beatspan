@@ -32,7 +32,6 @@ class ItunesSearchApi {
       trackName: track['trackName'] as String?,
       artistName: track['artistName'] as String?,
       previewUrl: track['previewUrl'] as String?,
-      // artworkUrl100 -> troca o tamanho por uma versão maior (ex: 512x512)
       artworkUrl: artworkUrl100?.replaceFirst('100x100', '512x512'),
     );
   }
