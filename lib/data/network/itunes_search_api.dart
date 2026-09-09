@@ -1,9 +1,18 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
+import 'network_exceptions.dart';
+
 class ItunesSearchApi {
+  final http.Client _client;
+
   static const _timeout = Duration(seconds: 10);
+  static const _endpoint = 'GET /search';
+
+  ItunesSearchApi({http.Client? client}) : _client = client ?? http.Client();
 
   Future<ItunesTrackInfo?> searchTrack({
     required String trackName,
@@ -18,10 +27,32 @@ class ItunesSearchApi {
       'country': 'BR',
     });
 
-    final r = await http.get(url).timeout(_timeout);
-    if (r.statusCode != 200) return null;
+    final http.Response r;
+    try {
+      r = await _client.get(url).timeout(_timeout);
+    } on TimeoutException {
+      throw NetworkTimeoutException(_endpoint);
+    } on SocketException catch (e) {
+      throw NetworkConnectionException(_endpoint, cause: e);
+    } on http.ClientException catch (e) {
+      throw NetworkConnectionException(_endpoint, cause: e);
+    }
 
-    final j = json.decode(r.body) as Map<String, dynamic>;
+    if (r.statusCode != 200) {
+      throw InvalidServerResponseException(
+        _endpoint,
+        r.body,
+        statusCode: r.statusCode,
+      );
+    }
+
+    final Map<String, dynamic> j;
+    try {
+      j = json.decode(r.body) as Map<String, dynamic>;
+    } on FormatException catch (e) {
+      throw InvalidServerResponseException(_endpoint, e.message);
+    }
+
     final results = j['results'] as List<dynamic>?;
     if (results == null || results.isEmpty) return null;
 

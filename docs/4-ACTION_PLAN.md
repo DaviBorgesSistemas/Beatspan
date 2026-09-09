@@ -29,6 +29,8 @@
 ## Curto prazo (≤4 semanas)
 
 - [x] Adicionar `.timeout(...)` + tratamento de erro tipado em todas as chamadas HTTP (`spotify_webapi.dart`, `itunes_search_api.dart`) `[OPS-004 / PERF-001]` — Esforço: P — Impacto: Alto — Eixo: Operações
+  - *Criado `lib/data/network/network_exceptions.dart` com `NetworkTimeoutException`, `NetworkConnectionException` e `InvalidServerResponseException`. Ambas as APIs agora lançam a exceção tipada correta (timeout, falha de socket/cliente HTTP, status HTTP de erro, JSON malformado) em vez de engolir tudo como `null`/`false`. `SpotifyWebApi`/`ItunesSearchApi` passaram a aceitar um `http.Client` injetável para permitir teste. 15 testes novos (`spotify_webapi_test.dart`, `itunes_search_api_test.dart`) cobrindo os cenários de sucesso, timeout, erro de conexão, status de erro e resposta inválida. `flutter analyze` e `flutter test` (40 testes) passando.*
+  - *Parcial: `.timeout(Duration(seconds: 10))` já está em todas as chamadas HTTP dos dois arquivos. Falta o tratamento de erro tipado — hoje qualquer falha (timeout, sem rede, JSON inválido, status HTTP de erro) é engolida e vira `null`/`false` silenciosamente, sem distinção.*
 - [ ] Publicar página real de Política de Privacidade e Termos de Uso, substituindo os links placeholder do hosting `[SEC-009]` — Esforço: M — Impacto: Alto — Eixo: Segurança/Compliance
 - [ ] Adicionar tela de consentimento explícito antes da autorização OAuth do Spotify `[SEC-009]` — Esforço: M — Impacto: Médio — Eixo: Segurança/Compliance
 - [ ] Mover `instance<T>()` para injeção via construtor nos 10+ pontos identificados, começando pelos ViewModels `[ARQ-004]` — Esforço: M — Impacto: Alto — Eixo: Fundamentos
