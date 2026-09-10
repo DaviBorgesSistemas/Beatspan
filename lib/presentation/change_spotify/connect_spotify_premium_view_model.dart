@@ -45,11 +45,11 @@ class ConnectSpotifyPremiumViewModel {
       final connected = await _spotify.connect(accessToken: token);
 
       isConnected.value = connected;
-      state.value = connected ? FlowState.success : FlowState.error;
 
       if (!connected) {
-        errorMessage.value = 'Não foi possível conectar ao Spotify Remote.';
         state.value = FlowState.error;
+        errorMessage.value = 'Não foi possível conectar ao Spotify Remote.';
+        return;
       }
 
       _appPreferences.setAppPlanType(PlanType.premium);
