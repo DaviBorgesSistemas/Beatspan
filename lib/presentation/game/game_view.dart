@@ -4,6 +4,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../app/app_prefs.dart';
 import '../../data/repository/preview_playback_control_repository_impl.dart';
 import '../../domain/model/musica_playback_result.dart';
+import '../../domain/usecase/musica_playback_usecase.dart';
 import '../../domain/usecase/preview_playback_usecase.dart';
 import '../../domain/usecase/spotify_playback_usecase.dart';
 import '../share/widgets/beatspan_loading_overlay.dart';
@@ -19,12 +20,14 @@ class GameView extends StatefulWidget {
   final AppPreferences appPreferences;
   final GameViewModel viewModel;
   final SpotifyPlaybackUseCase spotifyPlaybackUseCase;
+  final MusicaPlaybackUseCase musicaPlaybackUseCase;
 
   const GameView({
     super.key,
     required this.appPreferences,
     required this.viewModel,
     required this.spotifyPlaybackUseCase,
+    required this.musicaPlaybackUseCase,
   });
 
   @override
@@ -109,6 +112,9 @@ class _GameViewState extends State<GameView> {
         PlayerMusicPremiumView(
           initialUri: spotifyUri,
           spotifyPlaybackUseCase: widget.spotifyPlaybackUseCase,
+          musicaPlaybackUseCase: widget.musicaPlaybackUseCase,
+          previewPlaybackUseCaseFactory: () =>
+              PreviewPlaybackUseCase(PreviewPlaybackControlRepositoryImpl()),
         ),
       ),
       PreviewPlayback() => _navigateToPlayer(

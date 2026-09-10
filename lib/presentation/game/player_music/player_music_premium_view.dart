@@ -4,19 +4,28 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../../domain/enum/settings_enum.dart';
+import '../../../domain/model/musica_playback_result.dart';
 import '../../../domain/model/playback_state.dart';
+import '../../../domain/usecase/musica_playback_usecase.dart';
+import '../../../domain/usecase/preview_playback_usecase.dart';
 import '../../../domain/usecase/spotify_playback_usecase.dart';
 import '../../share/widgets/beatspan_loading_overlay.dart';
 import '../../share/widgets/next_card_button.dart';
+import 'play_music_free_view.dart';
 
 class PlayerMusicPremiumView extends StatefulWidget {
   final String initialUri;
   final SpotifyPlaybackUseCase spotifyPlaybackUseCase;
+  final MusicaPlaybackUseCase musicaPlaybackUseCase;
+  final PreviewPlaybackUseCase Function() previewPlaybackUseCaseFactory;
 
   const PlayerMusicPremiumView({
     super.key,
     required this.initialUri,
     required this.spotifyPlaybackUseCase,
+    required this.musicaPlaybackUseCase,
+    required this.previewPlaybackUseCaseFactory,
   });
 
   @override
@@ -27,6 +36,7 @@ class _PlayerMusicPremiumViewState extends State<PlayerMusicPremiumView> {
   bool _loading = true;
   String? _error;
   bool _pluginAvailable = true;
+  bool _fallingBackToPreview = false;
 
   Stream<PlaybackState>? _playerStateStream;
 
@@ -60,8 +70,13 @@ class _PlayerMusicPremiumViewState extends State<PlayerMusicPremiumView> {
       widget.initialUri,
     );
 
-    result.fold(
-      (failure) {
+    await result.fold(
+      (failure) async {
+        if (failure.code == spotifyPlaybackAuthErrorCode) {
+          final fellBack = await _tryFallbackToPreview();
+          if (fellBack) return;
+        }
+        if (!mounted) return;
         setState(() {
           _loading = false;
           _pluginAvailable =
@@ -69,14 +84,58 @@ class _PlayerMusicPremiumViewState extends State<PlayerMusicPremiumView> {
           _error = failure.message;
         });
       },
-      (_) {
+      (_) async {
         _playerStateStream = widget.spotifyPlaybackUseCase
             .subscribePlayerState();
+        if (!mounted) return;
         setState(() {
           _loading = false;
         });
       },
     );
+  }
+
+  /// Quando a conexão Premium falha por autorização (app não instalado,
+  /// autorização negada, sessão expirada), tenta tocar a prévia de 30s em
+  /// vez de travar o usuário na tela de erro — comum em uso de festa, onde
+  /// parar o jogo por causa de uma falha pontual do Spotify frustra mais
+  /// que degradar para a prévia. Não altera a preferência de plano salva.
+  Future<bool> _tryFallbackToPreview() async {
+    setState(() => _fallingBackToPreview = true);
+
+    final result = await widget.musicaPlaybackUseCase.execute(
+      MusicaPlaybackInput(
+        spotifyUri: widget.initialUri,
+        plan: PlanType.free,
+        gameMode: GameModeType.preview,
+      ),
+    );
+
+    final preview = result.fold((_) => null, (playback) => playback);
+    if (preview is! PreviewPlayback || !mounted) {
+      if (mounted) setState(() => _fallingBackToPreview = false);
+      return false;
+    }
+
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => PlayerMusicFreeView(
+          trackId: preview.trackId,
+          previewUrl: preview.previewUrl,
+          trackName: preview.trackName,
+          artistName: preview.artistName,
+          albumArtUrl: preview.albumArtUrl,
+          previewPlaybackUseCase: widget.previewPlaybackUseCaseFactory(),
+          spotifyPlaybackUseCase: widget.spotifyPlaybackUseCase,
+        ),
+        transitionDuration: const Duration(milliseconds: 250),
+        reverseTransitionDuration: const Duration(milliseconds: 200),
+        transitionsBuilder: (_, animation, __, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      ),
+    );
+    return true;
   }
 
   @override
@@ -148,8 +207,12 @@ class _PlayerMusicPremiumViewState extends State<PlayerMusicPremiumView> {
   }
 
   Widget _buildBody() {
-    if (_loading) {
-      return const BeatspanLoadingOverlay(message: 'CONECTANDO AO SPOTIFY...');
+    if (_loading || _fallingBackToPreview) {
+      return BeatspanLoadingOverlay(
+        message: _fallingBackToPreview
+            ? 'SPOTIFY INDISPONÍVEL, TOCANDO PRÉVIA...'
+            : 'CONECTANDO AO SPOTIFY...',
+      );
     }
 
     if (_error != null || !_pluginAvailable || _playerStateStream == null) {

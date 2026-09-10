@@ -1,3 +1,5 @@
+import 'package:beatspan/domain/usecase/musica_playback_usecase.dart';
+import 'package:beatspan/domain/usecase/preview_playback_usecase.dart';
 import 'package:beatspan/domain/usecase/spotify_playback_usecase.dart';
 import 'package:beatspan/presentation/game/player_music/player_music_premium_view.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +9,12 @@ import 'package:mocktail/mocktail.dart';
 class _MockSpotifyPlaybackUseCase extends Mock
     implements SpotifyPlaybackUseCase {}
 
+class _MockMusicaPlaybackUseCase extends Mock
+    implements MusicaPlaybackUseCase {}
+
+class _MockPreviewPlaybackUseCase extends Mock
+    implements PreviewPlaybackUseCase {}
+
 void main() {
   // `flutter test` roda em VM (não Android/iOS/web), então
   // `_PlayerMusicPremiumViewState._initSpotify` sempre cai no branch de
@@ -15,9 +23,11 @@ void main() {
   // o comportamento real do widget nesse ambiente (proteção explícita no
   // código contra plataformas sem o plugin nativo).
   late _MockSpotifyPlaybackUseCase spotifyPlaybackUseCase;
+  late _MockMusicaPlaybackUseCase musicaPlaybackUseCase;
 
   setUp(() {
     spotifyPlaybackUseCase = _MockSpotifyPlaybackUseCase();
+    musicaPlaybackUseCase = _MockMusicaPlaybackUseCase();
     when(() => spotifyPlaybackUseCase.pause()).thenAnswer((_) async {});
   });
 
@@ -26,6 +36,8 @@ void main() {
       home: PlayerMusicPremiumView(
         initialUri: 'spotify:track:abc123',
         spotifyPlaybackUseCase: spotifyPlaybackUseCase,
+        musicaPlaybackUseCase: musicaPlaybackUseCase,
+        previewPlaybackUseCaseFactory: () => _MockPreviewPlaybackUseCase(),
       ),
     );
   }
@@ -43,6 +55,7 @@ void main() {
       );
       expect(find.widgetWithText(ElevatedButton, 'Voltar'), findsOneWidget);
       verifyNever(() => spotifyPlaybackUseCase.startPlayback(any()));
+      verifyZeroInteractions(musicaPlaybackUseCase);
     },
   );
 
@@ -60,6 +73,9 @@ void main() {
                     builder: (_) => PlayerMusicPremiumView(
                       initialUri: 'spotify:track:abc123',
                       spotifyPlaybackUseCase: spotifyPlaybackUseCase,
+                      musicaPlaybackUseCase: musicaPlaybackUseCase,
+                      previewPlaybackUseCaseFactory: () =>
+                          _MockPreviewPlaybackUseCase(),
                     ),
                   ),
                 ),

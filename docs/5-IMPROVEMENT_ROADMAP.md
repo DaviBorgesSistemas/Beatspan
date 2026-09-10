@@ -67,8 +67,8 @@
 **Eixo arquitetural:** Experiência, Operações
 
 **Iniciativas:**
-- Cobertura de teste para os ~54 arquivos ainda não tocados, priorizando o fluxo Spotify — `OPS-001`
-- Avaliação de testes de integração/e2e — `OPS-009`
+- ~~Cobertura de teste priorizando o fluxo Spotify (`connect_spotify_premium_view_model.dart` + `GameView`)~~ — `OPS-001` (✅ alvos priorizados concluídos em 2026-09-10, 22/76→71/89 arquivos tocados; expandir os 18 restantes segue como trabalho futuro)
+- ~~Avaliação de testes de integração/e2e~~ — `OPS-009` (✅ avaliado em 2026-09-10: caminho crítico completo é intestável em CI sem device farm pago; ver `4-ACTION_PLAN.md`)
 - `Semantics`/acessibilidade nas telas principais — `UX-003`
 - Padronizar 100% das telas no design system — `UX-001`
 - Contraste WCAG AA — `UX-004`

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../app/app_prefs.dart';
 import '../app/di.dart';
+import '../domain/usecase/musica_playback_usecase.dart';
 import '../domain/usecase/spotify_playback_usecase.dart';
 import 'change_spotify/change_spotify_view.dart';
 import 'change_spotify/connect_spotify_premium_view_model.dart';
@@ -80,6 +81,7 @@ class RouteGenerator {
             appPreferences: instance<AppPreferences>(),
             viewModel: instance<GameViewModel>(),
             spotifyPlaybackUseCase: instance<SpotifyPlaybackUseCase>(),
+            musicaPlaybackUseCase: instance<MusicaPlaybackUseCase>(),
           ),
         );
       default:

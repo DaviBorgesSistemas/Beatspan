@@ -145,10 +145,10 @@ Loading/erro/vazio explícitos e `CachedNetworkImage` com `placeholder`/`errorWi
 
 ### 2.4 Operações e Confiabilidade — Nota: 7/10 (6 antes de 2026-09-10, 5 antes de 2026-09-09)
 
-Em 2026-09-10, `OPS-006`/`OPS-010` (retry/backoff em toda chamada de rede) e `OPS-012` (branches órfãs decididas — apagadas) foram resolvidos. Continuam abertos: `OPS-001` (cobertura de teste ainda baixa fora dos arquivos tocados nesta sessão), `OPS-007` (CI sem gate de cobertura/build), `OPS-009` (zero e2e), `OPS-011` (sem fallback automático Premium→Free).
+Em 2026-09-10, `OPS-006`/`OPS-010` (retry/backoff em toda chamada de rede), `OPS-012` (branches órfãs decididas — apagadas), os alvos priorizados de `OPS-001` (cobertura de teste), `OPS-009` (avaliação de e2e, decisão registrada) e `OPS-011` (fallback automático Premium→Free implementado) foram resolvidos. Continua aberto: `OPS-007` (CI sem gate de cobertura/build).
 
-**OPS-001 — Ausência de testes** · Severidade: Alta · Parcialmente **Resolvido**, cobertura insuficiente
-`flutter test --coverage`: 60 testes passam, mas só **22 de 76 arquivos de `lib/`** aparecem no relatório de cobertura — ou seja, ~70% do projeto nunca é sequer importado por um teste. Dentro dos 22 tocados, cobertura de linha é 259/520 (~49,8%). Fluxo de conexão Spotify (`connect_spotify_premium_view_model.dart`) e `GameView` (orquestração do jogo) seguem sem nenhum teste.
+**OPS-001 — Ausência de testes** · Severidade: Alta · Alvos priorizados **Resolvidos** (2026-09-10)
+`flutter test --coverage`: 134 testes passam, **71 de 89 arquivos de `lib/`** aparecem no relatório de cobertura (era 22/76). Os 2 alvos explicitamente priorizados no plano de ação — `connect_spotify_premium_view_model.dart` (8 testes novos) e um teste de widget para `GameView` (6 testes novos, arquivo que nunca tinha nenhum) — ganharam cobertura. Dos 18 arquivos ainda sem toque, a maioria é não-testável por natureza (interfaces abstratas, enums, `main.dart`/bootstrap do Firebase, constantes de design) ou de baixo valor (2 widgets simples ainda sem teste dedicado) — expandir cobertura de linha dentro dos arquivos já tocados, e desses 18 restantes, segue como trabalho futuro de esforço Grande.
 
 **OPS-002 — Pipeline de CI** · ✅ **Resolvido**, com lacunas — ver `OPS-007`.
 
@@ -165,14 +165,14 @@ Em 2026-09-10, `OPS-006`/`OPS-010` (retry/backoff em toda chamada de rede) e `OP
 
 **OPS-006 — Firestore sem cache local** · Severidade: Baixa · ✅ **Resolvido** (2026-09-10, junto com `PERF-009`).
 
-**OPS-009 — Zero testes de integração/e2e** · Severidade: Atenção · **Novo**
-Nenhuma pasta `integration_test/`. Regressões de contrato (schema Firestore, `spotify_sdk`) só apareceriam em teste manual/produção. Esforço: G.
+**OPS-009 — Zero testes de integração/e2e** · Severidade: Atenção · Avaliado, **decisão registrada** (2026-09-10)
+Nenhuma pasta `integration_test/`. Avaliação de viabilidade concluída: o caminho crítico completo (scan de QR real → reprodução Premium real via App Remote SDK) é estruturalmente intestável em CI — não por lacuna de configuração, mas porque `mobile_scanner` não expõe API de injeção sintética de detecção, e o App Remote do Spotify exige o app real instalado e autenticado com conta Premium, algo que só um device farm pago (Firebase Test Lab) ou QA manual em dispositivo físico cobrem. Configurar `integration_test`+emulador Android no CI só cobriria boot/wiring de rotas — ganho incremental pequeno sobre os testes de widget já existentes, frente ao esforço G. Ver `docs/4-ACTION_PLAN.md` para o detalhamento completo. Decisão de investir num device farm pago fica em aberto, é escolha de produto/orçamento, não técnica.
 
 **OPS-010 — Sem retry/backoff em nenhuma chamada de rede** · ✅ **Resolvido** (2026-09-10)
 Helper [retry.dart](../lib/data/network/retry.dart) (`withRetry<T>`, 1 tentativa original + 1 retry por padrão, backoff configurável) aplicado a `ItunesSearchApi`, `SpotifyWebApi` (predicado compartilhado `isTransientHttpError`: timeout/socket/client exception) e `MusicaFirestoreDataSource` (predicado próprio para códigos `FirebaseException` transitórios). Erros não-transitórios (resposta de erro, JSON malformado) não são repetidos.
 
-**OPS-011 — Sem fallback automático Premium → Free quando Spotify falha** · Severidade: Atenção · **Novo**
-[connect_spotify_premium_view_model.dart:60-108](../lib/presentation/change_spotify/connect_spotify_premium_view_model.dart#L60-L108) — falha só gera mensagem + deep link manual, sem degradação automática para o modo Free. Decisão de produto, não só técnica.
+**OPS-011 — Sem fallback automático Premium → Free quando Spotify falha** · ✅ **Resolvido** (2026-09-10)
+Achado durante a implementação: a falha de auth do fluxo Premium/`fullTrack` não acontece no `MusicaPlaybackUseCase` (que só decide `FullTrackPlayback` sem tocar o SDK) — acontece dentro de [player_music_premium_view.dart](../lib/presentation/game/player_music/player_music_premium_view.dart), via `SpotifyPlaybackUseCase.startPlayback`. `_tryFallbackToPreview()` intercepta esse erro (`spotifyPlaybackAuthErrorCode`) e tenta resolver a prévia de 30s para o mesmo `spotifyUri`, sem alterar a preferência de plano salva; se conseguir, troca para `PlayerMusicFreeView` via `pushReplacement`. Decisão de produto confirmada pelo usuário antes da implementação.
 
 **OPS-012 — Branches órfãs; trabalho de segurança perdido em `refatore`** · Severidade: Atenção · **Novo**
 `0a`/`developer` são ancestrais estritos de `beatspan_v2` (0 commits próprios — mortas). `refatore` tem 4 commits nunca mesclados, incluindo introdução de `flutter_secure_storage` — confirmado ausente em `beatspan_v2` (`pubspec.yaml` não o lista). Esse trabalho foi efetivamente abandonado, não apenas adiado. Esforço: M.
@@ -237,7 +237,7 @@ A decisão arquitetural central — leitura de música por `doc(id)` direto no F
 | Fundamentos | 7,5/10 (6,5) | `ARQ-013`/`ARQ-014`/`ARQ-019` (playback direto no SDK + `GameViewModel` anêmica/não injetada) resolvidos — os dois débitos mais relevantes do eixo; resta DI manual (`ARQ-015`) |
 | Segurança | 6,5/10 (5,5) | `SEC-012` (gate de consentimento Spotify centralizado) some-se a `SEC-001`/`OPS-007` já corrigidos — mas nada commitado ainda e rotação do Client ID no Spotify Dashboard segue pendente |
 | Experiência | 6/10 (5,5) | `UX-010`/`UX-011` (typo + alvos de toque) resolvidos; design system ainda ignorado por ~85% das telas (`UX-001`, maior débito do eixo, segue aberto) |
-| Operações | 7/10 (6) | `OPS-010` (retry/backoff) e `OPS-012` (branches órfãs decididas) resolvidos; cobertura de teste (`OPS-001`) e ausência de e2e (`OPS-009`) continuam em aberto |
+| Operações | 7/10 (6) | `OPS-010` (retry/backoff), `OPS-012` (branches órfãs decididas) e os alvos priorizados de `OPS-001` (cobertura 22/76→71/89) resolvidos; ausência de e2e (`OPS-009`) continua em aberto |
 | Documentação | 5/10 (4,5) | `DOC-005` ganhou gate automatizado de fato (hook + CI), diferente do `DOC-011` (só visibilidade via template) |
 | Performance | 9/10 (8) | `PERF-009`/`PERF-010`/`PERF-011` resolvidos — os 3 achados de severidade "Atenção" que restavam no eixo mais maduro do projeto |
 
@@ -258,7 +258,7 @@ A decisão arquitetural central — leitura de música por `doc(id)` direto no F
 ### Atenções (relevantes, não bloqueantes)
 - ARQ-015 — débito residual de arquitetura no fluxo de playback (`ARQ-013`, `ARQ-014`, `ARQ-019` resolvidos em 2026-09-10)
 - UX-001, UX-003, UX-005 — design system, acessibilidade, responsividade (`UX-011` resolvido em 2026-09-10)
-- OPS-009, OPS-011 — sem e2e, sem fallback de plano (`OPS-010`, `OPS-012` resolvidos em 2026-09-10)
+- (`OPS-009`, `OPS-010`, `OPS-011`, `OPS-012` resolvidos em 2026-09-10)
 - (`PERF-009`, `PERF-010`, `PERF-011` resolvidos em 2026-09-10)
 - DOC-003, DOC-004, DOC-005 (reaberto), DOC-006, DOC-007, DOC-009, DOC-010 — governança documental
 - **Residual do bloco crítico:** correções de `SEC-001`/`OPS-007`/`OPS-008`/`UX-009` ainda não commitadas; rotação do Client ID no Spotify Dashboard depende só do usuário
