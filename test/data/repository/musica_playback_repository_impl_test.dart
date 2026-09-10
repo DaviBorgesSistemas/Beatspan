@@ -1,8 +1,11 @@
 import 'package:beatspan/data/network/itunes_search_api.dart';
+import 'package:beatspan/data/network/network_exceptions.dart';
 import 'package:beatspan/data/network/spotify_service.dart';
 import 'package:beatspan/data/network/spotify_webapi.dart';
 import 'package:beatspan/data/repository/musica_playback_repository_impl.dart';
+import 'package:beatspan/domain/exceptions/playback_exceptions.dart';
 import 'package:beatspan/domain/model/musica_playback_result.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -156,6 +159,75 @@ void main() {
       expect(first, isNull);
       expect(second, isNull);
       verify(() => spotifyWebApi.getTrack(trackId)).called(1);
+    },
+  );
+
+  test(
+    'converte PlatformException do Spotify em PlaybackAuthException, sem cachear a falha',
+    () async {
+      when(() => spotifyService.getAccessToken()).thenThrow(
+        PlatformException(code: 'UserNotAuthorizedException'),
+      );
+
+      await expectLater(
+        () => repository.resolvePreview(trackId),
+        throwsA(isA<PlaybackAuthException>()),
+      );
+
+      when(() => spotifyWebApi.getTrack(trackId)).thenAnswer(
+        (_) async => const SpotifyTrackInfo(
+          name: 'Nome',
+          artist: 'Artista',
+          previewUrl: 'https://spotify-preview',
+        ),
+      );
+      when(() => spotifyService.getAccessToken()).thenAnswer(
+        (_) async => accessToken,
+      );
+      final result = await repository.resolvePreview(trackId);
+      expect(result, isNotNull, reason: 'falha não deveria ter sido cacheada');
+    },
+  );
+
+  test(
+    'converte MissingPluginException em PlaybackAuthException',
+    () async {
+      when(
+        () => spotifyService.getAccessToken(),
+      ).thenThrow(MissingPluginException());
+
+      await expectLater(
+        () => repository.resolvePreview(trackId),
+        throwsA(isA<PlaybackAuthException>()),
+      );
+    },
+  );
+
+  test(
+    'converte NetworkTimeoutException em PlaybackNetworkException',
+    () async {
+      when(() => spotifyWebApi.getTrack(trackId)).thenThrow(
+        NetworkTimeoutException('spotify/tracks'),
+      );
+
+      await expectLater(
+        () => repository.resolvePreview(trackId),
+        throwsA(isA<PlaybackNetworkException>()),
+      );
+    },
+  );
+
+  test(
+    'converte NetworkConnectionException em PlaybackNetworkException',
+    () async {
+      when(() => spotifyWebApi.getTrack(trackId)).thenThrow(
+        NetworkConnectionException('spotify/tracks'),
+      );
+
+      await expectLater(
+        () => repository.resolvePreview(trackId),
+        throwsA(isA<PlaybackNetworkException>()),
+      );
     },
   );
 }

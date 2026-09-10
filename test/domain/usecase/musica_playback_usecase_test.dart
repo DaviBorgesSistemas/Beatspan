@@ -1,4 +1,5 @@
 import 'package:beatspan/domain/enum/settings_enum.dart';
+import 'package:beatspan/domain/exceptions/playback_exceptions.dart';
 import 'package:beatspan/domain/model/musica_playback_result.dart';
 import 'package:beatspan/domain/repository/musica_playback_repository.dart';
 import 'package:beatspan/domain/usecase/musica_playback_usecase.dart';
@@ -119,21 +120,68 @@ void main() {
     },
   );
 
-  test('retorna falha de conexão quando repositório lança exceção', () async {
-    when(
-      () => repository.resolvePreview('abc123'),
-    ).thenThrow(Exception('offline'));
+  test(
+    'retorna falha de conexão quando repositório lança PlaybackNetworkException',
+    () async {
+      when(() => repository.resolvePreview('abc123')).thenThrow(
+        const PlaybackNetworkException('Tempo de conexão esgotado.'),
+      );
 
-    final result = await useCase.execute(
-      const MusicaPlaybackInput(
-        spotifyUri: spotifyUri,
-        plan: PlanType.free,
-        gameMode: GameModeType.fullTrack,
-      ),
-    );
+      final result = await useCase.execute(
+        const MusicaPlaybackInput(
+          spotifyUri: spotifyUri,
+          plan: PlanType.free,
+          gameMode: GameModeType.fullTrack,
+        ),
+      );
 
-    final failure = result.fold((f) => f, (_) => null);
-    expect(failure, isNotNull);
-    expect(failure!.code, musicaPlaybackConnectionErrorCode);
-  });
+      final failure = result.fold((f) => f, (_) => null);
+      expect(failure, isNotNull);
+      expect(failure!.code, musicaPlaybackConnectionErrorCode);
+      expect(failure.message, 'Tempo de conexão esgotado.');
+    },
+  );
+
+  test(
+    'retorna falha de autorização do Spotify quando repositório lança PlaybackAuthException',
+    () async {
+      when(() => repository.resolvePreview('abc123')).thenThrow(
+        const PlaybackAuthException('Falha ao autorizar o Spotify.'),
+      );
+
+      final result = await useCase.execute(
+        const MusicaPlaybackInput(
+          spotifyUri: spotifyUri,
+          plan: PlanType.free,
+          gameMode: GameModeType.fullTrack,
+        ),
+      );
+
+      final failure = result.fold((f) => f, (_) => null);
+      expect(failure, isNotNull);
+      expect(failure!.code, musicaPlaybackSpotifyAuthErrorCode);
+      expect(failure.message, 'Falha ao autorizar o Spotify.');
+    },
+  );
+
+  test(
+    'retorna falha inesperada quando repositório lança exceção não classificada',
+    () async {
+      when(
+        () => repository.resolvePreview('abc123'),
+      ).thenThrow(Exception('algo diferente'));
+
+      final result = await useCase.execute(
+        const MusicaPlaybackInput(
+          spotifyUri: spotifyUri,
+          plan: PlanType.free,
+          gameMode: GameModeType.fullTrack,
+        ),
+      );
+
+      final failure = result.fold((f) => f, (_) => null);
+      expect(failure, isNotNull);
+      expect(failure!.code, musicaPlaybackUnexpectedErrorCode);
+    },
+  );
 }

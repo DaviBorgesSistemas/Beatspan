@@ -8,6 +8,7 @@ import '../../app/app_prefs.dart';
 import '../../data/network/spotify_service.dart';
 import '../../domain/enum/flow_state.dart';
 import '../../domain/enum/settings_enum.dart';
+import '../../domain/error_reporting.dart';
 
 class ConnectSpotifyPremiumViewModel {
   final SpotifyService _spotify;
@@ -73,7 +74,9 @@ class ConnectSpotifyPremiumViewModel {
     try {
       await _spotify.disconnect();
       isConnected.value = false;
-    } catch (_) {}
+    } catch (e, s) {
+      reportNonFatalError(e, s);
+    }
   }
 
   void _handlePlatformException(PlatformException e) {

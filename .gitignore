@@ -46,3 +46,6 @@ app.*.map.json
 
 # Local tooling binaries (baixados sob demanda, ex.: scripts/scan_dependencies.sh)
 /.tools/
+
+# Credenciais locais — nunca versionar (ver docs/2-SECURITY_REPORT.md, SEC-001)
+.env

@@ -1,118 +1,118 @@
 # Roadmap de Melhoria — Beatspan
 
 **Projeto:** Beatspan
-**Data da análise:** 2026-09-08
-**Versão do documento:** 1.0
+**Data da análise:** 2026-09-09
+**Versão do documento:** 2.0
 
-> Agrupa as iniciativas já definidas em [ACTION_PLAN.md](ACTION_PLAN.md) por fase. Nenhuma iniciativa nova é criada aqui — apenas reorganizada por horizonte de tempo e agrupada por objetivo comum. Como o projeto ainda não tem release pública, as fases usam nomenclatura por marco de maturidade (Fase 1–4) em vez de trimestre calendário.
+> Agrupa as iniciativas definidas em [4-ACTION_PLAN.md](4-ACTION_PLAN.md) por fase. Nenhuma iniciativa nova é criada aqui. Como o projeto ainda não tem release pública, as fases usam nomenclatura por marco de maturidade (Fase 1–4).
 
 ---
 
 ## ⚡ Quick wins (alto impacto, baixo esforço)
 
-Iniciativas que devem ser priorizadas independentemente da fase, por relação custo/benefício:
-
 | Iniciativa | ID(s) relacionado(s) | Esforço | Impacto |
 |---|---|---|---|
-| Remover `.env` do Git e rotacionar credencial | SEC-001 | P | Alto |
-| Adicionar `.timeout(...)` nas chamadas HTTP existentes | OPS-004 / PERF-001 | P | Alto |
-| Remover código morto comentado (`settings_view.dart`, `play_music_free_view.dart`) | ARQ-008 / UX-002 | P | Médio |
-| Corrigir link quebrado no README e sincronizar docs de planejamento | DOC-001 / DOC-002 | P | Médio |
-| Mover `Failure` para fora de `data`, corrigir import invertido em `FaqRepositoryImpl` | ARQ-001 / ARQ-002 | P | Médio |
-| Adotar Conventional Commits a partir de agora (sem custo de setup, só disciplina) | DOC-005 | P | Médio |
+| Remover `.env` do Git de novo + gate de secret-scanning no CI | SEC-001 / OPS-007 | P | Alto |
+| Registrar `catch` de negócio no Crashlytics | OPS-008 | P | Alto |
+| Corrigir processo de checklist do plano de ação | DOC-011 | P | Alto |
+| Corrigir typo "PREMIYM" | UX-010 | P | Baixo |
+| Adicionar `formats: [qrCode]` ao scanner | PERF-011 | P | Baixo |
+| Cache em memória em `MusicaRepositoryImpl` | PERF-009 | P | Baixo |
+| Padronizar tamanho mínimo de botões fechar/voltar | UX-011 | P | Baixo |
 
 ---
 
-## Fase 1 — Fundação de confiabilidade
+## Fase 1 — Fechar a regressão e as lacunas de observabilidade
 
-**Objetivo:** garantir que o app tenha o mínimo de rede de segurança antes de qualquer lançamento público — sem isso, todo o resto do roadmap é construído sobre uma base sem visibilidade de falhas.
+**Objetivo:** este ciclo é diferente do anterior — não é "criar" confiabilidade do zero, é **consertar o que já foi criado e regrediu**, e fechar a lacuna mais séria descoberta agora: erros tratados são invisíveis.
 
-**Eixo arquitetural:** Operações e Confiabilidade, Segurança
+**Eixo arquitetural:** Segurança, Operações
 
 **Iniciativas:**
-- Pipeline de CI mínimo (`flutter analyze` + `flutter test`) — `OPS-002`
-- Primeira leva de testes unitários (lógica pura: parsing de QR, repositórios) — `OPS-001`
-- Integração de Crashlytics/Sentry — `OPS-003`
-- Remoção da credencial versionada + config por ambiente — `SEC-001`, `SEC-002`/`ARQ-009`
-- Extração da lógica Spotify/iTunes de `GameView` para Repository/UseCase — `ARQ-003`
+- Reaplicar remoção do `.env` + gate automatizado que impeça a 3ª regressão — `SEC-001` / `OPS-007`
+- `recordError` nos catches de negócio (Spotify, player) — `OPS-008`
+- Diferenciar mensagens de erro reais no fluxo de playback — `UX-009`
+- Corrigir processo de checklist (verificação antes de marcar `[x]`) — `DOC-011`
 
-**Dependências entre iniciativas:** `SEC-001` deve ser concluído antes de qualquer outra iniciativa que toque `di.dart` (evita retrabalho); `OPS-002` (CI) deve existir antes de `OPS-001` (testes) ganhar valor total, já que testes sem CI não protegem contra regressão automaticamente; `OPS-003` (observabilidade) idealmente entra antes de `ARQ-003` para medir o impacto real da refatoração em produção.
+**Dependências:** `OPS-008` deveria entrar **antes** de `UX-009` ser reescrito — sem telemetria real, o novo texto de erro corre o risco de ser um chute tão impreciso quanto o atual.
 
-**Métrica de sucesso:** PR não pode ser mergeado sem `flutter analyze` limpo; cobertura de teste > 0% nos módulos `domain/usecase` e `domain/repository`; crash em produção aparece em dashboard de observabilidade em até 5 minutos do evento.
+**Métrica de sucesso:** um `git log` mostrando `.env` nunca mais versionado por 90 dias consecutivos; primeiro incidente real do Spotify aparecendo no dashboard do Crashlytics com causa identificável (não só "erro de conexão").
 
 ---
 
-## Fase 2 — Consolidação arquitetural e compliance
+## Fase 2 — Fechar o débito residual de arquitetura e segurança de release
 
-**Objetivo:** eliminar as inversões de dependência entre camadas e fechar a lacuna de compliance antes de abrir o app a usuários reais.
+**Objetivo:** terminar o que a Fase 1 anterior deixou pela metade — o playback ainda fora do padrão Repository/UseCase, e o app ainda não pronto para ser publicado de verdade.
 
-**Eixo arquitetural:** Fundamentos, Segurança e Compliance
+**Eixo arquitetural:** Fundamentos, Segurança
 
 **Iniciativas:**
-- Corrigir inversões de dependência (`domain`→`data`, `data`→`presentation`) — `ARQ-001`, `ARQ-002`
-- Mover `instance<T>()` para injeção via construtor — `ARQ-004`
-- Remover duplicação `_nextCardButton()` — `ARQ-007`
-- Política de Privacidade e Termos de Uso reais + tela de consentimento OAuth — `SEC-009`
-- Scanner de dependências integrado + upgrade de majors críticos (`firebase_core`, `cloud_firestore`, `spotify_sdk`) — `SEC-010`
+- Extrair controle de reprodução para repository/usecase — `ARQ-013`
+- `GameViewModel` real, injetada via construtor, absorvendo a orquestração de `GameView` — `ARQ-014` / `ARQ-019`
+- Keystore de produção + ofuscação R8/ProGuard habilitada — `SEC-011`
+- Centralizar checagem de consentimento OAuth — `SEC-012`
+- Retry/backoff + tratamento de `429` — `OPS-010` / `PERF-010`
+- Consolidar/arquivar branches órfãs, resgatando o que for útil de `refatore` — `OPS-012` / `DOC-006`
 
-**Dependências entre iniciativas:** `ARQ-004` (DI via construtor) torna `ARQ-003`/testes da Fase 1 mais fáceis de expandir — por isso entra logo na sequência, não em paralelo puro. `SEC-009` é pré-requisito de negócio para publicação nas lojas (Apple/Google exigem política de privacidade linkada).
+**Dependências:** `ARQ-014` fica mais fácil de testar depois que `ARQ-013` reduzir o que `GameView` chama diretamente. `SEC-011` é pré-requisito de negócio para qualquer submissão à Play Store.
 
-**Métrica de sucesso:** zero import de `data` em `domain` ou de `presentation` em `data` (verificável por lint de arquitetura, ex. `import_lint` ou regra customizada); política de privacidade acessível publicamente com URL estável; nenhuma dependência com CVE confirmada de severidade Alta/Crítica em aberto.
+**Métrica de sucesso:** `GameView` não chama `SpotifySdk.*` diretamente; build de release assinado com keystore própria e R8 habilitado sem quebrar; nenhuma branch de longa duração sem commit há mais de 90 dias sem decisão documentada.
 
 ---
 
-## Fase 3 — Experiência e performance
+## Fase 3 — Experiência, acessibilidade e cobertura de teste
 
-**Objetivo:** elevar a qualidade percebida pelo usuário final — consistência visual, acessibilidade e responsividade de rede.
+**Objetivo:** elevar qualidade percebida e reduzir a superfície não testada do app.
 
-**Eixo arquitetural:** Experiência, Performance
+**Eixo arquitetural:** Experiência, Operações
 
 **Iniciativas:**
-- Padronizar 100% das telas no design system existente — `UX-001`
-- Adicionar `Semantics`/acessibilidade nas telas principais — `UX-003`
-- Checklist/lint de contraste WCAG AA — `UX-004`
-- Cache de rede (Spotify/iTunes) + `cached_network_image` — `PERF-003`
-- Otimização de assets de imagem — `PERF-004`
-- Tratamento de loading/erro uniforme (`settings_view.dart` e demais telas incompletas) — `UX-006`
+- Cobertura de teste para os ~54 arquivos ainda não tocados, priorizando o fluxo Spotify — `OPS-001`
+- Avaliação de testes de integração/e2e — `OPS-009`
+- `Semantics`/acessibilidade nas telas principais — `UX-003`
+- Padronizar 100% das telas no design system — `UX-001`
+- Contraste WCAG AA — `UX-004`
+- Layout responsivo para os cards de player (sem dimensão fixa) — `UX-005`
+- Otimização de assets + remoção de pesos de fonte não usados — `PERF-004` / `PERF-012`
 
-**Dependências entre iniciativas:** nenhuma dependência forte entre si — podem rodar em paralelo por sub-times (design system e acessibilidade são trabalho de UI; cache e assets são trabalho de dados/build). `UX-001` idealmente conclui antes de `UX-004`, já que padronizar cores primeiro facilita auditar contraste depois em um único lugar (`ColorManager`) em vez de N telas.
+**Dependências:** nenhuma dependência forte entre si; podem correr em paralelo por sub-times.
 
-**Métrica de sucesso:** zero ocorrência de `TextStyle(` cru fora de `style_manager.dart` (grep de CI); tempo de carregamento de tela do player reduzido em cenário de scan repetido (cache hit); relatório de contraste sem violação AA nas cores do `ColorManager`.
+**Métrica de sucesso:** zero `TextStyle(` cru fora de `style_manager.dart` (grep de CI); cobertura de linha do projeto inteiro (não só dos arquivos tocados) acima de 50%.
 
 ---
 
 ## Fase 4 — Governança e escala
 
-**Objetivo:** preparar o projeto para crescer com mais de um contribuidor e mais de uma versão em produção simultânea.
+**Objetivo:** preparar o projeto para múltiplos contribuidores e releases reais.
 
 **Eixo arquitetural:** Documentação e Governança, Performance e Escalabilidade
 
 **Iniciativas:**
-- `CHANGELOG.md` + tags de release semver — `DOC-004`
-- Consolidação de estratégia de branching — `DOC-006`
-- ADRs retroativas para decisões já tomadas — `DOC-003`
-- `CONTRIBUTING.md` + política de atualização de dependências — `DOC-007`
-- Avaliação de gerenciamento de estado reativo (Provider/Riverpod/Bloc) se a árvore crescer — `PERF-008`
-- Suporte a tablet com breakpoints reais — `UX-005`
-- Firebase App Check para a coleção `musicas` — sugestão associada a `SEC-004`
+- `CHANGELOG.md` + tags semver — `DOC-004`
+- ADRs retroativas — `DOC-003`
+- Cadência formal de revisão destes 5 documentos — `DOC-009`
+- `CONTRIBUTING.md` + Dependabot/Renovate — `DOC-007`
+- Limpeza de `docs/melhorias/*` — `DOC-010`
+- Avaliação de estado reativo (Provider/Riverpod/Bloc) — `PERF-008`
+- Suporte a tablet com breakpoints reais — `UX-005` (parte de escopo grande)
+- Firebase App Check para `musicas` — sugestão associada a `SEC-004`
 
-**Dependências entre iniciativas:** `DOC-006` (branching) deve ser resolvido antes de `DOC-004` (tags/release) fazer sentido operacionalmente — não há por que taguear releases se não está claro qual branch é a fonte de verdade. `PERF-008` e `UX-005` são as únicas iniciativas de escopo grande (G) do roadmap inteiro e devem ser tratadas como projetos à parte, não tarefas de sprint.
+**Dependências:** `DOC-006` (já deveria estar resolvido na Fase 2) é pré-requisito para `DOC-004` fazer sentido operacionalmente.
 
-**Métrica de sucesso:** todo PR de contribuidor externo consegue rodar o projeto localmente seguindo só o `CONTRIBUTING.md`, sem perguntar no chat da equipe; toda release tem tag + entrada no changelog.
+**Métrica de sucesso:** todo PR de contribuidor externo roda o projeto localmente só com `CONTRIBUTING.md`; toda release tem tag + changelog; nenhum dos 5 documentos de análise arquitetural fica mais de um trimestre sem revisão.
 
 ---
 
 ## Visão consolidada
 
 ```
-Fase 1 (Fundação)          Fase 2 (Arquitetura)         Fase 3 (Experiência)         Fase 4 (Governança)
-├─ CI mínimo                ├─ Fix inversões deps         ├─ Design system 100%        ├─ CHANGELOG + tags
-├─ Testes unitários          ├─ DI via construtor          ├─ Acessibilidade            ├─ Branching
-├─ Crashlytics/Sentry        ├─ Dedup player buttons       ├─ Contraste WCAG            ├─ ADRs retroativas
-├─ Remove .env do Git        ├─ Privacidade/Termos         ├─ Cache de rede             ├─ CONTRIBUTING.md
-└─ Extrai lógica p/ UseCase  └─ Scanner de dependências    ├─ Otimização de assets      ├─ Estado reativo (avaliar)
-                                                            └─ Loading/erro uniforme     ├─ Suporte tablet
-                                                                                         └─ App Check
+Fase 1 (Fechar regressão)    Fase 2 (Débito residual)      Fase 3 (Experiência)         Fase 4 (Governança)
+├─ .env + secret-scan         ├─ Extrai playback p/ usecase ├─ Cobertura de teste ampla   ├─ CHANGELOG + tags
+├─ Crashlytics p/ catches     ├─ GameViewModel real          ├─ Semantics/acessibilidade  ├─ ADRs retroativas
+├─ Mensagens de erro reais    ├─ Keystore + R8 release       ├─ Design system 100%        ├─ Cadência de revisão
+└─ Processo de checklist      ├─ Consentimento centralizado  ├─ Contraste + responsivo    ├─ CONTRIBUTING.md
+                              ├─ Retry/backoff + 429         └─ Assets otimizados         ├─ Estado reativo (avaliar)
+                              └─ Consolida branches órfãs                                 └─ App Check
 ```
 
-Cada fase pressupõe a anterior concluída nos itens críticos (não necessariamente 100% dos itens médios/baixos), mas as fases podem se sobrepor parcialmente para itens sem dependência direta — por exemplo, `DOC-005` (Conventional Commits) e as demais quick wins podem começar imediatamente, em paralelo à Fase 1.
+Diferença chave desta versão do roadmap em relação à v1.0: a Fase 1 não é mais "criar a fundação do zero" — é **consertar uma regressão e uma lacuna de observabilidade que só apareceram depois que a fundação foi criada**. Isso é o padrão a vigiar daqui para frente: correções sem verificação automatizada tendem a regredir silenciosamente neste projeto.

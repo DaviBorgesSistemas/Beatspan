@@ -1,169 +1,152 @@
 # Relatório de Segurança — Beatspan
 
 **Projeto:** Beatspan
-**Data da análise:** 2026-09-08
-**Versão do documento:** 1.0
+**Data da análise:** 2026-09-09
+**Versão do documento:** 2.0
 
 > Nenhum valor real de credencial é reproduzido neste documento. Onde uma credencial foi encontrada, apenas seu tipo e localização (arquivo/linha) são reportados.
 
-> **Adendo 2026-09-09**: SEC-009 (política de privacidade/termos + consentimento OAuth) e SEC-010 (scanner de dependências) foram resolvidos após a data desta análise — ver detalhes nas seções correspondentes abaixo e em [4-ACTION_PLAN.md](4-ACTION_PLAN.md). A nota do eixo e a justificativa abaixo refletem o estado em 2026-09-08 e não foram recalculadas.
-
 ---
 
-## Nota do eixo: 6,5/10
+## Nota do eixo: 5,5/10
 
-**Justificativa:** o núcleo técnico é sólido — Firestore Rules corretas com deny-by-default (SEC-004), 100% das chamadas de rede em HTTPS sem bypass de certificado (SEC-005), armazenamento local sem dados sensíveis (SEC-006), permissões Android mínimas (SEC-007), e validação de input do QR code adequada antes do uso no Firestore, sem vetor de injection real (SEC-008). A nota é penalizada por: exposição confirmada de credencial no histórico do Git (SEC-001), ausência de política de privacidade/termos de uso funcionais apesar da coleta de dados via OAuth do Spotify (SEC-009), e dependências desatualizadas sem processo de scanning aparente (SEC-010). Nenhum achado de severidade **Crítica** foi confirmado — o item de maior severidade (SEC-001) é classificado **Alta**, não Crítica, porque a credencial exposta é um Client ID OAuth público-cliente, não uma Client Secret ou chave privada.
+**Justificativa:** o núcleo técnico segue sólido — Firestore Rules deny-by-default (`SEC-004`), 100% HTTPS (`SEC-005`), armazenamento local sem dados sensíveis (`SEC-006`), permissões Android mínimas (`SEC-007`), validação de QR sem vetor de injection (`SEC-008`) — e a postura de compliance LGPD avançou de forma real desde a v1.0 (política de privacidade publicada, termos publicados, diálogo de consentimento implementado e conectado a duas telas). A nota **não sobe** porque:
+1. `SEC-001` (credencial versionada) foi corrigido em 2026-09-08 e **revertido silenciosamente** ~15 minutos depois, e segue revertido no HEAD atual — uma regressão ativa, não um problema legado.
+2. Achado novo: build de release Android assinado com chave de debug, sem ofuscação (`SEC-011`).
+3. Achado novo: o gate de consentimento OAuth não cobre todos os caminhos que disparam autenticação do Spotify (`SEC-012`).
+
+Nenhum achado é classificado **Crítico** — o item de maior severidade (`SEC-001`) permanece **Alta**, porque a credencial exposta é um Client ID OAuth público-cliente (trafega para o dispositivo do usuário em toda autenticação por design), não uma Client Secret ou chave privada.
 
 ---
 
 ## Vulnerabilidades e achados
 
-### SEC-001 — Credencial versionada: arquivo `.env` no repositório Git
+### SEC-001 — Credencial versionada: `.env` no Git · ⚠️ Reaberto
 **Severidade:** Alta
-**Localização:** [.env](../.env) (raiz do projeto)
-**Descrição:** o arquivo `.env` está rastreado pelo Git (confirmado via `git ls-files`) e possui commits no histórico (commit `0d5d678`). O `.gitignore` não contém entrada para `.env`. O próprio arquivo contém um comentário interno: *"Este arquivo contém credenciais sensíveis e NÃO deve ser versionado no Git"* — a equipe reconheceu o risco mas não o corrigiu. Define `SPOTIFY_CLIENT_ID` e `SPOTIFY_REDIRECT_URL`.
-**Impacto:** qualquer pessoa com acesso ao repositório (incluindo histórico completo, mesmo que removido do HEAD depois) tem acesso à credencial. Se o repositório for ou vier a ser público, ou houver rotação de colaboradores, a credencial fica exposta permanentemente no histórico.
+**Localização:** [.env](../.env) (raiz)
+**Descrição:** o commit `9d66a14` ("security: remove .env do controle de versão") removeu `.env` do tracking e adicionou a entrada ao `.gitignore`. ~15 minutos depois, o commit `95ab2b9` **reintroduziu `.env` no Git com um `SPOTIFY_CLIENT_ID` real** e **removeu a linha `.env` do `.gitignore`**. Um commit seguinte (`6433da0`) ainda editou o `SPOTIFY_REDIRECT_URL` dentro desse mesmo `.env` já versionado. Hoje, no HEAD de `beatspan_v2`: `git ls-files | grep .env` retorna o arquivo; `.gitignore` não tem entrada `.env`; o conteúdo commitado é o valor real em uso.
+**Por que não é Crítico:** Client ID Spotify em fluxo mobile é público por design (trafega para o Spotify a cada autenticação); o dano de vazamento isolado é limitado (spoofing de app cliente, sem acesso a contas de usuário sem aprovação explícita no app oficial do Spotify).
+**Impacto:** exposição permanente no histórico do Git; se o repositório for/vier a ser compartilhado externamente, a credencial já está lá independente de correções futuras no HEAD.
 **Recomendação:**
-1. `git rm --cached .env`
-2. Adicionar `.env` ao `.gitignore`
-3. Reescrever o histórico (BFG Repo-Cleaner ou `git filter-repo`) se o repositório for/vier a ser compartilhado externamente
-4. Rotacionar o Client ID/Secret no Spotify Developer Dashboard após a limpeza
+1. `git rm --cached .env` + restaurar a entrada em `.gitignore`
+2. Auditar por que a correção anterior foi revertida (falha de processo/review)
+3. Rotacionar o Client ID no Spotify Developer Dashboard como precaução
+4. Adicionar um step de secret-scanning ao CI (`SEC-013`/`OPS-007`) para que isso não se repita sem ser notado
 
 ---
 
-### SEC-002 — Spotify Client ID hardcoded no código-fonte
-**Severidade:** Média
-**Localização:** [lib/app/di.dart:58-59](../lib/app/di.dart#L58-L59)
-**Descrição:** `clientId`/`redirectUrl` declarados como string literal direto no código, duplicando o que deveria vir do `.env`/build config. Client ID (diferente de Client Secret) não é, por natureza do fluxo OAuth Authorization Code/PKCE usado por apps mobile, um segredo de altíssima criticidade — é enviado ao dispositivo do usuário de qualquer forma. O problema real é a ausência de gestão de configuração por ambiente (dev/staging/prod usam o mesmo valor sem possibilidade de segregação) e a duplicação com o `.env` versionado sem necessidade.
-**Impacto:** baixo risco direto adicional; sintoma de falta de disciplina de configuração.
-**Recomendação:** usar exclusivamente variáveis de ambiente/build-time (`--dart-define`, `flutter_dotenv` com arquivo não versionado, ou flavors), eliminando a duplicação.
+### SEC-002 — Client ID hardcoded no código-fonte · ✅ Resolvido
+`di.dart` não contém mais string literal — lê via `flutter_dotenv`. O problema agora é apenas o `.env` em si (`SEC-001`).
 
 ---
 
 ### SEC-003 — Chave de API do Firebase (Android) versionada
-**Severidade:** Baixa (informativo)
-**Localização:** [lib/firebase_options.dart:56](../lib/firebase_options.dart#L56), `android/app/google-services.json`
-**Descrição:** a `apiKey` do Firebase para Android está versionada em texto plano — comportamento padrão e esperado do FlutterFire CLI. Não é um segredo no sentido tradicional: não concede acesso automático a dados; o controle real é feito pelas Firestore Security Rules e pela restrição da chave no Google Cloud Console.
-**Impacto:** baixo, desde que (a) as Firestore Rules sejam restritivas (confirmado em SEC-004) e (b) a chave esteja restrita por `applicationId`/SHA-1 no Google Cloud Console (não verificável via código-fonte).
-**Recomendação:** confirmar no Google Cloud Console que a API Key Android está restrita ao pacote `br.com.dcbsys.beatspan` + SHA-1 de assinatura. Documentar essa decisão para auditores futuros.
+**Severidade:** Baixa (informativo) · Sem mudança desde v1.0.
+**Localização:** [lib/firebase_options.dart:46](../lib/firebase_options.dart#L46), `android/app/google-services.json`.
+**Descrição:** comportamento padrão do FlutterFire CLI; controle real feito pelas Rules (`SEC-004`, corretas).
+**Recomendação:** confirmar no Google Cloud Console que a chave está restrita a `br.com.dcbsys.beatspan` + SHA-1 de release — especialmente relevante depois de corrigir `SEC-011`, quando uma keystore de produção real existir.
 
 ---
 
-### SEC-004 — Firestore Security Rules
-**Severidade:** Informativo (achado positivo)
-**Localização:** [firestore.rules:18-26](../firestore.rules#L18-L26)
-**Descrição:** regras restritivas e corretas:
-```
-match /musicas/{codigo} {
-  allow read: if true;
-  allow write: if false;
-}
-match /{document=**} {
-  allow read, write: if false;
-}
-```
-Leitura pública é intencional e documentada (o app não autentica usuário para tocar música), escrita totalmente bloqueada, e há deny-all padrão para qualquer coleção não prevista.
-**Impacto:** nenhum. A única exposição é leitura pública de `musicas` (catálogo de faixas, dado não sensível), que é o comportamento intencional.
-**Recomendação:** nenhuma correção obrigatória. Sugestão: avaliar Firebase App Check para mitigar scraping em massa do catálogo, já que a leitura é totalmente aberta.
+### SEC-004 — Firestore Security Rules · Ponto forte, confirmado
+**Localização:** [firestore.rules:18-26](../firestore.rules#L18-L26). Leitura pública intencional de `musicas` (catálogo não sensível), escrita bloqueada, deny-all padrão para o resto. Sem mudança para pior desde v1.0.
+**Recomendação:** considerar Firebase App Check se scraping em massa do catálogo se tornar preocupação.
 
 ---
 
-### SEC-005 — Comunicação de rede
-**Severidade:** Informativo (achado positivo)
-**Localização:** `lib/data/network/spotify_webapi.dart`, `itunes_search_api.dart`, `musica_firestore_data_source.dart`
-**Descrição:** todas as chamadas usam `https://` explícito ou o SDK do Firestore (TLS forçado internamente). Sem `http://`, sem desabilitação de verificação de certificado, sem `usesCleartextTraffic` no manifest.
-**Impacto:** nenhum problema identificado.
-**Recomendação:** nenhuma ação necessária. Opcionalmente considerar certificate pinning se o app processar dados de maior sensibilidade no futuro.
+### SEC-005 — Comunicação de rede · Ponto forte, confirmado
+Nenhuma ocorrência de `http://` em `lib/`; todas as chamadas usam HTTPS/TLS.
 
 ---
 
-### SEC-006 — Armazenamento local (SharedPreferences)
-**Severidade:** Informativo (achado positivo)
-**Localização:** [lib/app/app_prefs.dart](../lib/app/app_prefs.dart)
-**Descrição:** armazena apenas preferências de UX/jogo (plano, idioma, país, modo de virar telefone, modo de jogo). Nenhum token de acesso ou credencial do Spotify é persistido em `SharedPreferences` pelo código Dart — `SpotifyService.getAccessToken()` obtém o token via SDK nativo a cada uso.
-**Impacto:** nenhum problema identificado no código Dart auditado. Não foi investigado se o plugin nativo `spotify_sdk` faz cache de token em keystore/preferências nativas (fora do escopo desta análise de código Dart).
-**Recomendação:** confirmar como item adicional de auditoria onde/se o plugin nativo retém tokens.
+### SEC-006 — Armazenamento local (SharedPreferences) · Ponto forte, confirmado
+[lib/app/app_prefs.dart](../lib/app/app_prefs.dart) — apenas preferências de UX/jogo e a flag de consentimento Spotify. Nenhum token/credencial persistido pelo código Dart.
 
 ---
 
-### SEC-007 — Permissões Android
-**Severidade:** Informativo (achado positivo)
-**Localização:** [android/app/src/main/AndroidManifest.xml:2](../android/app/src/main/AndroidManifest.xml#L2)
-**Descrição:** apenas `android.permission.CAMERA` declarada, coerente com a leitura de QR code. Sem localização, contatos, armazenamento externo, microfone ou SMS.
-**Impacto:** nenhum problema — princípio do menor privilégio respeitado.
-**Recomendação:** nenhuma ação necessária.
+### SEC-007 — Permissões Android · Ponto forte, confirmado
+Apenas `android.permission.CAMERA`.
 
 ---
 
-### SEC-008 — Validação de input do QR code antes de uso no Firestore
-**Severidade:** Baixa (informativo, com observação)
-**Localização:** [lib/presentation/game/game_viewmodel.dart:14-46](../lib/presentation/game/game_viewmodel.dart#L14-L46), [game_view.dart:41-76](../lib/presentation/game/game_view.dart#L41-L76)
-**Descrição:** o conteúdo bruto do QR não vai direto como doc ID no Firestore. Passa por `validate()`/`extractCodigo()`: parse de URI, exige scheme http/https, valida host contra allowlist fixa (`beatspangame.com`, `beatspan.web.app`, `beatspan.firebaseapp.com`), extrai o último path segment como código. Apenas esse valor validado chega a `.doc(codigo).get()`. O SDK do Firestore trata esse argumento como identificador opaco, não como query interpretada — sem superfície de "NoSQL injection" via concatenação.
-**Impacto:** nenhum risco de injection identificado. Como a regra de escrita é `allow write: if false`, mesmo um código malicioso não pode escrever dados.
-**Recomendação (defesa em profundidade):** adicionar validação de formato explícita do código extraído (ex.: regex alfanumérico de tamanho fixo, já que os exemplos mostram códigos como "0006") antes da consulta ao Firestore.
+### SEC-008 — Validação de input do QR code · Baixa, confirmado
+[lib/presentation/game/game_viewmodel.dart:18-31](../lib/presentation/game/game_viewmodel.dart#L18-L31) — allowlist de host fixa, último segmento de path como ID opaco do Firestore. Sem vetor de injection.
+**Recomendação (defesa em profundidade):** regex de formato (ex. `^[0-9]{4}$`) antes da consulta.
 
 ---
 
-### SEC-009 — Ausência de política de privacidade e termos de uso reais
-**Severidade:** Média (compliance, não é vulnerabilidade técnica)
-**Localização:** [hosting/index.html:194-195](../hosting/index.html#L194-L195), `docs/beatspan-home.html:1850`
-**Descrição:** o site institucional contém links para `/privacidade` e `/termos`, mas o `firebase.json` configura rewrite `"**" → "/index.html"` (SPA fallback) e `hosting/` contém apenas `index.html` — essas rotas não existem, qualquer visita recarrega a home. Em `docs/beatspan-home.html:1850`, o link de política de privacidade é um placeholder inerte (`href="#" onclick="return false;"`).
-**Impacto:** o app processa autenticação/autorização OAuth do Spotify com escopos amplos (`user-read-playback-state`, `user-modify-playback-state`, `playlist-read-private`, `user-library-modify`, `user-library-read` — [di.dart:12-13](../lib/app/di.dart#L12-L13)) e armazena preferências de país/idioma localmente, sem política de privacidade real acessível. Lacuna relevante para LGPD (arts. 8º e 9º) e para os próprios Spotify Developer Terms, que exigem política de privacidade pública.
-**Recomendação:** criar e publicar páginas reais de Política de Privacidade e Termos de Uso antes de lançamento público, cobrindo dados coletados via Spotify OAuth, finalidade, retenção e direitos do titular. Adicionar tela de consentimento explícito no onboarding antes da conexão com Spotify.
+### SEC-009 — Política de privacidade/consentimento OAuth · ✅ Resolvido (com ressalva — ver SEC-012)
+`hosting/privacidade/index.html` e `hosting/termos/index.html` publicados e reais; `SpotifyConsentDialog` implementado e conectado a `ChangeSpotifyView`/`SettingsView`, persistido via `AppPreferences`.
 
 ---
 
 ### SEC-010 — Dependências desatualizadas
-**Severidade:** Baixa (verificado — sem CVE confirmada)
-**Localização:** [pubspec.yaml](../pubspec.yaml)
-**Descrição:** `flutter pub outdated` mostra majors mais novas disponíveis: `cloud_firestore` 5.6.12→6.9.0, `firebase_core` 3.15.2→4.14.0, `firebase_crashlytics` 4.3.10→5.3.0, `connectivity_plus` 6.1.5→7.3.1, `permission_handler` 11.4.0→13.0.2, `sensors_plus` 6.1.2→7.1.0, `proximity_sensor` 1.4.0→2.0.0, `fluttertoast` 9.0.0→10.0.0, `spotify_sdk` 3.0.2→4.0.0. **Atualização (2026-09-09): rodado OSV-Scanner v2.5.1 contra `pubspec.lock`** (120 pacotes) — **0 vulnerabilidades conhecidas encontradas**. Nenhuma das versões atualmente fixadas está listada na base de dados OSV.
-**Impacto:** baixo — ausência de CVE conhecida nas versões atuais. O risco remanescente é ficar cada vez mais distante das versões upstream (majors defasadas), o que aumenta o custo de migração futura, não um risco de segurança imediato.
-**Recomendação:** manter scanner de dependências rodando periodicamente (idealmente integrado ao CI — ver `OPS-002` no [ARCHITECTURAL_REVIEW.md](ARCHITECTURAL_REVIEW.md) e `DOC-007` no [ACTION_PLAN.md](4-ACTION_PLAN.md)) e planejar atualização incremental das majors defasadas como trabalho à parte (breaking changes esperadas em `firebase_core`/`cloud_firestore` e `spotify_sdk`), não como correção de segurança urgente.
+**Severidade:** Baixa (sem CVE confirmada). Sem mudança de fundo desde v1.0 — mesma lista de majors defasadas (`cloud_firestore`, `firebase_core`, `firebase_crashlytics`, `connectivity_plus`, `permission_handler`, `sensors_plus`, `proximity_sensor`, `fluttertoast`, `spotify_sdk`, `flutter_dotenv`).
+**Novo:** `flutter pub outdated` sinaliza `path_provider_foundation *2.5.0` como **retirado (retracted)** do pub.dev — não é CVE, mas vale revisão.
+**CVEs:** não rerodei scanner de vulnerabilidades nesta sessão; `docs` registra uma execução de OSV-Scanner v2.5.1 em 2026-09-09 contra `pubspec.lock` com resultado "0 vulnerabilidades conhecidas" — tratado como não reverificado por mim nesta rodada, recomenda-se repetir periodicamente.
+
+---
+
+### SEC-011 — Release Android assinado com chave de debug, sem ofuscação · **Novo**
+**Severidade:** Alta
+**Localização:** [android/app/build.gradle.kts:41-51](../android/app/build.gradle.kts#L41-L51) — `release { signingConfig = signingConfigs.getByName("debug") ... }`, comentário `// TODO: Add your own signing config for the release build.`. Nenhum `buildType` define `isMinifyEnabled`/`isShrinkResources`.
+**Descrição:** o projeto nunca configurou keystore de produção — builds "release" hoje saem assinadas com a chave de debug padrão do Flutter, o que impede publicação real na Play Store. `android/app/proguard-rules.pro` existe (regras para Spotify SDK/Jackson) mas é código morto: sem `isMinifyEnabled = true`, R8/ProGuard não roda, e o APK de release não é ofuscado.
+**Impacto:** combinado com `SEC-001`/o `.env` embutido como asset, a ausência de ofuscação torna a engenharia reversa do binário de release trivial (validação de QR, chamadas de rede, `.env` — tudo legível).
+**Recomendação:** configurar `key.properties`/keystore de produção antes de qualquer publicação; habilitar `isMinifyEnabled = true` e `isShrinkResources = true` no `buildType("release")`, validando que as regras do ProGuard continuam suficientes.
+
+---
+
+### SEC-012 — Gate de consentimento Spotify não é aplicado em todos os caminhos de OAuth · **Novo**
+**Severidade:** Média
+**Localização:** `hasAcceptedSpotifyConsent()` só é checado em [change_spotify_view.dart:121](../lib/presentation/change_spotify/change_spotify_view.dart#L121) e [settings_view.dart:53](../lib/presentation/settings/settings_view.dart#L53). Porém [player_music_premium_view.dart:62](../lib/presentation/game/player_music/player_music_premium_view.dart#L62) chama `authorizeAndConnect()` direto em `initState()`, e [play_music_free_view.dart:72](../lib/presentation/game/player_music/play_music_free_view.dart#L72) chama `getAccessToken()` ao salvar faixa — nenhum dos dois verifica consentimento.
+**Descrição:** se o fluxo de jogo permitir chegar a `PlayerMusicPremiumView` sem passar antes pela tela de conexão (não confirmado com certeza via leitura estática — é um gap de design, não uma falha comprovada de navegação), a autorização OAuth do Spotify é disparada sem o disclosure próprio do Beatspan.
+**Recomendação:** centralizar a checagem dentro de `SpotifyService.authorizeAndConnect()`/`getAccessToken()`, para que nenhum caminho de código consiga acionar o SDK sem consentimento já registrado. **Requer verificação funcional** da árvore de navegação para confirmar se o gap é real ou só teórico.
 
 ---
 
 ## Checklist de compliance LGPD/GDPR
 
 **Conforme:**
-- [x] Firestore Rules bloqueiam escrita e leitura de qualquer coleção não intencional
-- [x] Nenhum dado pessoal sensível (CPF, e-mail, telefone) coletado ou armazenado localmente no código Dart auditado
-- [x] Permissões de dispositivo mínimas (apenas câmera)
-- [x] Comunicação de rede criptografada (HTTPS) em todos os pontos analisados
+- [x] Política de Privacidade real e publicada (`hosting/privacidade/index.html`), com dados coletados, retenção, compartilhamento com Spotify/Firebase, direitos do titular (art. 18 LGPD), menores de idade
+- [x] Termos de Uso publicados (`hosting/termos/index.html`)
+- [x] Diálogo de consentimento explícito antes da conexão Spotify, com link à política e opção de cancelar
+- [x] Consentimento persistido via flag dedicada
+- [x] Canal de contato para exercício de direitos (e-mail)
+- [x] Menção a revogação via `spotify.com/account/apps`
+- [x] Firestore Rules bloqueiam qualquer coleção não intencional
+- [x] Permissões mínimas (só câmera)
 
 **Não conforme / pendente:**
-- [ ] Política de Privacidade real e acessível (links são placeholders — SEC-009)
-- [ ] Termos de Uso reais e acessíveis (idem)
-- [ ] Tela de consentimento explícito (opt-in) antes da autorização OAuth do Spotify com escopos amplos
-- [ ] Mecanismo documentado de exclusão de dados do usuário (direito ao esquecimento, art. 18 LGPD)
-- [ ] Base legal de tratamento de dados documentada nos artefatos do repositório
-- [ ] Confirmação de retenção de dados pelo SDK nativo do Spotify (fora do escopo desta auditoria de código)
+- [ ] Gate de consentimento não centralizado — caminhos de gameplay podem disparar OAuth sem checagem (`SEC-012`)
+- [ ] Exclusão de dados apenas via e-mail (sem autoatendimento in-app — aceitável como mínimo legal)
+- [ ] `.env` versionado com credencial real, sem `.gitignore` (`SEC-001`) — problema de governança de segredos, mesmo não sendo dado pessoal
+- [ ] Sem artefato interno de base legal de tratamento (RIPD/ROPA)
 
 ---
 
 ## Status do supply chain
 
-| Dependência | Instalada | Última major disponível | CVE confirmada |
-|---|---|---|---|
-| `cloud_firestore` | 5.6.12 | 6.9.0 | Nenhuma (OSV-Scanner, 2026-09-09) |
-| `firebase_core` | 3.15.2 | 4.14.0 | Nenhuma (OSV-Scanner, 2026-09-09) |
-| `firebase_crashlytics` | 4.3.10 | 5.3.0 | Nenhuma (OSV-Scanner, 2026-09-09) |
-| `connectivity_plus` | 6.1.5 | 7.3.1 | Nenhuma (OSV-Scanner, 2026-09-09) |
-| `permission_handler` | 11.4.0 | 13.0.2 | Nenhuma (OSV-Scanner, 2026-09-09) |
-| `sensors_plus` | 6.1.2 | 7.1.0 | Nenhuma (OSV-Scanner, 2026-09-09) |
-| `proximity_sensor` | 1.4.0 | 2.0.0 | Nenhuma (OSV-Scanner, 2026-09-09) |
-| `fluttertoast` | 9.0.0 | 10.0.0 | Nenhuma (OSV-Scanner, 2026-09-09) |
-| `spotify_sdk` | 3.0.2 | 4.0.0 | Nenhuma (OSV-Scanner, 2026-09-09) |
+| Dependência | Instalada | Última major disponível |
+|---|---|---|
+| `cloud_firestore` | 5.6.12 | 6.9.0 |
+| `firebase_core` | 3.15.2 | 4.14.0 |
+| `firebase_crashlytics` | 4.3.10 | 5.3.0 |
+| `connectivity_plus` | 6.1.5 | 7.3.1 |
+| `permission_handler` | 11.4.0 | 13.0.2 |
+| `sensors_plus` | 6.1.2 | 7.1.0 |
+| `proximity_sensor` | 1.4.0 | 2.0.0 |
+| `fluttertoast` | 9.0.0 | 10.0.0 |
+| `spotify_sdk` | 3.0.2 | 4.0.0 |
+| `flutter_dotenv` | 5.2.1 | 6.0.1 |
 
-**Atualizado em 2026-09-09**: rodado OSV-Scanner v2.5.1 contra `pubspec.lock` (120 pacotes resolvidos, incluindo transitivos) — **0 vulnerabilidades conhecidas encontradas** na base de dados OSV para nenhuma dependência do projeto, nas versões atualmente fixadas. As majors defasadas na tabela acima representam débito de atualização, não risco de segurança confirmado; recomenda-se reavaliar com o scanner a cada atualização relevante de dependências (ver `SEC-010`/`DOC-007` no [ACTION_PLAN.md](4-ACTION_PLAN.md)).
+`path_provider_foundation *2.5.0`: sinalizado como **retracted** pelo próprio `flutter pub outdated`. Nenhuma CVE confirmada nesta rodada (não rerodei scanner — ver acima); requer verificação com scanner de dependências (OSV-Scanner/Snyk) antes de cada release.
 
 ---
 
 ## Áreas não investigadas por escopo/tempo
-- Configuração de restrição da API Key do Firebase/Google Cloud Console
-- Comportamento interno do SDK nativo `spotify_sdk` quanto a persistência de tokens em keystore/preferências nativas
-- Build iOS (não configurado)
-- CVEs reais confirmadas nas dependências desatualizadas
-- Testes de penetração dinâmicos (DAST)
-- Ofuscação/proteção de binário (R8/ProGuard além do já configurado, anti-tampering, root/jailbreak detection)
-- `firestore.indexes.json` e configuração de custo/rate-limiting no Firebase Console
-- Segurança de pipeline CI/CD (inexistente — nada a auditar)
+- Comportamento nativo do `spotify_sdk` (cache de token em Keystore/preferências nativas fora do Dart)
+- Restrições reais da API Key do Firebase e do Redirect URI do Spotify nos respectivos consoles
+- Build iOS (inexistente)
+- Confirmação viva de CVEs (scanner não rerodado nesta sessão)
+- Fluxo de navegação completo do app (para confirmar `SEC-012` como bug real vs. gap teórico)
+- Conteúdo completo de `google-services.json` além do padrão já verificado

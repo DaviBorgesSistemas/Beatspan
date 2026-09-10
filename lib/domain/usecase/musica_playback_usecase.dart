@@ -1,6 +1,8 @@
 import 'package:dartz/dartz.dart';
 
 import '../enum/settings_enum.dart';
+import '../error_reporting.dart';
+import '../exceptions/playback_exceptions.dart';
 import '../failure.dart';
 import '../model/musica_playback_result.dart';
 import '../repository/musica_playback_repository.dart';
@@ -10,7 +12,16 @@ const int musicaPlaybackInvalidUriCode = 1;
 
 const int musicaPlaybackPreviewUnavailableCode = 2;
 
+/// Falha real de rede/conectividade (timeout, sem internet, resposta
+/// inválida do servidor) — distinto de [musicaPlaybackSpotifyAuthErrorCode].
 const int musicaPlaybackConnectionErrorCode = 3;
+
+/// Falha de autorização/configuração do Spotify (app não autorizado, plugin
+/// ausente, erro de autenticação do SDK) — não é um problema de internet.
+const int musicaPlaybackSpotifyAuthErrorCode = 4;
+
+/// Qualquer outra falha não classificada.
+const int musicaPlaybackUnexpectedErrorCode = 5;
 
 class MusicaPlaybackInput {
   final String spotifyUri;
@@ -55,9 +66,18 @@ class MusicaPlaybackUseCase
         );
       }
       return Right(preview);
-    } catch (e) {
+    } on PlaybackAuthException catch (e) {
+      return Left(Failure(musicaPlaybackSpotifyAuthErrorCode, e.message));
+    } on PlaybackNetworkException catch (e) {
+      return Left(Failure(musicaPlaybackConnectionErrorCode, e.message));
+    } catch (e, s) {
+      reportNonFatalError(
+        e,
+        s,
+        information: const ['MusicaPlaybackUseCase.execute: erro não classificado'],
+      );
       return Left(
-        Failure(musicaPlaybackConnectionErrorCode, 'Erro de conexão: $e'),
+        Failure(musicaPlaybackUnexpectedErrorCode, 'Erro inesperado: $e'),
       );
     }
   }

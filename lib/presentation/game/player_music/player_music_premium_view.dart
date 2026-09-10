@@ -8,6 +8,7 @@ import 'package:spotify_sdk/models/player_state.dart';
 import 'package:spotify_sdk/spotify_sdk.dart';
 
 import '../../../data/network/spotify_service.dart';
+import '../../../domain/error_reporting.dart';
 import '../../share/widgets/beatspan_loading_overlay.dart';
 import '../../share/widgets/next_card_button.dart';
 
@@ -44,7 +45,9 @@ class _PlayerMusicPremiumViewState extends State<PlayerMusicPremiumView> {
 
   @override
   void dispose() {
-    SpotifySdk.pause().catchError((_) {});
+    SpotifySdk.pause().catchError((Object e, StackTrace s) {
+      reportNonFatalError(e, s);
+    });
     super.dispose();
   }
 

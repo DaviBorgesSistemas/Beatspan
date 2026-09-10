@@ -4,6 +4,7 @@ import 'package:just_audio/just_audio.dart';
 
 import '../../../data/network/spotify_service.dart';
 import '../../../data/network/spotify_webapi.dart';
+import '../../../domain/error_reporting.dart';
 import '../../share/widgets/beatspan_loading_overlay.dart';
 import '../../share/widgets/next_card_button.dart';
 
@@ -83,7 +84,8 @@ class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
           ),
         );
       }
-    } catch (_) {
+    } catch (e, s) {
+      reportNonFatalError(e, s);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

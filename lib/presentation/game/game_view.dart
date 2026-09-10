@@ -127,6 +127,10 @@ class _GameViewState extends State<GameView> {
             await _goToPreviewUnavailable();
           case musicaPlaybackConnectionErrorCode:
             await _goToConnectionError();
+          case musicaPlaybackSpotifyAuthErrorCode:
+            await _goToSpotifyAuthError();
+          case musicaPlaybackUnexpectedErrorCode:
+            await _goToUnexpectedError();
           default:
             await _goToError();
         }
@@ -190,8 +194,32 @@ class _GameViewState extends State<GameView> {
       const GameErrorView(
         title: 'ERRO DE CONEXÃO',
         message:
-            'Não foi possível conectar ao Spotify. Verifique sua internet e tente escanear a carta novamente.',
+            'Não foi possível conectar à internet. Verifique sua conexão e tente escanear a carta novamente.',
         icon: Icons.wifi_off_rounded,
+      ),
+    );
+  }
+
+  Future<void> _goToSpotifyAuthError() async {
+    if (!mounted) return;
+    await _navigateTo(
+      const GameErrorView(
+        title: 'SPOTIFY NÃO AUTORIZADO',
+        message:
+            'Não foi possível autorizar o acesso ao Spotify. Verifique se o app do Spotify está instalado, atualizado e conectado à sua conta, então tente novamente.',
+        icon: Icons.lock_outline_rounded,
+      ),
+    );
+  }
+
+  Future<void> _goToUnexpectedError() async {
+    if (!mounted) return;
+    await _navigateTo(
+      const GameErrorView(
+        title: 'ALGO DEU ERRADO',
+        message:
+            'Ocorreu um erro inesperado ao preparar a música. Tente escanear a carta novamente.',
+        icon: Icons.error_outline_rounded,
       ),
     );
   }

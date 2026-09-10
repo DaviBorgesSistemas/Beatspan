@@ -1,6 +1,11 @@
+import 'package:flutter/services.dart';
+
+import '../../domain/error_reporting.dart';
+import '../../domain/exceptions/playback_exceptions.dart';
 import '../../domain/model/musica_playback_result.dart';
 import '../../domain/repository/musica_playback_repository.dart';
 import '../network/itunes_search_api.dart';
+import '../network/network_exceptions.dart';
 import '../network/spotify_service.dart';
 import '../network/spotify_webapi.dart';
 
@@ -34,32 +39,68 @@ class MusicaPlaybackRepositoryImpl implements MusicaPlaybackRepository {
   }
 
   Future<PreviewPlayback?> _fetchPreview(String trackId) async {
-    final token = await _spotifyService.getAccessToken();
-    final api = _spotifyWebApiFactory(token);
-    final track = await api.getTrack(trackId);
+    try {
+      final token = await _spotifyService.getAccessToken();
+      final api = _spotifyWebApiFactory(token);
+      final track = await api.getTrack(trackId);
 
-    String? previewUrl = track?.previewUrl;
-    String? albumArtUrl = track?.albumArtUrl;
-    final trackName = track?.name;
-    final artistName = track?.artist;
+      String? previewUrl = track?.previewUrl;
+      String? albumArtUrl = track?.albumArtUrl;
+      final trackName = track?.name;
+      final artistName = track?.artist;
 
-    if (previewUrl == null && trackName != null) {
-      final itunesTrack = await _itunesSearchApi.searchTrack(
+      if (previewUrl == null && trackName != null) {
+        final itunesTrack = await _itunesSearchApi.searchTrack(
+          trackName: trackName,
+          artist: artistName,
+        );
+        previewUrl = itunesTrack?.previewUrl;
+        albumArtUrl ??= itunesTrack?.artworkUrl;
+      }
+
+      if (previewUrl == null) return null;
+
+      return PreviewPlayback(
+        trackId: trackId,
+        previewUrl: previewUrl,
         trackName: trackName,
-        artist: artistName,
+        artistName: artistName,
+        albumArtUrl: albumArtUrl,
       );
-      previewUrl = itunesTrack?.previewUrl;
-      albumArtUrl ??= itunesTrack?.artworkUrl;
+    } on MissingPluginException catch (e, s) {
+      reportNonFatalError(
+        e,
+        s,
+        information: const ['MusicaPlaybackRepositoryImpl._fetchPreview'],
+      );
+      throw const PlaybackAuthException(
+        'Plugin do Spotify não registrado neste build.',
+      );
+    } on PlatformException catch (e, s) {
+      reportNonFatalError(
+        e,
+        s,
+        information: [
+          'MusicaPlaybackRepositoryImpl._fetchPreview',
+          'PlatformException.code=${e.code}',
+        ],
+      );
+      throw PlaybackAuthException(
+        'Falha ao autorizar o acesso ao Spotify (${e.code}).',
+      );
+    } on NetworkTimeoutException catch (e, s) {
+      reportNonFatalError(e, s);
+      throw const PlaybackNetworkException('Tempo de conexão esgotado.');
+    } on NetworkConnectionException catch (e, s) {
+      reportNonFatalError(e, s);
+      throw const PlaybackNetworkException(
+        'Falha de conexão com a internet.',
+      );
+    } on InvalidServerResponseException catch (e, s) {
+      reportNonFatalError(e, s);
+      throw const PlaybackNetworkException(
+        'Resposta inválida do servidor do Spotify.',
+      );
     }
-
-    if (previewUrl == null) return null;
-
-    return PreviewPlayback(
-      trackId: trackId,
-      previewUrl: previewUrl,
-      trackName: trackName,
-      artistName: artistName,
-      albumArtUrl: albumArtUrl,
-    );
   }
 }
