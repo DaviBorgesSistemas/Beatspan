@@ -8,14 +8,16 @@
 
 ---
 
-## Nota do eixo: 5,5/10
+## Nota do eixo: 6,5/10 (5,5/10 na análise original de 2026-09-09)
 
-**Justificativa:** o núcleo técnico segue sólido — Firestore Rules deny-by-default (`SEC-004`), 100% HTTPS (`SEC-005`), armazenamento local sem dados sensíveis (`SEC-006`), permissões Android mínimas (`SEC-007`), validação de QR sem vetor de injection (`SEC-008`) — e a postura de compliance LGPD avançou de forma real desde a v1.0 (política de privacidade publicada, termos publicados, diálogo de consentimento implementado e conectado a duas telas). A nota **não sobe** porque:
-1. `SEC-001` (credencial versionada) foi corrigido em 2026-09-08 e **revertido silenciosamente** ~15 minutos depois, e segue revertido no HEAD atual — uma regressão ativa, não um problema legado.
+**Justificativa original (2026-09-09):** o núcleo técnico segue sólido — Firestore Rules deny-by-default (`SEC-004`), 100% HTTPS (`SEC-005`), armazenamento local sem dados sensíveis (`SEC-006`), permissões Android mínimas (`SEC-007`), validação de QR sem vetor de injection (`SEC-008`) — e a postura de compliance LGPD avançou de forma real desde a v1.0 (política de privacidade publicada, termos publicados, diálogo de consentimento implementado e conectado a duas telas). A nota não subiu na época porque:
+1. `SEC-001` (credencial versionada) foi corrigido em 2026-09-08 e **revertido silenciosamente** ~15 minutos depois, e seguia revertido no HEAD daquele momento — uma regressão ativa, não um problema legado.
 2. Achado novo: build de release Android assinado com chave de debug, sem ofuscação (`SEC-011`).
-3. Achado novo: o gate de consentimento OAuth não cobre todos os caminhos que disparam autenticação do Spotify (`SEC-012`).
+3. Achado novo: o gate de consentimento OAuth não cobria todos os caminhos que disparam autenticação do Spotify (`SEC-012`).
 
-Nenhum achado é classificado **Crítico** — o item de maior severidade (`SEC-001`) permanece **Alta**, porque a credencial exposta é um Client ID OAuth público-cliente (trafega para o dispositivo do usuário em toda autenticação por design), não uma Client Secret ou chave privada.
+**Atualização 2026-09-09/10:** os 3 motivos acima foram corrigidos — `SEC-001` (removido do Git de novo + gate `gitleaks` no CI), `SEC-011` (keystore de produção + minify/shrink habilitados) e `SEC-012` (checagem de consentimento centralizada em `SpotifyService`, fechando os 2 caminhos de gameplay que bypassavam o gate). A nota sobe para 6,5/10, mas não mais, porque nenhuma dessas correções foi commitada ainda e a rotação do Client ID no Spotify Dashboard (necessária pela exposição histórica do `SEC-001` no Git) segue fora do alcance de uma sessão de código — depende de ação manual no Dashboard do Spotify.
+
+Nenhum achado é classificado **Crítico** — o item de maior severidade (`SEC-001`) permanece **Alta** mesmo corrigido no código local, porque a credencial já exposta no histórico do Git continua válida até ser rotacionada; ela é um Client ID OAuth público-cliente (trafega para o dispositivo do usuário em toda autenticação por design), não uma Client Secret ou chave privada.
 
 ---
 

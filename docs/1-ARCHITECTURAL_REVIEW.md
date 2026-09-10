@@ -30,9 +30,9 @@ Projeto pré-lançamento (v1.0.0+1, sem tags de release, sem app publicado).
 
 ## 2. Análise por eixo
 
-### 2.1 Fundamentos — Nota: 6,5/10
+### 2.1 Fundamentos — Nota: 7,5/10 (6,5 antes de 2026-09-10)
 
-As fronteiras de camada (`domain` não depende de `data`/`presentation`, e vice-versa) hoje estão corretas, e a maioria dos fluxos de feature (FAQ, busca de música, conexão Spotify Premium) segue Repository → UseCase → `Either<Failure,T>` de forma disciplinada, com exceções tipadas e timeout na camada de rede. O núcleo de reprodução (Spotify SDK) ainda mistura infraestrutura dentro de widgets, o DI é 100% manual com boilerplate repetitivo, e não há state management estruturado.
+As fronteiras de camada (`domain` não depende de `data`/`presentation`, e vice-versa) hoje estão corretas, e a maioria dos fluxos de feature (FAQ, busca de música, conexão Spotify Premium, e agora controle de reprodução e orquestração de `GameView`) segue Repository → UseCase → `Either<Failure,T>` de forma disciplinada, com exceções tipadas e timeout na camada de rede. Em 2026-09-10, `ARQ-013` (playback ainda direto no SDK), `ARQ-014`/`ARQ-019` (`GameViewModel` anêmica e não injetada) e parte de `ARQ-006` foram resolvidos — os dois débitos mais relevantes do eixo. Resta o DI 100% manual com boilerplate repetitivo (`ARQ-015`) e a ausência de state management estruturado, ambos de severidade menor.
 
 **ARQ-001 — Domain depende de Data** · ✅ **Resolvido**
 `Failure` foi movido para `lib/domain/failure.dart`. Confirmado: `grep -rn "import.*data/" lib/domain` sem resultado.
@@ -96,13 +96,15 @@ Confirmado via grep: nenhum import invertido entre `domain`/`data`/`presentation
 
 ---
 
-### 2.2 Segurança e Compliance — Nota: 5,5/10
+### 2.2 Segurança e Compliance — Nota: 6,5/10 (5,5 antes de 2026-09-09/10)
 
-Ver relatório dedicado: [2-SECURITY_REPORT.md](2-SECURITY_REPORT.md). Resumo: núcleo técnico sólido (Rules, HTTPS, permissões mínimas, consentimento LGPD implementado), mas **`SEC-001` foi corrigido e revertido em menos de 24h** — a credencial do Spotify está de volta ao Git, sem `.gitignore` — e o build de release usa chave de assinatura de debug (`SEC-011`, novo).
+Ver relatório dedicado: [2-SECURITY_REPORT.md](2-SECURITY_REPORT.md). Núcleo técnico sólido (Rules, HTTPS, permissões mínimas, consentimento LGPD implementado). Em 2026-09-09, `SEC-001` foi corrigido de novo (após ter sido revertido em <24h) e `SEC-011` (keystore de debug em release) também; em 2026-09-10, `SEC-012` (gate de consentimento Spotify não centralizado) foi resolvido, fechando os 2 caminhos de gameplay que disparavam OAuth sem checagem. Pendente: essas correções não foram commitadas ainda, e a rotação do Client ID no Spotify Dashboard (necessária por causa da exposição histórica do `SEC-001`) segue fora do alcance de uma sessão de código.
 
 ---
 
-### 2.3 Experiência — Nota: 4,5/10
+### 2.3 Experiência — Nota: 6/10 (5,5 antes de 2026-09-10, 4,5 antes de 2026-09-09)
+
+Em 2026-09-10, `UX-010` (typo "PREMIYM") e `UX-011` (alvos de toque abaixo do mínimo em 3 botões) foram resolvidos — ambos de severidade baixa, mas eram os débitos mais fáceis de fechar do eixo. O item de maior impacto (`UX-001`, design system ignorado por ~85% das telas) segue aberto.
 
 **UX-001 — Design system aplicado de forma inconsistente** · Severidade: Alta · Ainda **Aberto**, quantificado
 `AppPadding`/`AppSize`/estilos de `style_manager.dart` usados em só 5 de 46 arquivos de `lib/presentation/`. 53 ocorrências de `Color(0x...)` hardcoded em 18 arquivos (`settings_view.dart`, `change_spotify_view.dart`, `spotify_free_transition.dart`, `first_time_view.dart`, entre outros) — inclusive misturado com `ColorManager` na mesma tela.
@@ -141,7 +143,9 @@ Loading/erro/vazio explícitos e `CachedNetworkImage` com `placeholder`/`errorWi
 
 ---
 
-### 2.4 Operações e Confiabilidade — Nota: 5/10
+### 2.4 Operações e Confiabilidade — Nota: 7/10 (6 antes de 2026-09-10, 5 antes de 2026-09-09)
+
+Em 2026-09-10, `OPS-006`/`OPS-010` (retry/backoff em toda chamada de rede) e `OPS-012` (branches órfãs decididas — apagadas) foram resolvidos. Continuam abertos: `OPS-001` (cobertura de teste ainda baixa fora dos arquivos tocados nesta sessão), `OPS-007` (CI sem gate de cobertura/build), `OPS-009` (zero e2e), `OPS-011` (sem fallback automático Premium→Free).
 
 **OPS-001 — Ausência de testes** · Severidade: Alta · Parcialmente **Resolvido**, cobertura insuficiente
 `flutter test --coverage`: 60 testes passam, mas só **22 de 76 arquivos de `lib/`** aparecem no relatório de cobertura — ou seja, ~70% do projeto nunca é sequer importado por um teste. Dentro dos 22 tocados, cobertura de linha é 259/520 (~49,8%). Fluxo de conexão Spotify (`connect_spotify_premium_view_model.dart`) e `GameView` (orquestração do jogo) seguem sem nenhum teste.
@@ -181,7 +185,9 @@ Helper [retry.dart](../lib/data/network/retry.dart) (`withRetry<T>`, 1 tentativa
 
 ---
 
-### 2.5 Documentação e Governança — Nota: 4/10
+### 2.5 Documentação e Governança — Nota: 5/10 (4,5 antes de 2026-09-10, 4 antes de 2026-09-09)
+
+Em 2026-09-10, `DOC-005` (convenção de commits documentada mas nunca seguida) ganhou verificação automática de fato — hook local + gate no CI —, diferente do `DOC-011` (que tem só um mecanismo de visibilidade via template de PR, não um gate automatizado).
 
 Ver detalhamento completo em seção própria — resumo: README continua um ponto forte real, mas o próprio checklist do plano de ação (`4-ACTION_PLAN.md`) afirmava um item de segurança crítico como concluído quando ele já havia regredido (`DOC-011`, novo), e a convenção de commits documentada (`DOC-005`) não sobreviveu nem um dia (o commit de topo da branch auditada ainda é `...`).
 
@@ -192,9 +198,9 @@ Ver detalhamento completo em seção própria — resumo: README continua um pon
 
 ---
 
-### 2.6 Performance e Escalabilidade — Nota: 8/10
+### 2.6 Performance e Escalabilidade — Nota: 9/10 (8/10 antes de 2026-09-10)
 
-A decisão arquitetural central — leitura de música por `doc(id)` direto no Firestore, sem queries — é excelente e escala para milhões de cartas. O debounce do scanner está correto. Os pontos negativos são todos otimizações pontuais, nenhum estrutural.
+A decisão arquitetural central — leitura de música por `doc(id)` direto no Firestore, sem queries — é excelente e escala para milhões de cartas. O debounce do scanner está correto. Em 2026-09-10, `PERF-009` (cache assimétrico), `PERF-010` (sem tratamento de 429) e `PERF-011` (scanner sem filtro de formato) foram resolvidos — já era o eixo mais maduro do projeto, e os 3 achados de severidade "Atenção" que restavam foram fechados. Só sobram itens de severidade Baixa/Informativa (`PERF-004`, `PERF-005`, `PERF-008`, `PERF-012`, `PERF-013`).
 
 **PERF-001 / OPS-004 — Sem timeout** · ✅ **Resolvido**.
 **PERF-002 — Sem retry** · ✅ **Resolvido** (2026-09-10, junto com `OPS-010`).
@@ -224,18 +230,18 @@ A decisão arquitetural central — leitura de música por `doc(id)` direto no F
 
 ## 3. Tabela de pontuações
 
-> **Atualização 2026-09-09 (mesmo dia):** os 4 itens críticos abaixo foram corrigidos após a nota original ter sido calculada — ver notas em [4-ACTION_PLAN.md](4-ACTION_PLAN.md) para o "como". A tabela e o escore já refletem essa correção; a nota entre parênteses é o valor antes dela.
+> **Atualização 2026-09-10:** uma segunda rodada de correções fechou 12 itens do plano de ação (`SEC-012`, `ARQ-013`, `ARQ-014`, `ARQ-019`, `DOC-005`, `OPS-012`, `OPS-010`, `PERF-011`, `PERF-009`, `PERF-010`, `UX-010`, `UX-011`) — ver notas em [4-ACTION_PLAN.md](4-ACTION_PLAN.md) para o "como" de cada um, com evidência reproduzível (comandos de `flutter analyze`/`flutter test` rodados). A tabela e o escore já refletem essa correção; a nota entre parênteses é o valor imediatamente anterior (2026-09-09), e a nota entre colchetes é o valor da v1.0/v2.0 original (2026-09-08/09).
 
 | Eixo | Nota | Justificativa |
 |---|---|---|
-| Fundamentos | 6,5/10 | Camadas corrigidas de fato; núcleo de playback e DI ainda com débito |
-| Segurança | 6,5/10 (5,5) | `SEC-001` corrigido de novo + `OPS-007` (gate de secret-scanning no CI) — mas ainda não commitado e rotação do Client ID no Spotify Dashboard segue pendente |
-| Experiência | 5,5/10 (4,5) | `UX-009` (mensagem que mascarava erro real) corrigido; design system ainda ignorado por ~85% das telas |
-| Operações | 6/10 (5) | `OPS-008` (erros tratados agora chegam ao Crashlytics) corrigido; cobertura de teste continua baixa |
-| Documentação | 4,5/10 (4) | `DOC-011` tem mecanismo (template de PR) mas não é gate automatizado; demais débitos documentais sem mudança |
-| Performance | 8/10 | Eixo mais maduro do projeto, não tocado nesta correção |
+| Fundamentos | 7,5/10 (6,5) | `ARQ-013`/`ARQ-014`/`ARQ-019` (playback direto no SDK + `GameViewModel` anêmica/não injetada) resolvidos — os dois débitos mais relevantes do eixo; resta DI manual (`ARQ-015`) |
+| Segurança | 6,5/10 (5,5) | `SEC-012` (gate de consentimento Spotify centralizado) some-se a `SEC-001`/`OPS-007` já corrigidos — mas nada commitado ainda e rotação do Client ID no Spotify Dashboard segue pendente |
+| Experiência | 6/10 (5,5) | `UX-010`/`UX-011` (typo + alvos de toque) resolvidos; design system ainda ignorado por ~85% das telas (`UX-001`, maior débito do eixo, segue aberto) |
+| Operações | 7/10 (6) | `OPS-010` (retry/backoff) e `OPS-012` (branches órfãs decididas) resolvidos; cobertura de teste (`OPS-001`) e ausência de e2e (`OPS-009`) continuam em aberto |
+| Documentação | 5/10 (4,5) | `DOC-005` ganhou gate automatizado de fato (hook + CI), diferente do `DOC-011` (só visibilidade via template) |
+| Performance | 9/10 (8) | `PERF-009`/`PERF-010`/`PERF-011` resolvidos — os 3 achados de severidade "Atenção" que restavam no eixo mais maduro do projeto |
 
-**Escore geral: 6,2/10** (v2.0 antes da correção: 5,6/10 · v1.0: 4,3/10)
+**Escore geral: 6,9/10** (antes desta rodada: 6,2/10 · v2.0 original: 5,6/10 · v1.0: 4,3/10)
 
 ---
 
