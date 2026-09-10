@@ -28,7 +28,13 @@ class GameErrorView extends StatelessWidget {
                 alignment: Alignment.topRight,
                 child: GestureDetector(
                   onTap: () => Navigator.of(context).pop(),
-                  child: const Icon(Icons.close, color: Colors.white, size: 28),
+                  child: const SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: Center(
+                      child: Icon(Icons.close, color: Colors.white, size: 28),
+                    ),
+                  ),
                 ),
               ),
               const Spacer(),

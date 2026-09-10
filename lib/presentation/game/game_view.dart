@@ -4,13 +4,12 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../app/app_prefs.dart';
 import '../../data/repository/preview_playback_control_repository_impl.dart';
 import '../../domain/model/musica_playback_result.dart';
-import '../../domain/usecase/get_musica_usecase.dart';
-import '../../domain/usecase/musica_playback_usecase.dart';
 import '../../domain/usecase/preview_playback_usecase.dart';
 import '../../domain/usecase/spotify_playback_usecase.dart';
 import '../share/widgets/beatspan_loading_overlay.dart';
-import 'game_viewmodel.dart';
 import 'game_error_view.dart';
+import 'game_navigation_event.dart';
+import 'game_viewmodel.dart';
 import 'player_music/play_music_free_view.dart';
 import 'player_music/player_music_premium_view.dart';
 import 'turn_phone_ready_view.dart';
@@ -18,15 +17,13 @@ import 'widget/scanner_overlay.dart';
 
 class GameView extends StatefulWidget {
   final AppPreferences appPreferences;
-  final GetMusicaUseCase getMusicaUseCase;
-  final MusicaPlaybackUseCase musicaPlaybackUseCase;
+  final GameViewModel viewModel;
   final SpotifyPlaybackUseCase spotifyPlaybackUseCase;
 
   const GameView({
     super.key,
     required this.appPreferences,
-    required this.getMusicaUseCase,
-    required this.musicaPlaybackUseCase,
+    required this.viewModel,
     required this.spotifyPlaybackUseCase,
   });
 
@@ -35,20 +32,39 @@ class GameView extends StatefulWidget {
 }
 
 class _GameViewState extends State<GameView> {
-  final MobileScannerController qrController = MobileScannerController();
-  final GameViewModel controller = GameViewModel();
+  final MobileScannerController qrController = MobileScannerController(
+    formats: [BarcodeFormat.qrCode],
+  );
+  late final GameViewModel _viewModel = widget.viewModel;
   late final AppPreferences _appPreferences = widget.appPreferences;
-  late final GetMusicaUseCase _getMusicaUseCase = widget.getMusicaUseCase;
-  late final MusicaPlaybackUseCase _musicaPlaybackUseCase =
-      widget.musicaPlaybackUseCase;
 
   bool _isHandlingCode = false;
   bool _isLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    _viewModel.navigationEvent.addListener(_onNavigationEvent);
+  }
+
+  @override
   void dispose() {
+    _viewModel.navigationEvent.removeListener(_onNavigationEvent);
     qrController.dispose();
     super.dispose();
+  }
+
+  void _onNavigationEvent() {
+    final event = _viewModel.navigationEvent.value;
+    if (event == null || !mounted) return;
+    _viewModel.navigationEvent.value = null;
+
+    switch (event) {
+      case NavigateToError(:final title, :final message, :final icon):
+        _goToError(title: title, message: message, icon: icon);
+      case NavigateToPlayer(:final playback):
+        _goToPlayer(playback);
+    }
   }
 
   void _onDetect(BarcodeCapture capture) async {
@@ -65,20 +81,7 @@ class _GameViewState extends State<GameView> {
 
     setState(() => _isLoading = true);
     try {
-      final result = controller.validate(value);
-
-      if (result == QrValidationResult.invalid) {
-        await _goToError();
-        return;
-      }
-
-      final codigo = controller.extractCodigo(value);
-      if (codigo == null) {
-        await _goToError();
-        return;
-      }
-
-      await _handleBeatspanCode(codigo);
+      await _viewModel.handleDetectedCode(value);
     } finally {
       if (mounted) {
         _isHandlingCode = false;
@@ -88,145 +91,40 @@ class _GameViewState extends State<GameView> {
     }
   }
 
-  Future<void> _handleBeatspanCode(String codigo) async {
-    final result = await _getMusicaUseCase.execute(codigo);
-
-    final spotifyUri = result.fold(
-      (failure) => null,
-      (musica) => musica.spotifyUri,
-    );
-
-    if (spotifyUri == null) {
-      final failureCode = result.fold((failure) => failure.code, (_) => 0);
-      if (failureCode == 404) {
-        await _goToMusicaNaoEncontrada();
-      } else {
-        await _goToConnectionError();
-      }
-      return;
-    }
-
-    await _handleSpotifyTrack(spotifyUri);
-  }
-
-  Future<void> _handleSpotifyTrack(String spotifyUri) async {
-    final plan = await _appPreferences.getAppPlanType();
-    if (plan == null) return;
-    final gameMode = _appPreferences.getGameMode();
-
-    final result = await _musicaPlaybackUseCase.execute(
-      MusicaPlaybackInput(
-        spotifyUri: spotifyUri,
-        plan: plan,
-        gameMode: gameMode,
-      ),
-    );
-
-    await result.fold(
-      (failure) async {
-        switch (failure.code) {
-          case musicaPlaybackPreviewUnavailableCode:
-            await _goToPreviewUnavailable();
-          case musicaPlaybackConnectionErrorCode:
-            await _goToConnectionError();
-          case musicaPlaybackSpotifyAuthErrorCode:
-            await _goToSpotifyAuthError();
-          case musicaPlaybackUnexpectedErrorCode:
-            await _goToUnexpectedError();
-          default:
-            await _goToError();
-        }
-      },
-      (playback) async {
-        if (!mounted) return;
-        switch (playback) {
-          case FullTrackPlayback(:final spotifyUri):
-            await _navigateToPlayer(
-              PlayerMusicPremiumView(
-                initialUri: spotifyUri,
-                spotifyPlaybackUseCase: widget.spotifyPlaybackUseCase,
-              ),
-            );
-          case PreviewPlayback():
-            await _navigateToPlayer(
-              PlayerMusicFreeView(
-                trackId: playback.trackId,
-                previewUrl: playback.previewUrl,
-                trackName: playback.trackName,
-                artistName: playback.artistName,
-                albumArtUrl: playback.albumArtUrl,
-                previewPlaybackUseCase: PreviewPlaybackUseCase(
-                  PreviewPlaybackControlRepositoryImpl(),
-                ),
-                spotifyPlaybackUseCase: widget.spotifyPlaybackUseCase,
-              ),
-            );
-        }
-      },
-    );
-  }
-
-  Future<void> _goToError() async {
-    if (!mounted) return;
-    await _navigateTo(const GameErrorView());
-  }
-
-  Future<void> _goToMusicaNaoEncontrada() async {
-    if (!mounted) return;
-    await _navigateTo(
-      const GameErrorView(
-        title: 'MÚSICA NÃO ENCONTRADA',
+  Future<void> _goToError({String? title, String? message, IconData? icon}) {
+    return _navigateTo(
+      GameErrorView(
+        title: title ?? 'OPS, CÓDIGO QR\nDESCONHECIDO!',
         message:
-            'Não encontramos essa carta no nosso catálogo. Tente escanear novamente.',
+            message ??
+            'Você escaneou um QR code que não pertence a uma carta Beatspan. Tente outra carta do jogo!',
+        icon: icon ?? Icons.qr_code_scanner_rounded,
       ),
     );
   }
 
-  Future<void> _goToPreviewUnavailable() async {
-    if (!mounted) return;
-    await _navigateTo(
-      const GameErrorView(
-        title: 'PRÉVIA INDISPONÍVEL',
-        message:
-            'Essa faixa não tem uma prévia de 30 segundos disponível no plano Free. Tente outra carta ou use o Spotify Premium.',
+  Future<void> _goToPlayer(MusicaPlaybackResult playback) {
+    return switch (playback) {
+      FullTrackPlayback(:final spotifyUri) => _navigateToPlayer(
+        PlayerMusicPremiumView(
+          initialUri: spotifyUri,
+          spotifyPlaybackUseCase: widget.spotifyPlaybackUseCase,
+        ),
       ),
-    );
-  }
-
-  Future<void> _goToConnectionError() async {
-    if (!mounted) return;
-    await _navigateTo(
-      const GameErrorView(
-        title: 'ERRO DE CONEXÃO',
-        message:
-            'Não foi possível conectar à internet. Verifique sua conexão e tente escanear a carta novamente.',
-        icon: Icons.wifi_off_rounded,
+      PreviewPlayback() => _navigateToPlayer(
+        PlayerMusicFreeView(
+          trackId: playback.trackId,
+          previewUrl: playback.previewUrl,
+          trackName: playback.trackName,
+          artistName: playback.artistName,
+          albumArtUrl: playback.albumArtUrl,
+          previewPlaybackUseCase: PreviewPlaybackUseCase(
+            PreviewPlaybackControlRepositoryImpl(),
+          ),
+          spotifyPlaybackUseCase: widget.spotifyPlaybackUseCase,
+        ),
       ),
-    );
-  }
-
-  Future<void> _goToSpotifyAuthError() async {
-    if (!mounted) return;
-    await _navigateTo(
-      const GameErrorView(
-        title: 'SPOTIFY NÃO AUTORIZADO',
-        message:
-            'Não foi possível autorizar o acesso ao Spotify. Verifique se o app do Spotify está instalado, atualizado e conectado à sua conta, então tente novamente.',
-        icon: Icons.lock_outline_rounded,
-      ),
-    );
-  }
-
-  Future<void> _goToUnexpectedError() async {
-    if (!mounted) return;
-    await _navigateTo(
-      const GameErrorView(
-        title: 'ALGO DEU ERRADO',
-        message:
-            'Ocorreu um erro inesperado ao preparar a música. Tente escanear a carta novamente.',
-        icon: Icons.error_outline_rounded,
-      ),
-    );
+    };
   }
 
   Future<void> _navigateToPlayer(Widget player) async {

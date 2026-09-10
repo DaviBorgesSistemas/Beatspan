@@ -15,10 +15,10 @@
 | Remover `.env` do Git de novo + gate de secret-scanning no CI | SEC-001 / OPS-007 | P | Alto |
 | Registrar `catch` de negócio no Crashlytics | OPS-008 | P | Alto |
 | Corrigir processo de checklist do plano de ação | DOC-011 | P | Alto |
-| Corrigir typo "PREMIYM" | UX-010 | P | Baixo |
-| Adicionar `formats: [qrCode]` ao scanner | PERF-011 | P | Baixo |
-| Cache em memória em `MusicaRepositoryImpl` | PERF-009 | P | Baixo |
-| Padronizar tamanho mínimo de botões fechar/voltar | UX-011 | P | Baixo |
+| ~~Corrigir typo "PREMIYM"~~ (✅ 2026-09-10) | UX-010 | P | Baixo |
+| ~~Adicionar `formats: [qrCode]` ao scanner~~ (✅ 2026-09-10) | PERF-011 | P | Baixo |
+| ~~Cache em memória em `MusicaRepositoryImpl`~~ (✅ 2026-09-10) | PERF-009 | P | Baixo |
+| ~~Padronizar tamanho mínimo de botões fechar/voltar~~ (✅ 2026-09-10) | UX-011 | P | Baixo |
 
 ---
 
@@ -48,10 +48,10 @@
 
 **Iniciativas:**
 - ~~Extrair controle de reprodução para repository/usecase~~ — `ARQ-013` (✅ concluído em 2026-09-10)
-- `GameViewModel` real, injetada via construtor, absorvendo a orquestração de `GameView` — `ARQ-014` / `ARQ-019`
+- ~~`GameViewModel` real, injetada via construtor, absorvendo a orquestração de `GameView`~~ — `ARQ-014` / `ARQ-019` (✅ concluído em 2026-09-10)
 - Keystore de produção + ofuscação R8/ProGuard habilitada — `SEC-011`
 - ~~Centralizar checagem de consentimento OAuth~~ — `SEC-012` (✅ concluído em 2026-09-10)
-- Retry/backoff + tratamento de `429` — `OPS-010` / `PERF-010`
+- ~~Retry/backoff~~ (`OPS-010`) + ~~tratamento de `429`~~ (`PERF-010`) — ambos ✅ concluídos em 2026-09-10
 - Consolidar/arquivar branches órfãs, resgatando o que for útil de `refatore` — `OPS-012` / `DOC-006`
 
 **Dependências:** `ARQ-014` fica mais fácil de testar depois que `ARQ-013` reduzir o que `GameView` chama diretamente. `SEC-011` é pré-requisito de negócio para qualquer submissão à Play Store.

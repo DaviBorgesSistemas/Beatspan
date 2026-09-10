@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 
 import '../../domain/error_reporting.dart';
 import '../../domain/exceptions/playback_exceptions.dart';
+import '../../domain/exceptions/rate_limited_exception.dart';
 import '../../domain/exceptions/spotify_consent_exception.dart';
 import '../../domain/model/musica_playback_result.dart';
 import '../../domain/repository/musica_playback_repository.dart';
@@ -93,14 +94,18 @@ class MusicaPlaybackRepositoryImpl implements MusicaPlaybackRepository {
       throw PlaybackAuthException(
         'Falha ao autorizar o acesso ao Spotify (${e.code}).',
       );
+    } on RateLimitedException catch (e, s) {
+      reportNonFatalError(e, s);
+      throw PlaybackNetworkException(
+        'Limite de requisições do Spotify atingido. Tente novamente em '
+        '${e.retryAfter.inSeconds}s.',
+      );
     } on NetworkTimeoutException catch (e, s) {
       reportNonFatalError(e, s);
       throw const PlaybackNetworkException('Tempo de conexão esgotado.');
     } on NetworkConnectionException catch (e, s) {
       reportNonFatalError(e, s);
-      throw const PlaybackNetworkException(
-        'Falha de conexão com a internet.',
-      );
+      throw const PlaybackNetworkException('Falha de conexão com a internet.');
     } on InvalidServerResponseException catch (e, s) {
       reportNonFatalError(e, s);
       throw const PlaybackNetworkException(

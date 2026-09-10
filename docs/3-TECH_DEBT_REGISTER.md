@@ -17,29 +17,29 @@
 | OPS-001 | Só 22/76 arquivos de `lib/` tocados por teste; cobertura ~50% onde tocado | Testes | Alta | G | Parcial | Fluxos críticos (Spotify connect, GameView) sem rede de segurança |
 | SEC-011 | Release Android assinado com chave de debug, sem minify/ofuscação | Infra/Segurança | Alta | M | Novo | Impede publicação real; facilita engenharia reversa do binário |
 | ARQ-013 | Controle de reprodução Spotify ainda chama SDK direto do widget | Arquitetura | Média | M | ✅ Resolvido (2026-09-10) | ~~Lógica de playback não testável isoladamente~~ — extraído para `SpotifyPlaybackUseCase`/`PreviewPlaybackUseCase`, 21 testes novos |
-| ARQ-014 | `GameViewModel` anêmica; orquestração real mora em `GameView` | Arquitetura | Média | M | Novo (residual ARQ-005) | Tela mais crítica do app sem separação testável de fluxo |
+| ARQ-014 | `GameViewModel` anêmica; orquestração real mora em `GameView` | Arquitetura | Média | M | ✅ Resolvido (2026-09-10) | ~~Tela mais crítica do app sem separação testável de fluxo~~ — orquestração extraída para `GameViewModel`, 7 testes novos |
 | OPS-012 | Branches órfãs (`0a`,`developer`); 4 commits de segurança perdidos em `refatore` (`flutter_secure_storage`) | Infra/Processo | Média | M | ✅ Resolvido (2026-09-10) | ~~Trabalho de segurança já feito uma vez foi descartado sem registro~~ — branches remotas apagadas por decisão explícita do usuário, sem reintegração prévia; commits recuperáveis por hash até GC do GitHub |
 | DOC-005 | Convenção de commits documentada não sobrevive nem 1 dia — HEAD ainda usa `...` | Docs/Processo | Média | P (contínuo) | ✅ Resolvido (2026-09-10) | ~~`git blame`/changelog automático continuam inviáveis~~ — gate no CI + hook local opt-in (`.githooks/commit-msg`) impedem novos commits fora do padrão |
 | SEC-012 | Gate de consentimento OAuth não centralizado — 2 caminhos de gameplay o ignoram | Segurança/Compliance | Média | M | ✅ Resolvido (2026-09-10) | ~~Possível autorização OAuth sem disclosure, a confirmar~~ — checagem centralizada em `SpotifyService` |
 | OPS-009 | Zero testes de integração/e2e | Testes | Média | G | Novo | Regressão de contrato (Firestore/`spotify_sdk`) só aparece manualmente |
-| OPS-010 | Nenhuma chamada de rede tem retry/backoff | Código | Média | M | Novo | Timeout transitório já propaga para tela de erro, sem 2ª tentativa |
+| OPS-010 | Nenhuma chamada de rede tem retry/backoff | Código | Média | M | ✅ Resolvido (2026-09-10) | ~~Timeout transitório já propaga para tela de erro, sem 2ª tentativa~~ — helper `withRetry` aplicado a Spotify Web API, iTunes e Firestore |
 | OPS-011 | Sem fallback automático Premium → Free quando Spotify falha | Produto/Código | Média | M | Novo | Usuário travado até ação manual |
 | ARQ-015 | DI manual com boilerplate; `disposeFaqsModule()` nunca chamada | Arquitetura | Média | M | Novo | Registros nunca desalocados; boilerplate replicado por feature nova |
-| PERF-010 | Sem tratamento de rate limit 429 da Web API do Spotify | Código | Média | M | Novo | Indistinguível de "sem internet" em uso de festa (scans rápidos) |
+| PERF-010 | Sem tratamento de rate limit 429 da Web API do Spotify | Código | Média | M | ✅ Resolvido (2026-09-10) | ~~Indistinguível de "sem internet" em uso de festa (scans rápidos)~~ — retry respeitando `Retry-After` + `RateLimitedException` dedicada |
 | OPS-007 | CI sem gate de cobertura, build ou secret-scanning | Infra | Média | P | Novo | Não teria pego a regressão de `SEC-001` |
 | UX-001 | Design system usado em <15% das telas (5/46), 53 cores hardcoded em 18 arquivos | Código | Alta | M | Aberto, quantificado | Inconsistência visual; manutenção de tema em N lugares |
 | UX-003 | Zero uso de `Semantics`/acessibilidade | Código | Alta | M | Aberto | App inacessível a leitor de tela |
-| PERF-009 | `MusicaRepositoryImpl` sem cache (repositório irmão já tem) | Performance | Baixa | P | Novo | Scan repetido da mesma carta refaz round-trip ao Firestore |
-| PERF-011 | `MobileScannerController` sem `formats: [qrCode]` | Performance | Baixa | P | Novo | CPU/bateria gastos analisando formatos irrelevantes |
-| ARQ-019 | `GameViewModel` não injetada via construtor (única exceção ao padrão) | Arquitetura | Baixa | P/M | Novo | Regra de "como uma tela recebe dependências" não é única |
+| PERF-009 | `MusicaRepositoryImpl` sem cache (repositório irmão já tem) | Performance | Baixa | P | ✅ Resolvido (2026-09-10) | ~~Scan repetido da mesma carta refaz round-trip ao Firestore~~ — cache em memória para sucesso (não para 404/erro de rede) |
+| PERF-011 | `MobileScannerController` sem `formats: [qrCode]` | Performance | Baixa | P | ✅ Resolvido (2026-09-10) | ~~CPU/bateria gastos analisando formatos irrelevantes~~ |
+| ARQ-019 | `GameViewModel` não injetada via construtor (única exceção ao padrão) | Arquitetura | Baixa | P/M | ✅ Resolvido (2026-09-10) | ~~Regra de "como uma tela recebe dependências" não é única~~ — `GameView` agora recebe `viewModel` via construtor |
 | DOC-009 | Docs 1/3/5 nunca revisados desde a criação (1 dia) — sem cadência de revisão | Docs/Processo | Baixa | M (processo) | Novo | Documentos divergem do código em dias, não meses |
-| UX-011 | Alvos de toque < 48dp em botões fechar/voltar (inconsistente) | Código | Baixa | P | Novo | Risco de não conformidade WCAG 2.5.5 |
+| UX-011 | Alvos de toque < 48dp em botões fechar/voltar (inconsistente) | Código | Baixa | P | ✅ Resolvido (2026-09-10) | ~~Risco de não conformidade WCAG 2.5.5~~ — os 3 botões abaixo do mínimo (28-32px) agora têm área de toque de 44x44 |
 | PERF-012 | 3 pesos de fonte Montserrat (w100/w200/w500) sem uso, ~970KB mortos | Performance | Baixa | P | Novo | Tamanho de app maior sem benefício |
 | ARQ-016 | `dart:ffi`'s `Void` usado como sentinela em vez de `dartz.Unit` | Código | Baixa | P | Novo | Import de FFI sem necessidade real; ruído cognitivo |
 | ARQ-017 | `MyApp` pseudo-singleton incorreto + campo morto `appState` | Código | Baixa | P | Novo | Complexidade sem função real |
 | ARQ-018 | Catch genérico em `MusicaPlaybackUseCase` descarta exceções tipadas | Código | Baixa | P | Novo | Perde distinção timeout/conexão/resposta inválida já tipada |
 | UX-008 | Fallback "Erro desconhecido" em SnackBar sem próxima ação | Código | Baixa | P | Novo | Armadilha silenciosa se invariante for quebrada no futuro |
-| UX-010 | Typo "PREMIYM" visível ao usuário Free | Conteúdo | Baixa | P | Novo | Falta de revisão de texto |
+| UX-010 | Typo "PREMIYM" visível ao usuário Free | Conteúdo | Baixa | P | ✅ Resolvido (2026-09-10) | ~~Falta de revisão de texto~~ |
 | PERF-013 | Cantos do scanner overlay recriados a cada frame de animação | Performance | Baixa | P | Novo | Custo de rebuild não medido, mas evitável |
 | DOC-010 | `docs/melhorias/*` vazias e não versionadas | Docs | Baixa | P | Novo | Estrutura incompleta, diverge entre clone e ambiente do autor |
 | ARQ-010 | Model `Musica.fromMap` retorna string vazia silenciosamente | Código | Baixa | P | Aberto | Erros de dado incompleto só aparecem depois |

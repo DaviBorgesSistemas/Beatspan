@@ -41,7 +41,7 @@ class SpotifyFreeTransition extends StatelessWidget {
                 children: [
                   SizedBox(height: 8),
                   Text(
-                    'BEATSPAN SEM SPOTIFY PREMIYM',
+                    'BEATSPAN SEM SPOTIFY PREMIUM',
                     style: TextStyle(fontSize: 16, color: Color(0XFFF8F7FC)),
                   ),
                   SizedBox(height: 16),

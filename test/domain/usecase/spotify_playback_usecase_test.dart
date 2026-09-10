@@ -1,3 +1,4 @@
+import 'package:beatspan/domain/exceptions/rate_limited_exception.dart';
 import 'package:beatspan/domain/exceptions/spotify_consent_exception.dart';
 import 'package:beatspan/domain/model/playback_state.dart';
 import 'package:beatspan/domain/repository/spotify_playback_control_repository.dart';
@@ -184,5 +185,27 @@ void main() {
         ),
       );
     });
+
+    test(
+      'converte RateLimitedException em falha de rate limit com o retryAfter na mensagem',
+      () async {
+        when(() => repository.saveTrack(trackId)).thenThrow(
+          const RateLimitedException('PUT /v1/me/tracks', Duration(seconds: 3)),
+        );
+
+        final result = await useCase.saveTrack(trackId);
+
+        expect(
+          result,
+          isA<Left>()
+              .having(
+                (l) => l.value.code,
+                'code',
+                spotifyPlaybackRateLimitedErrorCode,
+              )
+              .having((l) => l.value.message, 'message', contains('3s')),
+        );
+      },
+    );
   });
 }

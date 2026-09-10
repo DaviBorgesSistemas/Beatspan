@@ -57,6 +57,7 @@ class _ChangeSpotifyViewState extends State<ChangeSpotifyView> {
     try {
       await _viewModel.connect();
     } on SpotifyConsentRequiredException {
+      if (!context.mounted) return;
       final appPreferences = widget.appPreferences;
       final accepted = await SpotifyConsentDialog.show(context);
       if (!accepted) return;

@@ -49,11 +49,11 @@ Views roteadas e widgets filhos recebem dependências via construtor; `RouteGene
 **ARQ-013 — Controle de reprodução (play/pause/salvar) ainda chama SDK direto do widget** · ✅ **Resolvido** (2026-09-10)
 Extraído para dois pares Repository/UseCase (tecnologias não relacionadas — SDK nativo do Spotify vs. `just_audio` para prévia — mereciam abstrações separadas, não uma única artificial): [spotify_playback_control_repository.dart](../lib/domain/repository/spotify_playback_control_repository.dart)/[_impl](../lib/data/repository/spotify_playback_control_repository_impl.dart) + [spotify_playback_usecase.dart](../lib/domain/usecase/spotify_playback_usecase.dart), e [preview_playback_control_repository.dart](../lib/domain/repository/preview_playback_control_repository.dart)/[_impl](../lib/data/repository/preview_playback_control_repository_impl.dart) + [preview_playback_usecase.dart](../lib/domain/usecase/preview_playback_usecase.dart). Novo modelo [playback_state.dart](../lib/domain/model/playback_state.dart) evita vazar tipos do `spotify_sdk`/`just_audio` para `domain`. `player_music_premium_view.dart`/`play_music_free_view.dart` não chamam mais `SpotifySdk`/`SpotifyWebApi`/`AudioPlayer` diretamente. 21 testes novos cobrindo a lógica antes intestável (ver `docs/4-ACTION_PLAN.md` para detalhe completo).
 
-**ARQ-014 — `GameViewModel` anêmica; orquestração real mora em `GameView`** · Severidade: Atenção · **Novo** (residual de `ARQ-005`)
-[lib/presentation/game/game_viewmodel.dart:1-32](../lib/presentation/game/game_viewmodel.dart) (32 linhas, só parsing) vs [game_view.dart:89-225](../lib/presentation/game/game_view.dart#L89-L225) (137 linhas: orquestra 2 use cases, decide 4 tipos de navegação de erro). `connect_spotify_premium_view_model.dart:34-70` mostra que o padrão correto já existe no projeto — só não foi aplicado à tela mais crítica. Esforço: M.
+**ARQ-014 — `GameViewModel` anêmica; orquestração real mora em `GameView`** · ✅ **Resolvido** (2026-09-10)
+[game_viewmodel.dart](../lib/presentation/game/game_viewmodel.dart) agora recebe `AppPreferences`/`GetMusicaUseCase`/`MusicaPlaybackUseCase` via construtor e absorve toda a orquestração que antes vivia em `_GameViewState` (decisão de qual dos 5 tipos de erro/navegação disparar, coordenação dos 2 use cases). Comunica a decisão à View via um evento tipado (`ValueNotifier<GameNavigationEvent?>`, nova sealed class em [game_navigation_event.dart](../lib/presentation/game/game_navigation_event.dart)), sem o ViewModel importar `Navigator`/`BuildContext`. `game_view.dart` só traduz evento→tela.
 
-**ARQ-019 — `GameViewModel` não é injetada via construtor** · Severidade: Atenção · **Novo**
-[lib/presentation/game/game_view.dart:37](../lib/presentation/game/game_view.dart#L37) — `final GameViewModel controller = GameViewModel();` instanciado direto no `State`, diferente de `ChangeSpotifyView`/`SettingsView` (recebem via `required this.viewModel`). Única exceção ao padrão de `ARQ-004`, resolvido em todo o resto do app. Esforço: P/M.
+**ARQ-019 — `GameViewModel` não é injetada via construtor** · ✅ **Resolvido** (2026-09-10, junto com `ARQ-014`)
+`GameView` agora recebe `viewModel` via construtor (`required this.viewModel`), igual a `ChangeSpotifyView`/`SettingsView`; DI registra `GameViewModel` como `registerFactory` e `routes_manager.dart` injeta via `instance<GameViewModel>()`.
 
 **ARQ-015 — DI manual com boilerplate repetitivo; `disposeFaqsModule()` nunca chamada** · Severidade: Atenção · **Novo**
 [lib/app/di.dart:46-104](../lib/app/di.dart#L46-L104) — 15 registros em 3 funções, cada um com guard manual `if (!instance.isRegistered<T>())`. `routes_manager.dart` chama `initSpotifyModule()`/`initFaqsModule()` a cada navegação; `disposeFaqsModule()` existe mas não há call site fora de `di.dart`. Esforço: M.
@@ -91,8 +91,8 @@ Confirmado via grep: nenhum import invertido entre `domain`/`data`/`presentation
 **ARQ-022 — `GetMusicaUseCase` é passthrough anêmico** · Severidade: Informativo · **Novo**
 [lib/domain/usecase/get_musica_usecase.dart:12-15](../lib/domain/usecase/get_musica_usecase.dart#L12-L15) — uma linha delegando ao repositório, sem regra própria. Não é erro, é sinal a observar se o projeto crescer.
 
-**ARQ-005 — `GameView` "God Widget"** · Severidade: Atenção · Ainda **Aberto**, reduzido
-[lib/presentation/game/game_view.dart](../lib/presentation/game/game_view.dart) (271 linhas) não fala mais direto com SDKs, mas ainda concentra apresentação + navegação + coordenação de fluxo (9 métodos privados). Ver `ARQ-014`.
+**ARQ-005 — `GameView` "God Widget"** · Severidade: Baixa · Bastante **Reduzido** (2026-09-10, via `ARQ-014`)
+[lib/presentation/game/game_view.dart](../lib/presentation/game/game_view.dart) não fala mais direto com SDKs (já era assim) e não decide mais qual erro/navegação disparar nem coordena os 2 use cases — isso migrou para `GameViewModel`. A View ficou com o papel legítimo de uma View: escutar o evento de navegação e traduzi-lo em `Navigator.push`/decidir a interposição de `TurnPhoneReadyView` (que é puramente de UI/sensor). Não reclassificado como totalmente resolvido porque a View ainda mistura essa tradução de evento com o próprio controle do `MobileScannerController` (start/stop do scanner) — aceitável, mas seria o próximo passo caso a tela cresça mais.
 
 ---
 
@@ -127,11 +127,11 @@ Ver relatório dedicado: [2-SECURITY_REPORT.md](2-SECURITY_REPORT.md). Resumo: n
 **UX-008 — Fallback genérico "Erro desconhecido" em SnackBar** · Severidade: Baixa · **Novo**
 [lib/presentation/change_spotify/change_spotify_view.dart:38-39](../lib/presentation/change_spotify/change_spotify_view.dart#L38-L39) — `_viewModel.errorMessage.value ?? 'Erro desconhecido'`. Raramente dispara hoje, mas é uma armadilha silenciosa para mudanças futuras. Esforço: P.
 
-**UX-010 — Typo visível: "BEATSPAN SEM SPOTIFY PREMIYM"** · Severidade: Baixa · **Novo**
-[lib/presentation/spotify_free_transition/spotify_free_transition.dart:44](../lib/presentation/spotify_free_transition/spotify_free_transition.dart#L44). Esforço: P.
+**UX-010 — Typo visível: "BEATSPAN SEM SPOTIFY PREMIYM"** · ✅ **Resolvido** (2026-09-10)
+Corrigido para "PREMIUM" em [spotify_free_transition.dart](../lib/presentation/spotify_free_transition/spotify_free_transition.dart).
 
-**UX-011 — Alvos de toque < 48dp em botões de fechar/voltar** · Severidade: Atenção · **Novo**
-`change_spotify_view.dart:61-75`, `spotify_free_transition.dart:20-34`, `game_error_view.dart:29-33` sem `width`/`height` explícitos. Contraste: `player_music_premium_view.dart:141-151` já usa `Container(width: 44, height: 44)` — padrão correto existe, mas não é uniforme. Esforço: P.
+**UX-011 — Alvos de toque < 48dp em botões de fechar/voltar** · ✅ **Resolvido** (2026-09-10)
+Levantamento completo encontrou 10 ocorrências no app: 7 já cumpriam o mínimo (4 dentro de `AppBar.leading`, forçado a 56x56 pelo Flutter; `player_music_premium_view.dart`/`play_music_free_view.dart` já usavam `Container(width: 44, height: 44)`; 2 `IconButton` em `scaffold_hitster.dart` já têm 48x48 por padrão do Material). Os 3 abaixo do mínimo — `camera_permission_view.dart` (28px), `no_internet_view.dart` (32px), `game_error_view.dart` (28px), ícone solto sem `Container`/padding — agora têm `SizedBox(width: 44, height: 44)` envolvendo o ícone, preservando a aparência visual e só ampliando a área de toque.
 
 **UX-012 — `play_music_free_view.dart` com tratamento de estado granular** · Severidade: Ponto forte · **Novo**
 Loading/erro/vazio explícitos e `CachedNetworkImage` com `placeholder`/`errorWidget` corretos ([play_music_free_view.dart:35-58,232-245](../lib/presentation/game/player_music/play_music_free_view.dart#L35-L58)) — melhor exemplo do app, deveria ser replicado.
@@ -159,13 +159,13 @@ Loading/erro/vazio explícitos e `CachedNetworkImage` com `placeholder`/`errorWi
 
 **OPS-005 — Crash logs de build tool versionados** · Severidade: Baixa · Não reverificado nesta rodada (fora do escopo desta reexecução).
 
-**OPS-006 — Firestore sem cache local** · Severidade: Baixa · Ainda **Aberto** — ver `PERF-009`.
+**OPS-006 — Firestore sem cache local** · Severidade: Baixa · ✅ **Resolvido** (2026-09-10, junto com `PERF-009`).
 
 **OPS-009 — Zero testes de integração/e2e** · Severidade: Atenção · **Novo**
 Nenhuma pasta `integration_test/`. Regressões de contrato (schema Firestore, `spotify_sdk`) só apareceriam em teste manual/produção. Esforço: G.
 
-**OPS-010 — Sem retry/backoff em nenhuma chamada de rede** · Severidade: Atenção · **Novo**
-Timeout existe (`OPS-004`), retry não. Um timeout transitório (comum em rede de evento ao vivo) já propaga direto para a tela de erro. Esforço: M.
+**OPS-010 — Sem retry/backoff em nenhuma chamada de rede** · ✅ **Resolvido** (2026-09-10)
+Helper [retry.dart](../lib/data/network/retry.dart) (`withRetry<T>`, 1 tentativa original + 1 retry por padrão, backoff configurável) aplicado a `ItunesSearchApi`, `SpotifyWebApi` (predicado compartilhado `isTransientHttpError`: timeout/socket/client exception) e `MusicaFirestoreDataSource` (predicado próprio para códigos `FirebaseException` transitórios). Erros não-transitórios (resposta de erro, JSON malformado) não são repetidos.
 
 **OPS-011 — Sem fallback automático Premium → Free quando Spotify falha** · Severidade: Atenção · **Novo**
 [connect_spotify_premium_view_model.dart:60-108](../lib/presentation/change_spotify/connect_spotify_premium_view_model.dart#L60-L108) — falha só gera mensagem + deep link manual, sem degradação automática para o modo Free. Decisão de produto, não só técnica.
@@ -197,7 +197,7 @@ Ver detalhamento completo em seção própria — resumo: README continua um pon
 A decisão arquitetural central — leitura de música por `doc(id)` direto no Firestore, sem queries — é excelente e escala para milhões de cartas. O debounce do scanner está correto. Os pontos negativos são todos otimizações pontuais, nenhum estrutural.
 
 **PERF-001 / OPS-004 — Sem timeout** · ✅ **Resolvido**.
-**PERF-002 — Sem retry** · Ainda **Aberto** — ver `OPS-010`.
+**PERF-002 — Sem retry** · ✅ **Resolvido** (2026-09-10, junto com `OPS-010`).
 **PERF-003 — Sem cache de rede/imagem** · ✅ **Resolvido** — cache em memória por `trackId` + `cached_network_image` em uso real.
 **PERF-004 — Assets grandes** · Ainda **Aberto**, sem mudança relevante além de `PERF-012`.
 **PERF-005 — `const` inconsistente** · Ainda **Aberto**, evidência nova em `home_view.dart`.
@@ -205,14 +205,14 @@ A decisão arquitetural central — leitura de música por `doc(id)` direto no F
 **PERF-007 — Disposal correto** · Ponto forte, não reverificado nesta rodada.
 **PERF-008 — Estado local sem granularidade** · Informativo, sem mudança.
 
-**PERF-009 — `MusicaRepositoryImpl` sem cache (ao contrário do repositório irmão)** · Severidade: Atenção · **Novo**
-[lib/data/repository/musica_repository_impl.dart:9-25](../lib/data/repository/musica_repository_impl.dart#L9-L25) — escanear a mesma carta duas vezes dispara novo round-trip ao Firestore; `musica_playback_repository_impl.dart` já cacheia. Esforço: P.
+**PERF-009 — `MusicaRepositoryImpl` sem cache (ao contrário do repositório irmão)** · ✅ **Resolvido** (2026-09-10)
+[musica_repository_impl.dart](../lib/data/repository/musica_repository_impl.dart) agora cacheia em memória por código, mas só o caminho de sucesso — diferente de `musica_playback_repository_impl.dart`, que também cacheia o resultado "sem preview" (`null`). Aqui, "não encontrada" e erros de rede sempre re-consultam o Firestore, para não mascarar uma carta cadastrada depois do app já estar rodando.
 
-**PERF-010 — Sem tratamento de rate limit 429 do Spotify** · Severidade: Atenção · **Novo**
-[lib/data/network/spotify_webapi.dart:33-40](../lib/data/network/spotify_webapi.dart#L33-L40) — `429` cai na branch de erro genérica, sem respeitar `Retry-After`. Esforço: M.
+**PERF-010 — Sem tratamento de rate limit 429 do Spotify** · ✅ **Resolvido** (2026-09-10)
+[spotify_webapi.dart](../lib/data/network/spotify_webapi.dart) (`_send`) agora detecta `429`, espera o `Retry-After` do header (com teto configurável) e tenta de novo automaticamente; se persistir, lança `RateLimitedException` — propagada como `PlaybackNetworkException`/código de failure dedicado nas camadas superiores, em vez de cair no tratamento de erro genérico.
 
-**PERF-011 — `MobileScannerController` sem restrição de formato** · Severidade: Atenção · **Novo**
-[lib/presentation/game/game_view.dart:36](../lib/presentation/game/game_view.dart#L36) — analisa todos os formatos de barcode, não só QR, consumindo CPU/bateria de forma desnecessária durante o estado em que o usuário mais tempo passa. Esforço: P (adicionar `formats: [BarcodeFormat.qrCode]`).
+**PERF-011 — `MobileScannerController` sem restrição de formato** · ✅ **Resolvido** (2026-09-10)
+[game_view.dart](../lib/presentation/game/game_view.dart) agora passa `formats: [BarcodeFormat.qrCode]` ao `MobileScannerController`.
 
 **PERF-012 — Pesos de fonte Montserrat não usados** · Severidade: Baixa · **Novo**
 `w100`/`w200`/`w500` declarados no `pubspec.yaml` sem nenhum call site — ~970KB de peso morto no app. Esforço: P.
@@ -250,10 +250,10 @@ A decisão arquitetural central — leitura de música por `doc(id)` direto no F
 - **PERF-006, PERF-007** — Firestore sem N+1, disposal de recursos consistente
 
 ### Atenções (relevantes, não bloqueantes)
-- ARQ-014, ARQ-015, ARQ-019 — débito residual de arquitetura no fluxo de playback (`ARQ-013` resolvido em 2026-09-10)
-- UX-001, UX-003, UX-005, UX-011 — design system, acessibilidade, responsividade, alvos de toque
-- OPS-009, OPS-010, OPS-011, OPS-012 — sem e2e, sem retry, sem fallback de plano, branches órfãs
-- PERF-009, PERF-010, PERF-011 — cache assimétrico, rate limit, filtro de scanner
+- ARQ-015 — débito residual de arquitetura no fluxo de playback (`ARQ-013`, `ARQ-014`, `ARQ-019` resolvidos em 2026-09-10)
+- UX-001, UX-003, UX-005 — design system, acessibilidade, responsividade (`UX-011` resolvido em 2026-09-10)
+- OPS-009, OPS-011 — sem e2e, sem fallback de plano (`OPS-010`, `OPS-012` resolvidos em 2026-09-10)
+- (`PERF-009`, `PERF-010`, `PERF-011` resolvidos em 2026-09-10)
 - DOC-003, DOC-004, DOC-005 (reaberto), DOC-006, DOC-007, DOC-009, DOC-010 — governança documental
 - **Residual do bloco crítico:** correções de `SEC-001`/`OPS-007`/`OPS-008`/`UX-009` ainda não commitadas; rotação do Client ID no Spotify Dashboard depende só do usuário
 

@@ -1,25 +1,46 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../domain/exception/musica_exceptions.dart';
 import '../../domain/model/musica.dart';
+import 'retry.dart';
 
 class MusicaFirestoreDataSource {
   final FirebaseFirestore _firestore;
+  final Duration _timeout;
+  final Duration Function(int attempt) _retryBackoff;
 
-  MusicaFirestoreDataSource({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+  MusicaFirestoreDataSource({
+    FirebaseFirestore? firestore,
+    Duration timeout = _defaultTimeout,
+    Duration Function(int attempt)? retryBackoff,
+  }) : _firestore = firestore ?? FirebaseFirestore.instance,
+       _timeout = timeout,
+       _retryBackoff = retryBackoff ?? defaultRetryBackoff;
 
   static const String _collection = 'musicas';
-  static const _timeout = Duration(seconds: 10);
+  static const _defaultTimeout = Duration(seconds: 10);
+
+  static const _transientFirebaseCodes = {
+    'unavailable',
+    'deadline-exceeded',
+    'aborted',
+    'internal',
+  };
 
   Future<Musica> getByCodigo(String codigo) async {
     DocumentSnapshot<Map<String, dynamic>> snapshot;
     try {
-      snapshot = await _firestore
-          .collection(_collection)
-          .doc(codigo)
-          .get()
-          .timeout(_timeout);
+      snapshot = await withRetry(
+        () => _firestore
+            .collection(_collection)
+            .doc(codigo)
+            .get()
+            .timeout(_timeout),
+        shouldRetry: _isTransientFirestoreError,
+        backoff: _retryBackoff,
+      );
     } on FirebaseException catch (e) {
       throw MusicaConsultaException(
         e.message ?? 'Falha ao consultar o Firestore.',
@@ -41,5 +62,12 @@ class MusicaFirestoreDataSource {
       throw MusicaNaoEncontradaException(codigo);
     }
     return musica;
+  }
+
+  bool _isTransientFirestoreError(Object error) {
+    if (error is FirebaseException) {
+      return _transientFirebaseCodes.contains(error.code);
+    }
+    return error is TimeoutException;
   }
 }

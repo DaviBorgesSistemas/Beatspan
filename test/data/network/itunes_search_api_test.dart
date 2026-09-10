@@ -38,9 +38,7 @@ void main() {
     });
 
     test('lança InvalidServerResponseException para status de erro', () async {
-      final client = MockClient(
-        (request) async => http.Response('erro', 500),
-      );
+      final client = MockClient((request) async => http.Response('erro', 500));
       final api = ItunesSearchApi(client: client);
 
       expect(
@@ -61,18 +59,56 @@ void main() {
       );
     });
 
-    test('lança NetworkTimeoutException quando a chamada expira', () async {
-      final client = MockClient((request) async {
-        await Future.delayed(const Duration(seconds: 11));
-        return http.Response('', 200);
-      });
-      final api = ItunesSearchApi(client: client);
+    test(
+      'lança NetworkTimeoutException após esgotar as tentativas de retry',
+      () async {
+        var attempts = 0;
+        final client = MockClient((request) async {
+          attempts++;
+          await Future.delayed(const Duration(milliseconds: 100));
+          return http.Response('', 200);
+        });
+        final api = ItunesSearchApi(
+          client: client,
+          timeout: const Duration(milliseconds: 20),
+          retryBackoff: (_) => Duration.zero,
+        );
 
-      expect(
-        () => api.searchTrack(trackName: 'Nome'),
-        throwsA(isA<NetworkTimeoutException>()),
-      );
-    }, timeout: const Timeout(Duration(seconds: 15)));
+        await expectLater(
+          () => api.searchTrack(trackName: 'Nome'),
+          throwsA(isA<NetworkTimeoutException>()),
+        );
+        expect(attempts, 2, reason: 'deve tentar 1 vez + 1 retry');
+      },
+    );
+
+    test(
+      'recupera no retry quando a 1ª tentativa expira e a 2ª responde a tempo',
+      () async {
+        var attempts = 0;
+        final client = MockClient((request) async {
+          attempts++;
+          if (attempts == 1) {
+            await Future.delayed(const Duration(milliseconds: 100));
+          }
+          return http.Response(
+            '{"results":[{"trackName":"Nome","artistName":"Artista",'
+            '"previewUrl":"https://preview"}]}',
+            200,
+          );
+        });
+        final api = ItunesSearchApi(
+          client: client,
+          timeout: const Duration(milliseconds: 20),
+          retryBackoff: (_) => Duration.zero,
+        );
+
+        final track = await api.searchTrack(trackName: 'Nome');
+
+        expect(track?.trackName, 'Nome');
+        expect(attempts, 2);
+      },
+    );
 
     test('lança NetworkConnectionException para falha de socket', () async {
       final client = MockClient((request) async {

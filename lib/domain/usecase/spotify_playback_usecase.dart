@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/services.dart';
 
 import '../error_reporting.dart';
+import '../exceptions/rate_limited_exception.dart';
 import '../exceptions/spotify_consent_exception.dart';
 import '../failure.dart';
 import '../model/playback_state.dart';
@@ -14,6 +15,10 @@ const int spotifyPlaybackUnexpectedErrorCode = 2;
 /// O plugin nativo `spotify_sdk` não está registrado para este engine/build
 /// — distinto de uma falha de autorização, pois nem chega a tentar conectar.
 const int spotifyPlaybackPluginMissingErrorCode = 3;
+
+/// Limite de requisições da Web API do Spotify atingido (HTTP 429), mesmo
+/// após o retry automático que já respeita o header `Retry-After`.
+const int spotifyPlaybackRateLimitedErrorCode = 4;
 
 class SpotifyPlaybackUseCase {
   final SpotifyPlaybackControlRepository _repository;
@@ -100,6 +105,19 @@ class SpotifyPlaybackUseCase {
         Failure(
           spotifyPlaybackAuthErrorCode,
           'É necessário aceitar o consentimento do Spotify antes de salvar faixas.',
+        ),
+      );
+    } on RateLimitedException catch (e, s) {
+      reportNonFatalError(
+        e,
+        s,
+        information: const ['SpotifyPlaybackUseCase.saveTrack'],
+      );
+      return Left(
+        Failure(
+          spotifyPlaybackRateLimitedErrorCode,
+          'Limite de requisições do Spotify atingido. Tente novamente em '
+          '${e.retryAfter.inSeconds}s.',
         ),
       );
     } catch (e, s) {

@@ -5,14 +5,23 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 import 'network_exceptions.dart';
+import 'retry.dart';
 
 class ItunesSearchApi {
   final http.Client _client;
+  final Duration _timeout;
+  final Duration Function(int attempt) _retryBackoff;
 
-  static const _timeout = Duration(seconds: 10);
+  static const _defaultTimeout = Duration(seconds: 10);
   static const _endpoint = 'GET /search';
 
-  ItunesSearchApi({http.Client? client}) : _client = client ?? http.Client();
+  ItunesSearchApi({
+    http.Client? client,
+    Duration timeout = _defaultTimeout,
+    Duration Function(int attempt)? retryBackoff,
+  }) : _client = client ?? http.Client(),
+       _timeout = timeout,
+       _retryBackoff = retryBackoff ?? defaultRetryBackoff;
 
   Future<ItunesTrackInfo?> searchTrack({
     required String trackName,
@@ -29,7 +38,11 @@ class ItunesSearchApi {
 
     final http.Response r;
     try {
-      r = await _client.get(url).timeout(_timeout);
+      r = await withRetry(
+        () => _client.get(url).timeout(_timeout),
+        shouldRetry: isTransientHttpError,
+        backoff: _retryBackoff,
+      );
     } on TimeoutException {
       throw NetworkTimeoutException(_endpoint);
     } on SocketException catch (e) {

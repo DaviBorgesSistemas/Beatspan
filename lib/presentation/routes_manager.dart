@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../app/app_prefs.dart';
 import '../app/di.dart';
-import '../domain/usecase/get_musica_usecase.dart';
-import '../domain/usecase/musica_playback_usecase.dart';
 import '../domain/usecase/spotify_playback_usecase.dart';
 import 'change_spotify/change_spotify_view.dart';
 import 'change_spotify/connect_spotify_premium_view_model.dart';
@@ -12,6 +10,7 @@ import 'faqs/faqs_view.dart';
 import 'faqs/faqs_view_model.dart';
 import 'first_time/first_time_view.dart';
 import 'game/game_view.dart';
+import 'game/game_viewmodel.dart';
 import 'home/home_view.dart';
 import 'rules/rules_view.dart';
 import 'settings/settings_view.dart';
@@ -79,8 +78,7 @@ class RouteGenerator {
         return MaterialPageRoute(
           builder: (_) => GameView(
             appPreferences: instance<AppPreferences>(),
-            getMusicaUseCase: instance<GetMusicaUseCase>(),
-            musicaPlaybackUseCase: instance<MusicaPlaybackUseCase>(),
+            viewModel: instance<GameViewModel>(),
             spotifyPlaybackUseCase: instance<SpotifyPlaybackUseCase>(),
           ),
         );

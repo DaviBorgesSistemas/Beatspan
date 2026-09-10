@@ -4,16 +4,32 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
+import '../../domain/exceptions/rate_limited_exception.dart';
 import 'network_exceptions.dart';
+import 'retry.dart';
 
 class SpotifyWebApi {
   final String accessToken;
   final http.Client _client;
+  final Duration _timeout;
+  final Duration Function(int attempt) _retryBackoff;
+  final Duration _maxRateLimitWait;
 
-  static const _timeout = Duration(seconds: 10);
+  static const _defaultTimeout = Duration(seconds: 10);
+  static const _defaultMaxRateLimitWait = Duration(seconds: 10);
+  static const _defaultRetryAfter = Duration(seconds: 1);
+  static const _maxRateLimitAttempts = 2;
 
-  SpotifyWebApi(this.accessToken, {http.Client? client})
-    : _client = client ?? http.Client();
+  SpotifyWebApi(
+    this.accessToken, {
+    http.Client? client,
+    Duration timeout = _defaultTimeout,
+    Duration Function(int attempt)? retryBackoff,
+    Duration maxRateLimitWait = _defaultMaxRateLimitWait,
+  }) : _client = client ?? http.Client(),
+       _timeout = timeout,
+       _retryBackoff = retryBackoff ?? defaultRetryBackoff,
+       _maxRateLimitWait = maxRateLimitWait;
 
   Map<String, String> get _h => {
     'Authorization': 'Bearer $accessToken',
@@ -89,28 +105,50 @@ class SpotifyWebApi {
     return list.isNotEmpty && list.first == true;
   }
 
-  Future<http.Response> _get(Uri url, String endpoint) async {
-    try {
-      return await _client.get(url, headers: _h).timeout(_timeout);
-    } on TimeoutException {
-      throw NetworkTimeoutException(endpoint);
-    } on SocketException catch (e) {
-      throw NetworkConnectionException(endpoint, cause: e);
-    } on http.ClientException catch (e) {
-      throw NetworkConnectionException(endpoint, cause: e);
+  Future<http.Response> _get(Uri url, String endpoint) {
+    return _send(() => _client.get(url, headers: _h), endpoint);
+  }
+
+  Future<http.Response> _put(Uri url, String endpoint) {
+    return _send(() => _client.put(url, headers: _h), endpoint);
+  }
+
+  Future<http.Response> _send(
+    Future<http.Response> Function() request,
+    String endpoint,
+  ) async {
+    for (var rateLimitAttempt = 1; ; rateLimitAttempt++) {
+      final http.Response response;
+      try {
+        response = await withRetry(
+          () => request().timeout(_timeout),
+          shouldRetry: isTransientHttpError,
+          backoff: _retryBackoff,
+        );
+      } on TimeoutException {
+        throw NetworkTimeoutException(endpoint);
+      } on SocketException catch (e) {
+        throw NetworkConnectionException(endpoint, cause: e);
+      } on http.ClientException catch (e) {
+        throw NetworkConnectionException(endpoint, cause: e);
+      }
+
+      if (response.statusCode != 429) return response;
+
+      final retryAfter = _parseRetryAfter(response.headers['retry-after']);
+      if (rateLimitAttempt >= _maxRateLimitAttempts) {
+        throw RateLimitedException(endpoint, retryAfter);
+      }
+      await Future.delayed(
+        retryAfter > _maxRateLimitWait ? _maxRateLimitWait : retryAfter,
+      );
     }
   }
 
-  Future<http.Response> _put(Uri url, String endpoint) async {
-    try {
-      return await _client.put(url, headers: _h).timeout(_timeout);
-    } on TimeoutException {
-      throw NetworkTimeoutException(endpoint);
-    } on SocketException catch (e) {
-      throw NetworkConnectionException(endpoint, cause: e);
-    } on http.ClientException catch (e) {
-      throw NetworkConnectionException(endpoint, cause: e);
-    }
+  Duration _parseRetryAfter(String? header) {
+    final seconds = header != null ? int.tryParse(header) : null;
+    if (seconds == null) return _defaultRetryAfter;
+    return Duration(seconds: seconds);
   }
 }
 

@@ -54,6 +54,7 @@ class _SettingsViewState extends State<SettingsView> {
     try {
       await _viewModel.connect();
     } on SpotifyConsentRequiredException {
+      if (!mounted) return;
       final accepted = await SpotifyConsentDialog.show(context);
       if (!accepted) return;
       await _appPreferences.setSpotifyConsentAccepted(true);

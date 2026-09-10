@@ -90,5 +90,65 @@ void main() {
         );
       },
     );
+
+    test(
+      'reusa o resultado em cache na segunda chamada para o mesmo código, sem rechamar o data source',
+      () async {
+        final musica = Musica(
+          id: '0006',
+          spotifyId: '3n3Ppam7vgaVa1iaRUc9Lp',
+          spotifyUri: 'spotify:track:3n3Ppam7vgaVa1iaRUc9Lp',
+        );
+        when(
+          () => dataSource.getByCodigo('0006'),
+        ).thenAnswer((_) async => musica);
+
+        final first = await repository.getByCodigo('0006');
+        final second = await repository.getByCodigo('0006');
+
+        expect(first, equals(second));
+        verify(() => dataSource.getByCodigo('0006')).called(1);
+      },
+    );
+
+    test(
+      'não cacheia "não encontrada" — chama o data source de novo',
+      () async {
+        when(
+          () => dataSource.getByCodigo('9999'),
+        ).thenThrow(MusicaNaoEncontradaException('9999'));
+
+        await repository.getByCodigo('9999');
+        await repository.getByCodigo('9999');
+
+        verify(() => dataSource.getByCodigo('9999')).called(2);
+      },
+    );
+
+    test(
+      'não cacheia erro de consulta — chama o data source de novo e pode se recuperar',
+      () async {
+        when(
+          () => dataSource.getByCodigo('0006'),
+        ).thenThrow(MusicaConsultaException('Sem conexão com o servidor.'));
+
+        final first = await repository.getByCodigo('0006');
+        expect(first.isLeft(), isTrue);
+
+        final musica = Musica(
+          id: '0006',
+          spotifyId: '3n3Ppam7vgaVa1iaRUc9Lp',
+          spotifyUri: 'spotify:track:3n3Ppam7vgaVa1iaRUc9Lp',
+        );
+        when(
+          () => dataSource.getByCodigo('0006'),
+        ).thenAnswer((_) async => musica);
+
+        final second = await repository.getByCodigo('0006');
+
+        expect(second.isRight(), isTrue);
+        verify(() => dataSource.getByCodigo('0006')).called(2);
+      },
+    );
   });
 }

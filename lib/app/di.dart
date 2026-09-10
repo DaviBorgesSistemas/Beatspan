@@ -26,6 +26,7 @@ import '../domain/usecase/preview_playback_usecase.dart';
 import '../domain/usecase/spotify_playback_usecase.dart';
 import '../presentation/change_spotify/connect_spotify_premium_view_model.dart';
 import '../presentation/faqs/faqs_view_model.dart';
+import '../presentation/game/game_viewmodel.dart';
 import 'app_prefs.dart';
 
 void systemChromeConfigure() async {
@@ -122,6 +123,16 @@ Future<void> initAppModule() async {
   if (!instance.isRegistered<PreviewPlaybackUseCase>()) {
     instance.registerFactory<PreviewPlaybackUseCase>(
       () => PreviewPlaybackUseCase(PreviewPlaybackControlRepositoryImpl()),
+    );
+  }
+
+  if (!instance.isRegistered<GameViewModel>()) {
+    instance.registerFactory<GameViewModel>(
+      () => GameViewModel(
+        appPreferences: instance<AppPreferences>(),
+        getMusicaUseCase: instance<GetMusicaUseCase>(),
+        musicaPlaybackUseCase: instance<MusicaPlaybackUseCase>(),
+      ),
     );
   }
 }
