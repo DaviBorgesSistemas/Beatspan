@@ -13,12 +13,17 @@ import '../data/network/spotify_service.dart';
 import '../data/repository/faq_repository_impl.dart';
 import '../data/repository/musica_playback_repository_impl.dart';
 import '../data/repository/musica_repository_impl.dart';
+import '../data/repository/preview_playback_control_repository_impl.dart';
+import '../data/repository/spotify_playback_control_repository_impl.dart';
 import '../domain/repository/faq_repository.dart';
 import '../domain/repository/musica_playback_repository.dart';
 import '../domain/repository/musica_repository.dart';
+import '../domain/repository/spotify_playback_control_repository.dart';
 import '../domain/usecase/faqs_usecase.dart';
 import '../domain/usecase/get_musica_usecase.dart';
 import '../domain/usecase/musica_playback_usecase.dart';
+import '../domain/usecase/preview_playback_usecase.dart';
+import '../domain/usecase/spotify_playback_usecase.dart';
 import '../presentation/change_spotify/connect_spotify_premium_view_model.dart';
 import '../presentation/faqs/faqs_view_model.dart';
 import 'app_prefs.dart';
@@ -65,6 +70,7 @@ Future<void> initAppModule() async {
       () => SpotifyService(
         clientId: _requiredEnv('SPOTIFY_CLIENT_ID'),
         redirectUrl: _requiredEnv('SPOTIFY_REDIRECT_URL'),
+        appPreferences: instance<AppPreferences>(),
       ),
     );
   }
@@ -99,6 +105,23 @@ Future<void> initAppModule() async {
   if (!instance.isRegistered<MusicaPlaybackUseCase>()) {
     instance.registerFactory<MusicaPlaybackUseCase>(
       () => MusicaPlaybackUseCase(instance()),
+    );
+  }
+
+  if (!instance.isRegistered<SpotifyPlaybackControlRepository>()) {
+    instance.registerLazySingleton<SpotifyPlaybackControlRepository>(
+      () => SpotifyPlaybackControlRepositoryImpl(instance<SpotifyService>()),
+    );
+  }
+  if (!instance.isRegistered<SpotifyPlaybackUseCase>()) {
+    instance.registerFactory<SpotifyPlaybackUseCase>(
+      () => SpotifyPlaybackUseCase(instance()),
+    );
+  }
+
+  if (!instance.isRegistered<PreviewPlaybackUseCase>()) {
+    instance.registerFactory<PreviewPlaybackUseCase>(
+      () => PreviewPlaybackUseCase(PreviewPlaybackControlRepositoryImpl()),
     );
   }
 }

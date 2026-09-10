@@ -9,6 +9,7 @@ import '../../data/network/spotify_service.dart';
 import '../../domain/enum/flow_state.dart';
 import '../../domain/enum/settings_enum.dart';
 import '../../domain/error_reporting.dart';
+import '../../domain/exceptions/spotify_consent_exception.dart';
 
 class ConnectSpotifyPremiumViewModel {
   final SpotifyService _spotify;
@@ -58,6 +59,9 @@ class ConnectSpotifyPremiumViewModel {
         _appPreferences.setGameMode(GameModeType.fullTrack);
       }
       state.value = FlowState.success;
+    } on SpotifyConsentRequiredException {
+      state.value = FlowState.content;
+      rethrow;
     } on MissingPluginException catch (_) {
       state.value = FlowState.error;
       errorMessage.value =

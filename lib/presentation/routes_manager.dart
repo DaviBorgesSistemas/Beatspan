@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../app/app_prefs.dart';
 import '../app/di.dart';
-import '../data/network/spotify_service.dart';
 import '../domain/usecase/get_musica_usecase.dart';
 import '../domain/usecase/musica_playback_usecase.dart';
+import '../domain/usecase/spotify_playback_usecase.dart';
 import 'change_spotify/change_spotify_view.dart';
 import 'change_spotify/connect_spotify_premium_view_model.dart';
 import 'contact/contact_view.dart';
@@ -55,9 +55,8 @@ class RouteGenerator {
         );
       case Routes.changeSpotifyFreeRoute:
         return MaterialPageRoute(
-          builder: (_) => SpotifyFreeTransition(
-            appPreferences: instance<AppPreferences>(),
-          ),
+          builder: (_) =>
+              SpotifyFreeTransition(appPreferences: instance<AppPreferences>()),
         );
       case Routes.homeRoute:
         return _fadeRoute(const HomeView());
@@ -82,7 +81,7 @@ class RouteGenerator {
             appPreferences: instance<AppPreferences>(),
             getMusicaUseCase: instance<GetMusicaUseCase>(),
             musicaPlaybackUseCase: instance<MusicaPlaybackUseCase>(),
-            spotifyService: instance<SpotifyService>(),
+            spotifyPlaybackUseCase: instance<SpotifyPlaybackUseCase>(),
           ),
         );
       default:

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../app/app_prefs.dart';
-import '../../data/network/spotify_service.dart';
+import '../../data/repository/preview_playback_control_repository_impl.dart';
 import '../../domain/model/musica_playback_result.dart';
 import '../../domain/usecase/get_musica_usecase.dart';
 import '../../domain/usecase/musica_playback_usecase.dart';
+import '../../domain/usecase/preview_playback_usecase.dart';
+import '../../domain/usecase/spotify_playback_usecase.dart';
 import '../share/widgets/beatspan_loading_overlay.dart';
 import 'game_viewmodel.dart';
 import 'game_error_view.dart';
@@ -18,14 +20,14 @@ class GameView extends StatefulWidget {
   final AppPreferences appPreferences;
   final GetMusicaUseCase getMusicaUseCase;
   final MusicaPlaybackUseCase musicaPlaybackUseCase;
-  final SpotifyService spotifyService;
+  final SpotifyPlaybackUseCase spotifyPlaybackUseCase;
 
   const GameView({
     super.key,
     required this.appPreferences,
     required this.getMusicaUseCase,
     required this.musicaPlaybackUseCase,
-    required this.spotifyService,
+    required this.spotifyPlaybackUseCase,
   });
 
   @override
@@ -142,7 +144,7 @@ class _GameViewState extends State<GameView> {
             await _navigateToPlayer(
               PlayerMusicPremiumView(
                 initialUri: spotifyUri,
-                spotifyService: widget.spotifyService,
+                spotifyPlaybackUseCase: widget.spotifyPlaybackUseCase,
               ),
             );
           case PreviewPlayback():
@@ -153,7 +155,10 @@ class _GameViewState extends State<GameView> {
                 trackName: playback.trackName,
                 artistName: playback.artistName,
                 albumArtUrl: playback.albumArtUrl,
-                spotifyService: widget.spotifyService,
+                previewPlaybackUseCase: PreviewPlaybackUseCase(
+                  PreviewPlaybackControlRepositoryImpl(),
+                ),
+                spotifyPlaybackUseCase: widget.spotifyPlaybackUseCase,
               ),
             );
         }

@@ -47,10 +47,10 @@
 **Eixo arquitetural:** Fundamentos, Segurança
 
 **Iniciativas:**
-- Extrair controle de reprodução para repository/usecase — `ARQ-013`
+- ~~Extrair controle de reprodução para repository/usecase~~ — `ARQ-013` (✅ concluído em 2026-09-10)
 - `GameViewModel` real, injetada via construtor, absorvendo a orquestração de `GameView` — `ARQ-014` / `ARQ-019`
 - Keystore de produção + ofuscação R8/ProGuard habilitada — `SEC-011`
-- Centralizar checagem de consentimento OAuth — `SEC-012`
+- ~~Centralizar checagem de consentimento OAuth~~ — `SEC-012` (✅ concluído em 2026-09-10)
 - Retry/backoff + tratamento de `429` — `OPS-010` / `PERF-010`
 - Consolidar/arquivar branches órfãs, resgatando o que for útil de `refatore` — `OPS-012` / `DOC-006`
 

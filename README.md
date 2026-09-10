@@ -113,6 +113,12 @@ O projeto adota [Conventional Commits](https://www.conventionalcommits.org/pt-br
 
 Exemplo: `fix: valida corretamente links de faixa sem prefixo de locale`.
 
+**Verificação automática:** o CI rejeita PRs com commits fora do padrão (step "Verificar Conventional Commits" em `.github/workflows/ci.yml`). Para receber o mesmo aviso já no `git commit`, local, ative o hook versionado uma vez por clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
 ## Estrutura de documentação
 
 A pasta [docs/](docs/) contém uma análise arquitetural completa (fundamentos, segurança, experiência, operações, documentação, performance), gerada a partir de `guides/prompts/PROMPT_ANALISE_ARQUITETURAL.md`:

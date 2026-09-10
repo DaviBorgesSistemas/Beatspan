@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 
 import '../../domain/error_reporting.dart';
 import '../../domain/exceptions/playback_exceptions.dart';
+import '../../domain/exceptions/spotify_consent_exception.dart';
 import '../../domain/model/musica_playback_result.dart';
 import '../../domain/repository/musica_playback_repository.dart';
 import '../network/itunes_search_api.dart';
@@ -66,6 +67,10 @@ class MusicaPlaybackRepositoryImpl implements MusicaPlaybackRepository {
         trackName: trackName,
         artistName: artistName,
         albumArtUrl: albumArtUrl,
+      );
+    } on SpotifyConsentRequiredException {
+      throw const PlaybackAuthException(
+        'É necessário aceitar o consentimento do Spotify antes de tocar as faixas.',
       );
     } on MissingPluginException catch (e, s) {
       reportNonFatalError(

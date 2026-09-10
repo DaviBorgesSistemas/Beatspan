@@ -3,23 +3,20 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:spotify_sdk/models/player_state.dart';
-import 'package:spotify_sdk/spotify_sdk.dart';
 
-import '../../../data/network/spotify_service.dart';
-import '../../../domain/error_reporting.dart';
+import '../../../domain/model/playback_state.dart';
+import '../../../domain/usecase/spotify_playback_usecase.dart';
 import '../../share/widgets/beatspan_loading_overlay.dart';
 import '../../share/widgets/next_card_button.dart';
 
 class PlayerMusicPremiumView extends StatefulWidget {
   final String initialUri;
-  final SpotifyService spotifyService;
+  final SpotifyPlaybackUseCase spotifyPlaybackUseCase;
 
   const PlayerMusicPremiumView({
     super.key,
     required this.initialUri,
-    required this.spotifyService,
+    required this.spotifyPlaybackUseCase,
   });
 
   @override
@@ -31,7 +28,7 @@ class _PlayerMusicPremiumViewState extends State<PlayerMusicPremiumView> {
   String? _error;
   bool _pluginAvailable = true;
 
-  Stream<PlayerState>? _playerStateStream;
+  Stream<PlaybackState>? _playerStateStream;
 
   static const _background = Color(0xFF08050D);
   static const _purple = Color(0xFF6C2BFF);
@@ -45,9 +42,7 @@ class _PlayerMusicPremiumViewState extends State<PlayerMusicPremiumView> {
 
   @override
   void dispose() {
-    SpotifySdk.pause().catchError((Object e, StackTrace s) {
-      reportNonFatalError(e, s);
-    });
+    widget.spotifyPlaybackUseCase.pause();
     super.dispose();
   }
 
@@ -61,35 +56,27 @@ class _PlayerMusicPremiumViewState extends State<PlayerMusicPremiumView> {
       return;
     }
 
-    try {
-      await widget.spotifyService.authorizeAndConnect();
+    final result = await widget.spotifyPlaybackUseCase.startPlayback(
+      widget.initialUri,
+    );
 
-      await SpotifySdk.play(spotifyUri: widget.initialUri);
-
-      _playerStateStream = SpotifySdk.subscribePlayerState();
-
-      setState(() {
-        _loading = false;
-      });
-    } on MissingPluginException catch (e) {
-      setState(() {
-        _pluginAvailable = false;
-        _loading = false;
-        _error =
-            'Plugin spotify_sdk não foi encontrado/registrado para este engine.\n$e';
-      });
-    } on PlatformException catch (e) {
-      setState(() {
-        _loading = false;
-        _error =
-            'Erro de plataforma ao conectar/tocar no Spotify: ${e.message}';
-      });
-    } catch (e) {
-      setState(() {
-        _loading = false;
-        _error = 'Erro inesperado ao inicializar o player: $e';
-      });
-    }
+    result.fold(
+      (failure) {
+        setState(() {
+          _loading = false;
+          _pluginAvailable =
+              failure.code != spotifyPlaybackPluginMissingErrorCode;
+          _error = failure.message;
+        });
+      },
+      (_) {
+        _playerStateStream = widget.spotifyPlaybackUseCase
+            .subscribePlayerState();
+        setState(() {
+          _loading = false;
+        });
+      },
+    );
   }
 
   @override
@@ -189,7 +176,7 @@ class _PlayerMusicPremiumViewState extends State<PlayerMusicPremiumView> {
       );
     }
 
-    return StreamBuilder<PlayerState>(
+    return StreamBuilder<PlaybackState>(
       stream: _playerStateStream,
       builder: (context, snap) {
         if (snap.hasError) {
@@ -218,7 +205,9 @@ class _PlayerMusicPremiumViewState extends State<PlayerMusicPremiumView> {
           children: [
             _VisualGlyphsCard(
               playing: playing,
-              onTap: () => playing ? SpotifySdk.pause() : SpotifySdk.resume(),
+              onTap: () => widget.spotifyPlaybackUseCase.togglePlayback(
+                isPaused: !playing,
+              ),
             ),
             const SizedBox(height: 40),
             const NextCardButton(),

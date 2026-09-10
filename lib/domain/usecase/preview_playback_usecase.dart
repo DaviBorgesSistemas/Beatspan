@@ -1,0 +1,41 @@
+import 'package:dartz/dartz.dart';
+
+import '../error_reporting.dart';
+import '../failure.dart';
+import '../model/playback_state.dart';
+import '../repository/preview_playback_control_repository.dart';
+
+const int previewPlaybackUnexpectedErrorCode = 1;
+
+class PreviewPlaybackUseCase {
+  final PreviewPlaybackControlRepository _repository;
+
+  PreviewPlaybackUseCase(this._repository);
+
+  Future<Either<Failure, Unit>> load(String previewUrl) async {
+    try {
+      await _repository.load(previewUrl);
+      return const Right(unit);
+    } catch (e, s) {
+      reportNonFatalError(
+        e,
+        s,
+        information: const ['PreviewPlaybackUseCase.load'],
+      );
+      return Left(
+        Failure(
+          previewPlaybackUnexpectedErrorCode,
+          'Não foi possível carregar a prévia de 30 segundos.',
+        ),
+      );
+    }
+  }
+
+  Stream<PlaybackState> get playerStateStream => _repository.playerStateStream;
+
+  Future<void> togglePlayback({required bool isPaused}) {
+    return isPaused ? _repository.play() : _repository.pause();
+  }
+
+  Future<void> dispose() => _repository.dispose();
+}

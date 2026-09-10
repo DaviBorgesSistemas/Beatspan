@@ -1,35 +1,37 @@
-import 'package:beatspan/data/network/spotify_service.dart';
+import 'package:beatspan/domain/usecase/spotify_playback_usecase.dart';
 import 'package:beatspan/presentation/game/player_music/player_music_premium_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-class _MockSpotifyService extends Mock implements SpotifyService {}
+class _MockSpotifyPlaybackUseCase extends Mock
+    implements SpotifyPlaybackUseCase {}
 
 void main() {
   // `flutter test` roda em VM (não Android/iOS/web), então
   // `_PlayerMusicPremiumViewState._initSpotify` sempre cai no branch de
-  // "plataforma não suportada" antes de qualquer chamada ao spotify_sdk —
+  // "plataforma não suportada" antes de qualquer chamada ao use case —
   // é o único caminho de fato exercitável sem um device real, e é também
   // o comportamento real do widget nesse ambiente (proteção explícita no
   // código contra plataformas sem o plugin nativo).
-  late _MockSpotifyService spotifyService;
+  late _MockSpotifyPlaybackUseCase spotifyPlaybackUseCase;
 
   setUp(() {
-    spotifyService = _MockSpotifyService();
+    spotifyPlaybackUseCase = _MockSpotifyPlaybackUseCase();
+    when(() => spotifyPlaybackUseCase.pause()).thenAnswer((_) async {});
   });
 
   Widget buildSubject() {
     return MaterialApp(
       home: PlayerMusicPremiumView(
         initialUri: 'spotify:track:abc123',
-        spotifyService: spotifyService,
+        spotifyPlaybackUseCase: spotifyPlaybackUseCase,
       ),
     );
   }
 
   testWidgets(
-    'mostra erro de plataforma não suportada e botão Voltar, sem chamar o SpotifyService',
+    'mostra erro de plataforma não suportada e botão Voltar, sem chamar o use case',
     (tester) async {
       await tester.pumpWidget(buildSubject());
       await tester.pumpAndSettle();
@@ -40,45 +42,44 @@ void main() {
         findsOneWidget,
       );
       expect(find.widgetWithText(ElevatedButton, 'Voltar'), findsOneWidget);
-      verifyNever(() => spotifyService.authorizeAndConnect());
+      verifyNever(() => spotifyPlaybackUseCase.startPlayback(any()));
     },
   );
 
-  testWidgets(
-    'toca em Voltar e fecha a tela (pop da navegação)',
-    (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Builder(
-            builder: (context) => Scaffold(
-              body: Center(
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => PlayerMusicPremiumView(
-                        initialUri: 'spotify:track:abc123',
-                        spotifyService: spotifyService,
-                      ),
+  testWidgets('toca em Voltar e fecha a tela (pop da navegação)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: ElevatedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => PlayerMusicPremiumView(
+                      initialUri: 'spotify:track:abc123',
+                      spotifyPlaybackUseCase: spotifyPlaybackUseCase,
                     ),
                   ),
-                  child: const Text('abrir'),
                 ),
+                child: const Text('abrir'),
               ),
             ),
           ),
         ),
-      );
+      ),
+    );
 
-      await tester.tap(find.text('abrir'));
-      await tester.pumpAndSettle();
+    await tester.tap(find.text('abrir'));
+    await tester.pumpAndSettle();
 
-      expect(find.widgetWithText(ElevatedButton, 'Voltar'), findsOneWidget);
+    expect(find.widgetWithText(ElevatedButton, 'Voltar'), findsOneWidget);
 
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Voltar'));
-      await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Voltar'));
+    await tester.pumpAndSettle();
 
-      expect(find.widgetWithText(ElevatedButton, 'Voltar'), findsNothing);
-      expect(find.text('abrir'), findsOneWidget);
-    },
-  );
+    expect(find.widgetWithText(ElevatedButton, 'Voltar'), findsNothing);
+    expect(find.text('abrir'), findsOneWidget);
+  });
 }

@@ -96,11 +96,11 @@ Apenas `android.permission.CAMERA`.
 
 ---
 
-### SEC-012 — Gate de consentimento Spotify não é aplicado em todos os caminhos de OAuth · **Novo**
+### SEC-012 — Gate de consentimento Spotify não é aplicado em todos os caminhos de OAuth · ✅ Resolvido
 **Severidade:** Média
-**Localização:** `hasAcceptedSpotifyConsent()` só é checado em [change_spotify_view.dart:121](../lib/presentation/change_spotify/change_spotify_view.dart#L121) e [settings_view.dart:53](../lib/presentation/settings/settings_view.dart#L53). Porém [player_music_premium_view.dart:62](../lib/presentation/game/player_music/player_music_premium_view.dart#L62) chama `authorizeAndConnect()` direto em `initState()`, e [play_music_free_view.dart:72](../lib/presentation/game/player_music/play_music_free_view.dart#L72) chama `getAccessToken()` ao salvar faixa — nenhum dos dois verifica consentimento.
-**Descrição:** se o fluxo de jogo permitir chegar a `PlayerMusicPremiumView` sem passar antes pela tela de conexão (não confirmado com certeza via leitura estática — é um gap de design, não uma falha comprovada de navegação), a autorização OAuth do Spotify é disparada sem o disclosure próprio do Beatspan.
-**Recomendação:** centralizar a checagem dentro de `SpotifyService.authorizeAndConnect()`/`getAccessToken()`, para que nenhum caminho de código consiga acionar o SDK sem consentimento já registrado. **Requer verificação funcional** da árvore de navegação para confirmar se o gap é real ou só teórico.
+**Localização original:** `hasAcceptedSpotifyConsent()` só era checado em `change_spotify_view.dart` e `settings_view.dart`. Porém `player_music_premium_view.dart` chamava `authorizeAndConnect()` direto em `initState()`, e `play_music_free_view.dart`/`musica_playback_repository_impl.dart` chamavam `getAccessToken()` sem checagem alguma.
+**Descrição:** confirmado nesta rodada (não mais teórico) que `GameView` alcança `PlayerMusicPremiumView` num fluxo normal de jogo (plano premium + modo full track) sem passar por nenhuma tela de conexão — a autorização OAuth do Spotify era disparada sem o disclosure próprio do Beatspan.
+**Correção (2026-09-10):** checagem centralizada dentro de [spotify_service.dart](../lib/data/network/spotify_service.dart) — `connect()`, `getAccessToken()` e `authorizeAndConnect()` chamam um guard `_ensureConsent()` que lança `SpotifyConsentRequiredException` ([spotify_consent_exception.dart](../lib/domain/exceptions/spotify_consent_exception.dart)) se `AppPreferences.hasAcceptedSpotifyConsent()` for `false`. As telas com dialog (`change_spotify_view.dart`, `settings_view.dart`) capturam a exceção para mostrar `SpotifyConsentDialog` e persistir o aceite; os caminhos de gameplay que antes bypassavam o gate (`player_music_premium_view.dart`, `musica_playback_repository_impl.dart`, `play_music_free_view.dart`) agora tratam a mesma exceção com mensagem amigável em vez de disparar OAuth silenciosamente. Nenhum caminho de código consegue mais acionar o SDK sem consentimento já registrado. Ver detalhe em [4-ACTION_PLAN.md](4-ACTION_PLAN.md).
 
 ---
 
@@ -117,7 +117,7 @@ Apenas `android.permission.CAMERA`.
 - [x] Permissões mínimas (só câmera)
 
 **Não conforme / pendente:**
-- [ ] Gate de consentimento não centralizado — caminhos de gameplay podem disparar OAuth sem checagem (`SEC-012`)
+- [x] ~~Gate de consentimento não centralizado — caminhos de gameplay podem disparar OAuth sem checagem~~ (`SEC-012` — resolvido em 2026-09-10, checagem agora centralizada em `SpotifyService`)
 - [ ] Exclusão de dados apenas via e-mail (sem autoatendimento in-app — aceitável como mínimo legal)
 - [ ] `.env` versionado com credencial real, sem `.gitignore` (`SEC-001`) — problema de governança de segredos, mesmo não sendo dado pessoal
 - [ ] Sem artefato interno de base legal de tratamento (RIPD/ROPA)
@@ -148,5 +148,4 @@ Apenas `android.permission.CAMERA`.
 - Restrições reais da API Key do Firebase e do Redirect URI do Spotify nos respectivos consoles
 - Build iOS (inexistente)
 - Confirmação viva de CVEs (scanner não rerodado nesta sessão)
-- Fluxo de navegação completo do app (para confirmar `SEC-012` como bug real vs. gap teórico)
 - Conteúdo completo de `google-services.json` além do padrão já verificado

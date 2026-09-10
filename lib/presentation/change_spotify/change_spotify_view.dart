@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/enum/flow_state.dart';
+import '../../domain/exceptions/spotify_consent_exception.dart';
 import '../../app/app_prefs.dart';
 import '../resource/color_manager.dart';
 import '../resource/font_manager.dart';
@@ -50,6 +51,19 @@ class _ChangeSpotifyViewState extends State<ChangeSpotifyView> {
         }
       }
     });
+  }
+
+  Future<void> _connectSpotify(BuildContext context) async {
+    try {
+      await _viewModel.connect();
+    } on SpotifyConsentRequiredException {
+      final appPreferences = widget.appPreferences;
+      final accepted = await SpotifyConsentDialog.show(context);
+      if (!accepted) return;
+      await appPreferences.setSpotifyConsentAccepted(true);
+      if (!context.mounted) return;
+      await _viewModel.connect();
+    }
   }
 
   @override
@@ -116,20 +130,7 @@ class _ChangeSpotifyViewState extends State<ChangeSpotifyView> {
                         color: Colors.transparent,
                         child: InkWell(
                           borderRadius: BorderRadius.circular(28),
-                          onTap: () async {
-                            final appPreferences = widget.appPreferences;
-                            if (!appPreferences.hasAcceptedSpotifyConsent()) {
-                              final accepted = await SpotifyConsentDialog.show(
-                                context,
-                              );
-                              if (!accepted) return;
-                              await appPreferences.setSpotifyConsentAccepted(
-                                true,
-                              );
-                            }
-                            if (!context.mounted) return;
-                            await _viewModel.connect();
-                          },
+                          onTap: () => _connectSpotify(context),
                           child: Center(
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,

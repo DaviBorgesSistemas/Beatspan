@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_prefs.dart';
 import '../../domain/enum/settings_enum.dart';
+import '../../domain/exceptions/spotify_consent_exception.dart';
 import '../change_spotify/connect_spotify_premium_view_model.dart';
 import '../change_spotify/widgets/spotify_consent_dialog.dart';
 import 'widget/game_mode.dart';
@@ -50,13 +51,15 @@ class _SettingsViewState extends State<SettingsView> {
   }
 
   Future<void> _connectSpotify() async {
-    if (!_appPreferences.hasAcceptedSpotifyConsent()) {
+    try {
+      await _viewModel.connect();
+    } on SpotifyConsentRequiredException {
       final accepted = await SpotifyConsentDialog.show(context);
       if (!accepted) return;
       await _appPreferences.setSpotifyConsentAccepted(true);
+      if (!mounted) return;
+      await _viewModel.connect();
     }
-    if (!mounted) return;
-    await _viewModel.connect();
     await _loadPlanType();
   }
 

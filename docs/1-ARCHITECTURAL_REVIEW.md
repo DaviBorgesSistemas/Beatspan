@@ -46,8 +46,8 @@ As fronteiras de camada (`domain` não depende de `data`/`presentation`, e vice-
 **ARQ-004 — Service locator chamado direto em widgets** · ✅ **Resolvido** (ver `ARQ-019` para exceção)
 Views roteadas e widgets filhos recebem dependências via construtor; `RouteGenerator` é o único ponto de composição.
 
-**ARQ-013 — Controle de reprodução (play/pause/salvar) ainda chama SDK direto do widget** · Severidade: Atenção · **Novo**
-[lib/presentation/game/player_music/player_music_premium_view.dart:62-66](../lib/presentation/game/player_music/player_music_premium_view.dart#L62-L66), [play_music_free_view.dart:72-74](../lib/presentation/game/player_music/play_music_free_view.dart#L72-L74). Ao contrário de "achar a música" (já migrado, `ARQ-003`), "tocar/salvar a música" (`SpotifySdk.play`, `SpotifySdk.subscribePlayerState`, `SpotifyWebApi` instanciado inline) continua direto no `State`, não testável isoladamente. Esforço: M.
+**ARQ-013 — Controle de reprodução (play/pause/salvar) ainda chama SDK direto do widget** · ✅ **Resolvido** (2026-09-10)
+Extraído para dois pares Repository/UseCase (tecnologias não relacionadas — SDK nativo do Spotify vs. `just_audio` para prévia — mereciam abstrações separadas, não uma única artificial): [spotify_playback_control_repository.dart](../lib/domain/repository/spotify_playback_control_repository.dart)/[_impl](../lib/data/repository/spotify_playback_control_repository_impl.dart) + [spotify_playback_usecase.dart](../lib/domain/usecase/spotify_playback_usecase.dart), e [preview_playback_control_repository.dart](../lib/domain/repository/preview_playback_control_repository.dart)/[_impl](../lib/data/repository/preview_playback_control_repository_impl.dart) + [preview_playback_usecase.dart](../lib/domain/usecase/preview_playback_usecase.dart). Novo modelo [playback_state.dart](../lib/domain/model/playback_state.dart) evita vazar tipos do `spotify_sdk`/`just_audio` para `domain`. `player_music_premium_view.dart`/`play_music_free_view.dart` não chamam mais `SpotifySdk`/`SpotifyWebApi`/`AudioPlayer` diretamente. 21 testes novos cobrindo a lógica antes intestável (ver `docs/4-ACTION_PLAN.md` para detalhe completo).
 
 **ARQ-014 — `GameViewModel` anêmica; orquestração real mora em `GameView`** · Severidade: Atenção · **Novo** (residual de `ARQ-005`)
 [lib/presentation/game/game_viewmodel.dart:1-32](../lib/presentation/game/game_viewmodel.dart) (32 linhas, só parsing) vs [game_view.dart:89-225](../lib/presentation/game/game_view.dart#L89-L225) (137 linhas: orquestra 2 use cases, decide 4 tipos de navegação de erro). `connect_spotify_premium_view_model.dart:34-70` mostra que o padrão correto já existe no projeto — só não foi aplicado à tela mais crítica. Esforço: M.
@@ -67,8 +67,8 @@ Views roteadas e widgets filhos recebem dependências via construtor; `RouteGene
 **ARQ-018 — Catch genérico em `MusicaPlaybackUseCase` descarta exceções tipadas** · Severidade: Baixa · **Novo**
 [lib/domain/usecase/musica_playback_usecase.dart:58-61](../lib/domain/usecase/musica_playback_usecase.dart#L58-L61) — captura tudo com `catch (e)` genérico, perdendo a distinção entre `NetworkTimeoutException`/`NetworkConnectionException`/`InvalidServerResponseException` que a camada de dados já tipa corretamente. Esforço: P.
 
-**ARQ-006 — Dois padrões de tratamento de erro** · Severidade: Média · Ainda **Aberto**
-Fluxo Spotify ainda não usa `Either<Failure,T>` de ponta a ponta (ver `ARQ-013`).
+**ARQ-006 — Dois padrões de tratamento de erro** · Severidade: Média · Parcialmente **Resolvido** (2026-09-10, via `ARQ-013`)
+O fluxo de controle de reprodução (play/pause/resume/save) agora usa `Either<Failure,T>` de ponta a ponta em `SpotifyPlaybackUseCase`/`PreviewPlaybackUseCase`. Ressalva: `startPlayback`/`saveTrack` ainda capturam exceção com `catch (e)` genérico ao final (mesmo padrão do `ARQ-018`, não reaberto aqui) — a distinção fina de tipo de exceção continua limitada aos casos já mapeados explicitamente.
 
 **ARQ-007 — Duplicação `_nextCardButton()`** · ✅ **Resolvido** — extraído para `NextCardButton` compartilhado.
 
@@ -250,7 +250,7 @@ A decisão arquitetural central — leitura de música por `doc(id)` direto no F
 - **PERF-006, PERF-007** — Firestore sem N+1, disposal de recursos consistente
 
 ### Atenções (relevantes, não bloqueantes)
-- ARQ-013, ARQ-014, ARQ-015, ARQ-019 — débito residual de arquitetura no fluxo de playback
+- ARQ-014, ARQ-015, ARQ-019 — débito residual de arquitetura no fluxo de playback (`ARQ-013` resolvido em 2026-09-10)
 - UX-001, UX-003, UX-005, UX-011 — design system, acessibilidade, responsividade, alvos de toque
 - OPS-009, OPS-010, OPS-011, OPS-012 — sem e2e, sem retry, sem fallback de plano, branches órfãs
 - PERF-009, PERF-010, PERF-011 — cache assimétrico, rate limit, filtro de scanner

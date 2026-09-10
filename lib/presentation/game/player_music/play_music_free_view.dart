@@ -1,10 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
 
-import '../../../data/network/spotify_service.dart';
-import '../../../data/network/spotify_webapi.dart';
-import '../../../domain/error_reporting.dart';
+import '../../../domain/model/playback_state.dart';
+import '../../../domain/usecase/preview_playback_usecase.dart';
+import '../../../domain/usecase/spotify_playback_usecase.dart';
 import '../../share/widgets/beatspan_loading_overlay.dart';
 import '../../share/widgets/next_card_button.dart';
 
@@ -14,7 +13,8 @@ class PlayerMusicFreeView extends StatefulWidget {
   final String? trackName;
   final String? artistName;
   final String? albumArtUrl;
-  final SpotifyService spotifyService;
+  final PreviewPlaybackUseCase previewPlaybackUseCase;
+  final SpotifyPlaybackUseCase spotifyPlaybackUseCase;
 
   const PlayerMusicFreeView({
     super.key,
@@ -23,7 +23,8 @@ class PlayerMusicFreeView extends StatefulWidget {
     this.trackName,
     this.artistName,
     this.albumArtUrl,
-    required this.spotifyService,
+    required this.previewPlaybackUseCase,
+    required this.spotifyPlaybackUseCase,
   });
 
   @override
@@ -31,8 +32,6 @@ class PlayerMusicFreeView extends StatefulWidget {
 }
 
 class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
-  final AudioPlayer _player = AudioPlayer();
-
   bool _isLoading = true;
   String? _error;
 
@@ -46,21 +45,19 @@ class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
   }
 
   Future<void> _initPlayer() async {
-    try {
-      await _player.setUrl(widget.previewUrl);
-      setState(() => _isLoading = false);
-      _player.play();
-    } catch (e) {
+    final result = await widget.previewPlaybackUseCase.load(widget.previewUrl);
+    if (!mounted) return;
+    result.fold((failure) {
       setState(() {
         _isLoading = false;
-        _error = 'Não foi possível carregar a prévia de 30 segundos.';
+        _error = failure.message;
       });
-    }
+    }, (_) => setState(() => _isLoading = false));
   }
 
   @override
   void dispose() {
-    _player.dispose();
+    widget.previewPlaybackUseCase.dispose();
     super.dispose();
   }
 
@@ -69,32 +66,27 @@ class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
     if (trackId == null || _isSavingTrack || _isTrackSaved) return;
 
     setState(() => _isSavingTrack = true);
-    try {
-      final token = await widget.spotifyService.getAccessToken();
-      final api = SpotifyWebApi(token);
-      final saved = await api.saveTrack(trackId);
+    final result = await widget.spotifyPlaybackUseCase.saveTrack(trackId);
+    if (!mounted) return;
 
-      if (!mounted) return;
-      setState(() => _isTrackSaved = saved);
-
-      if (!saved) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Não foi possível salvar a faixa no Spotify.'),
-          ),
-        );
-      }
-    } catch (e, s) {
-      reportNonFatalError(e, s);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Não foi possível salvar a faixa no Spotify.'),
-        ),
-      );
-    } finally {
-      if (mounted) setState(() => _isSavingTrack = false);
-    }
+    result.fold(
+      (failure) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(failure.message)));
+      },
+      (saved) {
+        setState(() => _isTrackSaved = saved);
+        if (!saved) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Não foi possível salvar a faixa no Spotify.'),
+            ),
+          );
+        }
+      },
+    );
+    if (mounted) setState(() => _isSavingTrack = false);
   }
 
   @override
@@ -253,11 +245,11 @@ class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
   }
 
   Widget _playButton() {
-    return StreamBuilder<PlayerState>(
-      stream: _player.playerStateStream,
+    return StreamBuilder<PlaybackState>(
+      stream: widget.previewPlaybackUseCase.playerStateStream,
       builder: (context, snapshot) {
         final state = snapshot.data;
-        final playing = state?.playing ?? false;
+        final playing = state != null && !state.isPaused;
 
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -295,7 +287,9 @@ class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
               ),
             ),
             GestureDetector(
-              onTap: () => playing ? _player.pause() : _player.play(),
+              onTap: () => widget.previewPlaybackUseCase.togglePlayback(
+                isPaused: !playing,
+              ),
               child: Container(
                 width: 56,
                 height: 56,
@@ -335,5 +329,4 @@ class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
       },
     );
   }
-
 }
