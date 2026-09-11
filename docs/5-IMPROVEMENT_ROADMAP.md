@@ -1,10 +1,10 @@
 # Beatspan — Improvement Roadmap
 
-**Data da análise:** 2026-09-10
-**Versão do documento:** 2.0 (reanálise completa)
-**Commit analisado:** `8f2ae1e` (branch `beatspan_v2`)
+**Data da análise:** 2026-09-11
+**Versão do documento:** 3.0 (reanálise completa do zero, substitui a versão 2.0)
+**Commit analisado:** `577dd0c` (branch `beatspan_v2`)
 
-Iniciativas agrupadas a partir dos IDs de `docs/4-ACTION_PLAN.md` — nenhuma iniciativa nova é introduzida aqui.
+> Agrupa as iniciativas de `docs/4-ACTION_PLAN.md` por fase, já que o projeto está em pré-lançamento (fases em vez de trimestres calendário). Nenhuma iniciativa nova é criada aqui — todas rastreiam de volta a um ID já definido nos documentos 1-4 desta versão.
 
 ---
 
@@ -12,71 +12,101 @@ Iniciativas agrupadas a partir dos IDs de `docs/4-ACTION_PLAN.md` — nenhuma in
 
 | Iniciativa | ID(s) | Esforço | Impacto |
 |---|---|---|---|
-| Corrigir crash do scanner (`barcodes.isEmpty`) | `ARQ-003` | P | Alto |
-| Falhar build de release sem `key.properties` | `SEC-002` | P | Médio |
-| Confirmar restrição da API key do Firebase | `SEC-001` | P | Alto |
-| Atualizar README sobre Crashlytics | `DOC-001` | P | Baixo |
-| `reportNonFatalError` nos 2 pontos com `debugPrint` | `OPS-003` | P | Baixo |
+| Implementar ou remover a `ContactView` vazia | `EXP-003`/`SEC-004` | P | Crítico |
+| Adicionar "Desconectar Spotify" em Configurações | `SEC-002` | P | Médio |
+| Desabilitar `allowBackup` no manifest Android | `SEC-003` | P | Médio |
+| Resolver dependência transitiva retracted | `SEC-005` | P | Médio |
+| Reportar erro inesperado de forma consistente entre repositórios | `ARQ-102` | P | Médio |
+| Adicionar teste ao guard de conectividade | `OPS-003` | P | Médio |
 
-Essas 5 iniciativas resolvem os 2 achados críticos mais baratos de corrigir (o terceiro, cobertura de testes, é estrutural e não cabe como quick win) e 3 das atenções de segurança, sem exigir mudança de arquitetura.
-
----
-
-## Fase 1 — Estabilização (0–1 mês)
-
-**Objetivo:** eliminar os riscos críticos e de segurança imediatos antes de qualquer novo trabalho de produto.
-
-| Iniciativa | IDs relacionados | Eixo | Dependências | Métrica de sucesso |
-|---|---|---|---|---|
-| Corrigir bug do scanner | `ARQ-003` | Fundamentos | Nenhuma | Zero crashes reportados no Crashlytics com origem em `GameView._onDetect` após deploy |
-| Endurecer pipeline de release Android | `SEC-001`, `SEC-002` | Segurança | Nenhuma | Build de release falha explicitamente sem keystore; API key confirmada restrita |
-| Scan de dependências no CI | `SEC-003` | Segurança | Nenhuma | Step de OSV-Scanner rodando em todo PR, sem bloquear o pipeline indevidamente |
-| Higiene de documentação e observabilidade | `DOC-001`, `OPS-003` | Documentação/Operações | Nenhuma | README reflete o estado real do código; 0 ocorrências de `debugPrint` para erro em `lib/presentation` |
+Esses 6 itens somam esforço P (pequeno) cada e endereçam, juntos, o item crítico de maior visibilidade externa (`ContactView`) mais um conjunto de lacunas de compliance/resiliência de baixo custo de implementação — recomendado como primeira leva de trabalho após esta análise.
 
 ---
 
-## Fase 2 — Qualidade e confiabilidade (1–3 meses)
+## Fase 1 — Fechar lacunas críticas de UX e compliance (imediato)
 
-**Objetivo:** elevar a cobertura de teste e a consistência do app nos pontos que mais custam caro em produção.
+**Objetivo:** eliminar os dois achados classificados como críticos nesta análise antes de qualquer expansão de escopo.
+**Eixo:** Experiência, Segurança
+**Dependências:** nenhuma — pode começar imediatamente.
+**Iniciativas:**
+- Implementar/remover `ContactView` (`EXP-003`/`SEC-004`)
+- Acessibilidade no fluxo bloqueante de permissão de câmera (`EXP-001`, recorte prioritário)
 
-| Iniciativa | IDs relacionados | Eixo | Dependências | Métrica de sucesso |
-|---|---|---|---|---|
-| Cobrir integrações de rede críticas com testes | `OPS-001` | Operações | Nenhuma | `spotify_service.dart` e `musica_firestore_data_source.dart` saem de 0% de cobertura; meta mínima acordada (ex.: 70%) |
-| ~~Gate de cobertura no CI~~ — resolvido (meta de 40%, abaixo do real 43,4%) | `OPS-002` | Operações | — | CI falha (ou alerta) se a cobertura cair abaixo da meta acordada |
-| Padrão de acessibilidade | `EXP-001` | Experiência | Nenhuma | Componentes reutilizáveis de `share/widgets/` com `Semantics`; ao menos o fluxo principal navegável com TalkBack |
-| ~~Consistência de design tokens~~ — resolvido (29 arquivos migrados para `ColorManager`) | `EXP-002` | Experiência | — | 0 arquivos com `Color(0x...)` fora de `resource/` (ou justificativa documentada por exceção) |
-
----
-
-## Fase 3 — Consistência arquitetural (3–6 meses)
-
-**Objetivo:** resolver debt estrutural que não é urgente, mas que cresce com cada tela nova se não for endereçado.
-
-| Iniciativa | IDs relacionados | Eixo | Dependências | Métrica de sucesso |
-|---|---|---|---|---|
-| Unificar resolução de dependências via `get_it` | `ARQ-001`, `ARQ-004` | Fundamentos | Nenhuma | Nenhuma instanciação direta de repositório/use case fora de `lib/app/di.dart` |
-| ~~Redesenhar modelo de erro de domínio~~ — resolvido (`Failure` já é `sealed class` por domínio) | `ARQ-002` | Fundamentos | — | Códigos de erro não colidem mais entre use cases distintos (ex.: tipo selado por domínio) |
-| ~~Decisão sobre idioma/país~~ — resolvido (removido) | `ARQ-005` | Fundamentos/Produto | — | Enums `LanguageType`/`CountryType`, getters/setters e rota `/language` removidos do código |
-| Saída de app idiomática | `ARQ-006` | Fundamentos | Nenhuma | `SystemNavigator.pop()` substitui `exit(1)` nos 2 pontos identificados |
+**Métrica de sucesso:** zero telas roteadas e documentadas como entregues que estejam vazias; `camera_permission_view.dart` operável via TalkBack/leitor de tela.
 
 ---
 
-## Fase 4 — Maturidade pré-lançamento (6–12 meses)
+## Fase 2 — Resiliência do controle de reprodução (curto prazo)
 
-**Objetivo:** o que falta antes de tratar o app como pronto para lançamento público em escala.
+**Objetivo:** fechar a maior lacuna de confiabilidade identificada — a camada que controla play/pause/resume em tempo real durante a partida não tem rede de segurança.
+**Eixo:** Operações
+**Dependências:** nenhuma, mas se beneficia de rodar em paralelo com a Fase 1 (times/pessoas diferentes).
+**Iniciativas:**
+- Tratamento de erro + testes em `SpotifyPlaybackControlRepositoryImpl` (`OPS-001`)
+- Tratamento de erro + testes em `PreviewPlaybackControlRepositoryImpl` (`OPS-002`)
 
-| Iniciativa | IDs relacionados | Eixo | Dependências | Métrica de sucesso |
-|---|---|---|---|---|
-| Analytics de produto | `OPS-004` | Operações | Nenhuma (mas ideal após Fase 1 de observabilidade) | Funil de escaneamento→reprodução instrumentado; taxa de fallback iTunes visível em dashboard |
-| Processo de release formal — **parcial**: `CHANGELOG.md` criado, tags pendentes da próxima release | `DOC-002` | Documentação | Nenhuma | `CHANGELOG.md` mantido a partir da próxima tag; tags Git correspondendo a `pubspec.yaml` |
-| ~~Registro de decisões arquiteturais~~ — resolvido (3 ADRs mínimos registrados) | `DOC-003` | Documentação | — | ADRs cobrindo ao menos: escolha de Clean Architecture simplificada, `dartz`/Either, ausência de backend próprio |
-| Revisão de escalabilidade dos caches em memória | `PERF-001` | Performance | Depende de dado real de uso (analytics da Fase 4) | Decisão informada por dado real: manter, ou adicionar TTL/limite |
+**Métrica de sucesso:** cobertura de ambos os arquivos acima de 80%; nenhuma exceção não tratada nos 4+2 métodos de controle de playback.
 
 ---
 
-## Notas de sequenciamento
+## Fase 3 — Acessibilidade completa e componentização (curto/médio prazo)
 
-- As iniciativas de **Segurança** (Fase 1) não têm dependência entre si nem com as demais fases — podem rodar em paralelo com qualquer outra fase.
-- **Gate de cobertura no CI** (`OPS-002`) foi resolvido com uma meta calibrada ao valor real medido (40%, abaixo dos 43,4% reais) em vez de esperar a cobertura subir primeiro — evita travar o pipeline desde o dia 1 sem precisar da sequência original proposta aqui.
-- A decisão sobre **idioma/país** (`ARQ-005`) já foi resolvida: app segue só em português, código morto removido.
-- **Analytics de produto** (`OPS-004`) é o único item cujo valor aumenta com o tempo (mais útil perto do lançamento do que hoje) — por isso está na fase mais tardia, não porque seja menos importante.
+**Objetivo:** estender a correção pontual de acessibilidade da Fase 1 para o restante do app, resolvendo a causa raiz (duplicação de componentes) em vez de repetir a correção manualmente tela por tela.
+**Eixo:** Experiência, Fundamentos
+**Dependências:** a componentização do botão "voltar" (`EXP-002`) deveria vir **antes ou junto** da expansão de `Semantics` (`EXP-001` continuação) — resolver a duplicação primeiro evita ter que aplicar `Semantics` manualmente em 5+ lugares que poderiam ser 1.
+**Iniciativas:**
+- Componentizar botão "voltar" (`EXP-002`)
+- Expandir `Semantics` para telas restantes (`EXP-001` continuação)
+- Corrigir estado de erro do FAQ (`EXP-004`)
+- Aplicar tokens de design consistentemente (`EXP-005`)
+
+**Métrica de sucesso:** `Semantics` presente em 100% dos botões interativos de `lib/presentation/`; zero componentes de UI visualmente idênticos duplicados em mais de 1 arquivo.
+
+---
+
+## Fase 4 — Cobertura de testes das telas administrativas (médio prazo)
+
+**Objetivo:** estender a alta cobertura já existente no fluxo crítico de jogo para as telas de uso frequente que hoje têm zero teste.
+**Eixo:** Operações
+**Dependências:** nenhuma direta, mas conflita em arquivos com a Fase 3 (várias das telas sem teste — Settings, FAQ — são as mesmas que ganharão `Semantics` na Fase 3; recomenda-se testar depois de estabilizar a UI, não antes).
+**Iniciativas:**
+- Cobertura de Settings, FAQ, Home, Splash, Rules (`OPS-004`)
+- Extração de widget de erro compartilhado do player (`ARQ-103`, menor, pode ser feito em paralelo)
+
+**Métrica de sucesso:** cobertura global do projeto acima de 65% (hoje 54,3%); nenhum arquivo de `lib/presentation/` em 0% de cobertura, exceto os que não têm lógica testável (ex. Splash puramente decorativo).
+
+---
+
+## Fase 5 — Consolidação de governança e manutenção contínua (médio/longo prazo)
+
+**Objetivo:** fazer os mecanismos de governança já criados (CHANGELOG, ADRs, gate de cobertura) resistirem ao ritmo real de desenvolvimento — hoje criados, mas ainda não seguidos com disciplina total.
+**Eixo:** Documentação
+**Dependências:** nenhuma técnica; depende de adoção de processo pela equipe, não de código.
+**Iniciativas:**
+- Atualizar `CHANGELOG.md` retroativamente (`DOC-002`)
+- Documentar política de cadência de dependências (`DOC-004`)
+- ADRs para decisões de produto/governança já tomadas (`DOC-006`)
+- Introduzir tags Git na primeira release real (`DOC-003`)
+- Avaliar upgrade das dependências com major version disponível (`SEC-005` continuação)
+
+**Métrica de sucesso:** todo PR relevante adiciona sua entrada em `CHANGELOG.md [Unreleased]` (verificável no CI, se desejado); primeira tag `vX.Y.Z` criada na próxima release publicada.
+
+---
+
+## Fase 6 — Refinamentos arquiteturais e de performance (longo prazo, não urgente)
+
+**Objetivo:** itens de baixo impacto imediato, mantidos no radar para quando o produto crescer em escala ou complexidade.
+**Eixo:** Fundamentos, Performance
+**Dependências:** nenhuma — podem ser feitos a qualquer momento sem bloquear outras fases.
+**Iniciativas:**
+- Reduzir acoplamento de `domain/` a SDKs de infraestrutura (`ARQ-101`)
+- Consolidar estilo único de DI em `GameView` (`ARQ-104`)
+- Reduzir boilerplate de `di.dart` (`ARQ-105`)
+- Instrumentar telemetria de cache antes de decidir sobre TTL (`PERF-001`)
+- Cachear token do Spotify explicitamente (`PERF-002`)
+- Uniformizar nomenclatura `Musica*` ou documentar a exceção (`EXP-007`)
+- Avaliar Firebase App Check (`SEC-006`)
+- Publicar cobertura de forma visível no PR (`OPS-005`)
+- Corrigir typo `bagroundColor` (`EXP-006`)
+
+**Métrica de sucesso:** não aplicável como meta de fase única — cada item é independente e deve ser avaliado por custo/benefício no momento em que for priorizado, não por um prazo fixo.

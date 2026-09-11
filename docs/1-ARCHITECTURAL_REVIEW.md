@@ -1,10 +1,10 @@
 # Beatspan — Architectural Review
 
-**Data da análise:** 2026-09-10
-**Versão do documento:** 2.0 (reanálise completa, substitui a versão anterior)
-**Commit analisado:** `8f2ae1e` (branch `beatspan_v2`)
+**Data da análise:** 2026-09-11
+**Versão do documento:** 3.0 (reanálise completa do zero, substitui a versão 2.0)
+**Commit analisado:** `577dd0c` (branch `beatspan_v2`)
 
-> Gerado a partir de `guides/prompts/PROMPT_ANALISE_ARQUITETURAL.md`. Esta é uma reanálise do zero — os IDs deste documento **não** correspondem aos IDs da versão anterior dos documentos em `docs/`.
+> Gerado a partir de `guides/prompts/PROMPT_ANALISE_ARQUITETURAL.md`. Reanálise do zero — os IDs deste documento **não** correspondem necessariamente aos IDs da versão 2.0 (muitos itens da v2.0 foram confirmados como resolvidos e não são recriados aqui; novos achados recebem numeração própria por eixo). Investigação conduzida por 6 agentes especializados, um por eixo, cada um lendo o código atual de forma independente e reportando apenas achados com evidência real (arquivo:linha).
 
 ---
 
@@ -12,19 +12,19 @@
 
 Beatspan é um app Flutter (Android apenas — não há diretório `ios/`) que acompanha um jogo de cartas físico no estilo Hitster. Cada carta traz um QR code apontando para `beatspangame.com/<código>`; o app resolve o código no Firestore (coleção `musicas`) para um `spotify_uri` e reproduz a faixa — via Spotify App Remote (Premium) ou prévia de 30s (Free, com fallback para iTunes Search API).
 
-**Estado do projeto:** pré-lançamento, ativo. 89 arquivos Dart em `lib/` (~7.600 linhas), 18 arquivos de teste em `test/` (~2.450 linhas), plataforma única (Android).
+**Estado do projeto:** pré-lançamento, ativo. 90 arquivos Dart em `lib/`, 24 arquivos de teste em `test/`, plataforma única (Android).
 
 ### Stack identificada
 
 | Categoria | Tecnologia |
 |---|---|
 | Framework | Flutter (SDK `^3.9.2`) |
-| Injeção de dependência | `get_it` |
+| Injeção de dependência | `get_it` (com extension idempotente própria) |
 | Result/Either | `dartz` |
 | Persistência local | `shared_preferences` |
 | Config por ambiente | `flutter_dotenv` |
 | Backend | `firebase_core`, `cloud_firestore` (sem backend próprio) |
-| Observabilidade | `firebase_crashlytics` |
+| Observabilidade | `firebase_crashlytics`, `firebase_analytics` (novo desde a v2.0) |
 | Integração Spotify | `spotify_sdk` (App Remote) + Web API via `http` |
 | QR / câmera | `mobile_scanner`, `permission_handler` |
 | Áudio local | `just_audio` |
@@ -35,97 +35,100 @@ Beatspan é um app Flutter (Android apenas — não há diretório `ios/`) que a
 
 ## 2. Análise por eixo
 
-### 2.1 Fundamentos
+### 2.1 Fundamentos — Nota: 7,5/10
 
-O projeto segue uma **Clean Architecture simplificada**: `presentation/` organizada por feature, `domain/` e `data/` genéricos por toda a aplicação. Os fluxos de Música (Firestore) e FAQ implementam a stack completa — `repository` abstrato em `domain/`, implementação em `data/`, `usecase` intermediando, `datasource` isolando a fonte de dados concreta. Essa separação é real e testável: todos os repositórios e use cases têm testes dedicados com `mocktail`.
+O projeto mantém uma **Clean Architecture simplificada** consistente: `presentation/` por feature, `domain/`/`data/` genéricos, contratos abstratos (`MusicaRepository`, `FaqRepository`) com implementação isolada e testes por camada.
 
-~~O ponto de atrito estava no fluxo de reprodução dentro de `GameView`/`PlayerMusic*View`: em vez de resolver `PreviewPlaybackUseCase` via `get_it`, a view construía a cadeia diretamente~~ (**ARQ-001**, **resolvido**: `GameView` agora usa `instance<PreviewPlaybackUseCase>()`, consistente com o resto do app).
+**O que a v2.0 apontava como resolvido continua resolvido, confirmado no código atual:**
+- **ARQ-001** (bypass de DI no fluxo de preview) — `GameView` resolve `PreviewPlaybackUseCase` via `instance<>()`, consistente com o resto do app.
+- **ARQ-002** (colisão de código de erro) — `lib/domain/failure.dart` é `sealed class Failure` com hierarquia própria por domínio (`MusicaFailure`, `MusicaPlaybackFailure`, `SpotifyPlaybackFailure`, `PreviewPlaybackFailure`, `FaqFailure`), consumida via `switch` exaustivo que o compilador obriga a tratar. Sem nenhum código `int` compartilhado remanescente.
+- **ARQ-003** (crash em `barcodes.first`) — guarda explícita antes do acesso, confirmado em `lib/presentation/game/game_view.dart:75`.
+- **ARQ-005** (feature morta de idioma/país) — removida por completo (enums, prefs, rota, testes, menções no README).
+- **ARQ-006** (`exit(1)`) — ambos os pontos (`home_view.dart`, `first_time_view.dart`) usam `SystemNavigator.pop()`.
 
-O modelo de erro do domínio (`Failure`, um simples `{code: int, message: String}`) é genérico demais para o número de fluxos que o usam: cada use case define suas próprias constantes `int` para código de erro, e esses códigos colidem entre domínios — `1` significa "erro de autorização do Spotify" em `SpotifyPlaybackUseCase`, mas "URI inválida" em `MusicaPlaybackUseCase` (**ARQ-002**). Hoje isso não causa bug porque cada `Either<Failure, T>` é consumido no mesmo arquivo onde o código é definido, mas é uma armadilha para quem reaproveitar um `Failure` fora desse contexto.
+**Novos achados desta reanálise:**
 
-Um ponto de correção genuína: `GameView._onDetect` lê `capture.barcodes.first` sem checar se a lista está vazia (**ARQ-003**) — se o `mobile_scanner` emitir um `BarcodeCapture` sem detecções (frame de transição, formato não reconhecido antes do filtro), isso lança uma exceção não tratada.
+`domain/` acopla diretamente a SDKs de infraestrutura, quebrando a regra de dependência da Clean Architecture: `lib/domain/analytics_reporting.dart` importa `firebase_analytics`, `lib/domain/error_reporting.dart` importa `firebase_crashlytics`, e `lib/domain/usecase/spotify_playback_usecase.dart` importa `flutter/services.dart` para capturar `PlatformException`/`MissingPluginException` do plugin nativo `spotify_sdk` (**ARQ-101**). É uma decisão pragmática e documentada no próprio código, não um bug, mas significa que testar esses use cases isoladamente exige o Flutter engine, e trocar de crash reporter ou SDK do Spotify exige editar `domain/`, não só `data/`.
 
-~~A feature de idioma/país (enums `LanguageType`, `CountryType`...) não tinha nenhum ponto de leitura no app~~ (**ARQ-005**, **resolvido**: decisão de produto confirmada — app é só em português; os enums, getters/setters e a rota morta `/language` foram removidos do código e do README).
+Tratamento de exceção "erro inesperado" é inconsistente entre repositórios: `musica_playback_repository_impl.dart` e `spotify_playback_usecase.dart` sempre chamam `reportNonFatalError` no catch genérico; já `musica_repository_impl.dart:35-36`, `faq_repository_impl.dart:20-21` e `musica_firestore_data_source.dart:49-53` capturam e retornam/lançam uma `Failure` **sem** reportar ao Crashlytics — um erro verdadeiramente inesperado nesses três pontos fica invisível em produção (**ARQ-102**).
+
+Há duplicação literal de UI de erro entre as duas telas de player (mesmo `Icon` + `Text` + `ElevatedButton` "Voltar", byte a byte) em vez de extraída para um widget compartilhado (**ARQ-103**, evidência: `player_music_premium_view.dart:233-255` vs. `play_music_free_view.dart:110-133`).
+
+`GameView` mistura estilos de DI dentro do mesmo arquivo: recebe dependências via construtor, mas também chama `instance<PreviewPlaybackUseCase>()` diretamente contra o Service Locator dentro de um método (**ARQ-104**, `game_view.dart:5,118,128`).
+
+Boilerplate de registro em `lib/app/di.dart` — mesmo após a extension idempotente (ver ponto forte abaixo) — ainda soma ~180 linhas para ~15 dependências, sem abstração de "módulo" (**ARQ-105**, informativo, não urgente).
+
+Hierarquias de `Failure` têm granularidade assimétrica: `MusicaPlaybackFailure` distingue várias causas, `PreviewPlaybackFailure` só tem uma variante genérica (**ARQ-106**, nomenclatura/consistência menor).
 
 **Pontos fortes:**
-- **ARQ-S1** — Separação consistente domain/data/presentation nos fluxos principais, com contratos abstratos (`MusicaRepository`, `FaqRepository`) e testes de unidade por camada.
-- **ARQ-S2** — Exceções tipadas por camada (`MusicaConsultaException`, `PlaybackAuthException`, `NetworkTimeoutException`...) em vez de `catch (e)` genérico espalhado pelo app.
+- **ARQ-S1** — Separação domain/data/presentation real e testada nos fluxos de Música/FAQ.
+- **ARQ-S2** — Exceções tipadas por camada, sem `catch (e)` genérico espalhado.
+- **ARQ-S3** — DI idempotente bem implementada: extension `_IdempotentRegistration` sobre `GetIt` (`registerLazySingletonIfAbsent`/`registerFactoryIfAbsent`/`unregisterIfRegistered`), documentada com o motivo real (`lib/app/di.dart:57-71`).
+- **ARQ-S4** — Retry/backoff (`lib/data/network/retry.dart`) reaplicado de forma consistente em 3 pontos de I/O externo, com distinção correta transitório vs. definitivo.
+- **ARQ-S5** — Arquivos grandes de UI (`player_music_premium_view.dart`, 552 linhas) têm suíte de teste proporcional (348 linhas) — tamanho não é débito não testado.
+- **ARQ-S6** — Zero TODO/FIXME/HACK remanescente em `lib/`.
 
-### 2.2 Segurança e Compliance
+### 2.2 Segurança e Compliance — Nota: 7,5/10
 
-O perímetro de dados do app é pequeno por design: não há conta de usuário própria, não há PII armazenada em backend próprio. Os dados sensíveis que existem são (a) credenciais do Spotify do desenvolvedor (`.env`), (b) config do Firebase e (c) o token OAuth do Spotify do jogador, que nunca passa pelo app — é gerenciado pelo próprio Spotify SDK.
+Perímetro de dados pequeno por design: sem conta própria, sem PII em backend próprio. Firestore Rules com deny-by-default (`firestore.rules:18-26`) — única coleção legível é `musicas` (leitura pública, escrita sempre `false`), tudo o mais bloqueado (**SEC-S1**).
 
-```
-// firestore.rules — coleção `musicas`
-match /musicas/{codigo} {
-  allow read: if true;
-  allow write: if false;
-}
-match /{document=**} {
-  allow read, write: if false;
-}
-```
+O fallback silencioso de assinatura de release apontado na v2.0 (**SEC-002** antigo) está genuinamente corrigido: `android/app/build.gradle.kts` agora falha explicitamente o build de release se `android/key.properties` não existir, em vez de cair para debug sem aviso (**SEC-S2**). O consentimento do Spotify continua verificado na camada de serviço, não contornável pulando UI (**SEC-S3**). CI com `gitleaks` e `osv-scanner` (workflow oficial) rodando de fato — confirmado nesta sessão via execução real do OSV-Scanner local: **133 pacotes escaneados, 0 vulnerabilidades conhecidas** (**SEC-S6**).
 
-Essa regra é correta para o caso de uso (o app precisa ler o catálogo sem autenticar o jogador) e fecha tudo o mais por padrão — **SEC-S1**.
+**Achado novo relevante:** `SPOTIFY_CLIENT_ID` esteve versionado em `.env` no histórico git (commits `0d5d678`, `95ab2b9`, removido em `9d66a14`) e esses commits são ancestrais de `HEAD` na branch atual — ou seja, ainda alcançável no histórico. Verificação nesta sessão (`GET https://api.github.com/repos/davicezarborgesdeveloper/Beatspan` → `404`) confirma que **o repositório é privado**, o que reduz o risco de exposição pública. Combinado com o fato de um `client_id` OAuth mobile (fluxo PKCE, sem `client_secret`) não ser, por design do protocolo, uma credencial que exija sigilo absoluto, a severidade real é **Média**, não Alta (**SEC-001**, ver detalhamento em `docs/2-SECURITY_REPORT.md`).
 
-`.env`, `android/key.properties` e `*.jks`/`*.keystore` estão no `.gitignore` e confirmei via `git ls-files` que nenhum desses arquivos reais está versionado — só os `.example`/`.properties.example` (**SEC-S2**). O consentimento do Spotify é verificado no nível de serviço (`SpotifyService._ensureConsent()`), não só na UI — qualquer chamada ao SDK sem consentimento aceito lança `SpotifyConsentRequiredException` antes de tentar conectar (**SEC-S3**). O CI roda `gitleaks` em todo push/PR (**SEC-S4**), e o build de release Android tem assinatura de produção configurável + `isMinifyEnabled`/`isShrinkResources`/ProGuard habilitados (**SEC-S5**).
+Não há mecanismo de revogação de consentimento do Spotify dentro do app — só é possível aceitar (`setSpotifyConsentAccepted(true)`), nunca resetar a flag local mesmo que o usuário revogue o acesso pelo lado do Spotify (**SEC-002**). `AndroidManifest.xml` não desabilita `allowBackup`, o que pode contradizer a promessa da política de privacidade de que preferências locais "não são transmitidas a nós nem a terceiros" (**SEC-003**). A tela `ContactView` é um placeholder vazio mas roteada — o único canal de contato real para exercício de direitos LGPD é o e-mail na política de privacidade (**SEC-004**, também referenciado em Experiência como EXP-004).
 
-Dois arquivos com dados de configuração do Firebase estão versionados no Git: `android/app/google-services.json` e `lib/firebase_options.dart` (confirmado via `git ls-files`, ambos contêm `api_key`/`project_id`). Isso é prática comum em projetos Firebase — essas chaves não são segredos de servidor, e a fronteira de segurança real são as Firestore Rules (já auditadas como sólidas acima). Mas exige uma confirmação que não é possível fazer a partir do repositório: se a API key está restrita por assinatura/pacote no Google Cloud Console (**SEC-001**).
+Ver `docs/2-SECURITY_REPORT.md` para detalhamento completo, severidades e checklist LGPD/GDPR.
 
-O build de release cai silenciosamente para a assinatura de **debug** quando `android/key.properties` não existe — sem erro, sem warning de build:
+### 2.3 Experiência — Nota: 5,5/10
 
-```kotlin
-// android/app/build.gradle.kts
-signingConfig = if (hasKeystoreProperties) {
-    signingConfigs.getByName("release")
-} else {
-    signingConfigs.getByName("debug")
-}
-```
+**UX:** mensagens de erro específicas e acionáveis em português claro continuam sendo o ponto mais forte (`game_viewmodel.dart:98-167`) (**EXP-S1**). O padrão correto de acessibilidade já existe e está em uso em 8 arquivos (`Semantics(button: true, label: ..., excludeSemantics: true)`), servindo de referência replicável (**EXP-S2**). A migração de cores hardcoded (antigo **EXP-002**) está 100% concluída — zero ocorrências fora de `color_manager.dart` (**EXP-S3**). O ícone ausente em `game_error_view.dart` (corrigido em sessão anterior) está confirmado renderizado (**EXP-S4**).
 
-Isso é deliberado (mantém `flutter build apk --debug`/CI funcionando sem a keystore de produção, conforme o comentário no próprio arquivo), mas significa que um pipeline de release mal configurado pode publicar um artefato assinado com a chave de debug sem que ninguém note (**SEC-002**).
+**Acessibilidade continua sendo o problema central do eixo, com escopo maior do que documentado antes:** apenas 8 dos muitos arquivos de `lib/presentation/` têm `Semantics`, e `Tooltip` tem zero ocorrências em todo o app. Telas com botões interativos sem nenhum rótulo incluem `faqs_view.dart`, `rules_view.dart`, toda `settings/`, `home_view.dart` (os dois botões de ação primária da tela inicial), `game_error_view.dart` (o botão de fechar, apesar do ícone corrigido), `spotify_free_transition.dart` e, criticamente, `camera_permission_view.dart` — um fluxo **bloqueante** para jogar (**EXP-001**, crítico, escopo revisado).
 
-~~Não há scan de dependências automatizado no CI.~~ **Resolvido**: `.github/workflows/ci.yml` ganhou um job `osv-scan` usando o workflow reutilizável oficial do OSV-Scanner (Linux), escaneando `pubspec.lock` em todo push/PR (**SEC-003**). O script local `scripts/scan_dependencies.sh` (binário Windows) continua existindo para uso manual. Não executei o scanner de fato nesta sessão (o job roda no GitHub Actions, não localmente); o status real das dependências (CVEs) só será conhecido na primeira execução real do CI após o merge.
+O mecanismo raiz por trás disso: o botão "voltar" (círculo com ícone) está duplicado literalmente em pelo menos 5 arquivos em vez de componentizado — quando a acessibilidade foi corrigida em um lugar, não se propagou (**EXP-002**, atenção/DX).
 
-Ver `docs/2-SECURITY_REPORT.md` para o detalhamento completo, severidades e checklist LGPD/GDPR.
+**Achado crítico novo:** `lib/presentation/contact/contact_view.dart` é um `Container()` vazio com título hardcoded em inglês ("Contact", único texto em inglês num app que o próprio README declara ser pt-BR apenas), mas está roteado e navegável, e tanto `README.md` quanto `README.en.md` listam "contato" como funcionalidade de Settings entregue (**EXP-003**, crítico).
 
-### 2.3 Experiência
+Outros achados de atenção: estado de erro do FAQ cai silenciosamente em um `Container()` vazio sem mensagem nem retry, quebrando a paridade com o padrão de recuperação de erro do fluxo de jogo (**EXP-004**); uso inconsistente dos tokens de design (`AppPadding`/`FontSize`) já existentes — 22+ ocorrências de valores mágicos idênticos aos tokens (**EXP-005**); o token central de cor de fundo tem um typo perpetuado (`bagroundColor`, usado em 17 arquivos) que atrapalha autocomplete/descoberta (**EXP-006**); nomenclatura em português (`Musica*`, 9+ arquivos) destoando do restante do código em inglês (**EXP-007**).
 
-**UX:** o fluxo principal (escanear → resolver → tocar) é direto e as mensagens de erro são específicas e em português claro (ex.: "PRÉVIA INDISPONÍVEL... Tente outra carta ou use o Spotify Premium", em `game_viewmodel.dart`). O diálogo de consentimento do Spotify explica objetivamente o que é acessado e linka a política de privacidade antes do aceite — boa prática de transparência (**EXP-S1**).
+**DX:** onboarding via README (bilíngue, sincronizado, completo) continua acima da média para o porte do projeto (**EXP-S5**).
 
-**Acessibilidade:** nenhum arquivo em `lib/presentation` usa `Semantics(` ou `Tooltip(` — confirmado por busca textual no diretório inteiro (0 ocorrências de ambos). Botões customizados são `GestureDetector`/`InkWell` sobre `Container`s estilizados (ex.: `spotify_consent_dialog.dart`, `first_time_view.dart`), sem rótulo explícito para leitor de tela. Para um app que depende de interações de toque rápidas durante uma partida física, isso é uma lacuna real de WCAG — qualquer jogador usando TalkBack não consegue operar o app (**EXP-001**).
+### 2.4 Operações e Confiabilidade — Nota: 7,5/10
 
-**Design system:** `lib/presentation/resource/color_manager.dart` e `theme_manager.dart` centralizam cores/tema, mas 18 arquivos em `presentation/` usam `Color(0x...)` hardcoded fora desses managers (ex.: `first_time_view.dart` linhas 73, 85, 99-116) — inconsistência que torna uma mudança de paleta de marca mais arriscada do que deveria ser (**EXP-002**).
+**Testabilidade:** cobertura real subiu de 27,8% (medição defasada da v2.0) para **54,27% (1576/2904 linhas)**, medido nesta sessão via `flutter test --coverage` — quase o dobro, com o gate de CI (40%) confortavelmente abaixo do real. O fluxo crítico de negócio (scan→resolve→toca) está excepcionalmente coberto: `player_music_premium_view.dart` 97,7%, `play_music_free_view.dart` 98,5%, `game_error_view.dart` 100%, `scanner_overlay.dart` 98,7%, `game_viewmodel.dart` 87,0% (**OPS-S5**).
 
-**DX:** onboarding é bem suportado pelo README (setup de `.env`, Firebase, comandos via `rps.yaml`), convenção de commits aplicada por hook local opcional + CI obrigatório, e a estrutura de pastas é previsível (**EXP-S2**).
+**Lacuna real identificada:** `SpotifyPlaybackControlRepositoryImpl` (play/pause/resume — o que o usuário toca durante a partida) não tem try/catch nem `reportNonFatalError` em nenhum dos 4 métodos, e está em apenas 33,3% de cobertura (só `saveTrack` é testado) (**OPS-001**). `PreviewPlaybackControlRepositoryImpl` (implementação real via `just_audio`) está em 0% de cobertura e também sem tratamento de erro em `load()` (**OPS-002**). O guard de conectividade (`network_info.dart`, `connectivity_guard.dart`) está em 0% (**OPS-003**).
 
-### 2.4 Operações e Confiabilidade
+Mais de 1000 linhas de telas de uso frequente (Settings, FAQ, Home, Splash, Rules, `routes_manager.dart`, `app/di.dart`) permanecem sem nenhum teste — não bloqueia o gate porque a média global é puxada pelo fluxo de jogo, mas significa ausência de rede de segurança de regressão nessas telas (**OPS-004**).
 
-**Testabilidade:** 18 arquivos de teste cobrem principalmente `domain/usecase` e `data/repository`, com uso correto de `mocktail` e casos de borda (ex.: `musica_playback_usecase_test.dart` testa 7 cenários distintos, incluindo exceções não classificadas). O relatório `coverage/lcov.info` lido na primeira versão desta análise mostrava 49,8% (259/520) sobre só 22 arquivos instrumentados, com `spotify_service.dart` e `musica_firestore_data_source.dart` em 0% — mas esse `lcov.info` estava desatualizado (não refletia testes já presentes em `test/`, ex. `game_view_test.dart`). **Atualização (regerado com `flutter test --coverage` nesta sessão):** `musica_firestore_data_source.dart` já estava coberto por um teste dedicado (23/24 linhas, 96%) — o 0% inicial era só do relatório obsoleto. `spotify_service.dart` estava genuinamente em 0%; ganhou `test/data/network/spotify_service_test.dart` (consentimento negado nos 3 métodos + verificação de que o consentimento aceito de fato alcança o `spotify_sdk`), agora em 18/20 (90%) — ver **OPS-001**, já resolvido. Com mais arquivos agora instrumentados, o agregado real é 753/2705 (27,8%); `faq_local_data_source.dart` (0/5) e `player_music_premium_view.dart` (cobertura parcial) continuam como lacunas reais, não cobertas por este item.
+**Observabilidade:** o antigo débito de `debugPrint` solto (**OPS-003** da v2.0) está genuinamente corrigido — zero ocorrências confirmadas em `lib/`. Analytics de produto (antigo **OPS-004** da v2.0) foi implementado nesta sessão, instrumentando o funil completo (`qr_scanned`, `qr_invalid`, `musica_lookup_failed`, `playback_started`, `playback_failed`, `itunes_fallback_used`) com o mesmo padrão defensivo de `error_reporting.dart` (**OPS-S3**).
 
-**CI/CD:** pipeline único (`.github/workflows/ci.yml`) roda em todo push para `master`/`beatspan_v2` e PR: gitleaks, validação de Conventional Commits, `flutter analyze --fatal-infos`, `dart format --set-exit-if-changed`, `flutter test`. Não gera artefato de build (APK/AAB) nem publica cobertura — é um gate de qualidade, não um pipeline de entrega (**OPS-002**, razoável para o estágio atual, mas vale nomear a lacuna).
+**CI/CD:** pipeline evoluiu desde a v2.0 — agora gateia cobertura (40%, publica `lcov.info` como artifact) além de gitleaks, Conventional Commits, analyze e format (**OPS-S4**). Segue sendo só gate de qualidade, sem geração de artefato de build/deploy (**OPS-005**, informativo, aceito para o estágio atual).
 
-**Observabilidade:** Crashlytics integrado com um wrapper (`reportNonFatalError`) que captura erro+stacktrace sem deixar uma falha do próprio Crashlytics mascarar o erro original — detalhe de engenharia maduro (**OPS-S3**). Mas o uso não é uniforme: `faqs_view_model.dart:27` e `session_tile.dart:101` usam `debugPrint` simples em vez de `reportNonFatalError`, perdendo visibilidade desses erros em produção (builds de release descartam `debugPrint`) (**OPS-003**). Não há analytics de produto (funil de jogo, taxa de erro de QR, taxa de fallback iTunes) — aceitável em pré-lançamento, mas deveria entrar no roadmap antes do lançamento (**OPS-004**).
+**Resiliência:** `retry.dart` continua ponto forte do projeto, 100% coberto, reaplicado nos 3 pontos de I/O externo com classificação correta de erro transitório/definitivo (**OPS-S1**).
 
-**Resiliência:** ponto forte do projeto. `lib/data/network/retry.dart` implementa retry com backoff, com distinção clara entre erro transitório (timeout/conexão — vale repetir) e erro definitivo (resposta de erro do servidor, JSON malformado — repetir não ajuda), reaplicado em `MusicaFirestoreDataSource`, `SpotifyWebApi` e `ItunesSearchApi`, e testado em `retry_test.dart` (**OPS-S1**). `SpotifyWebApi` trata rate limit (HTTP 429) respeitando o header `Retry-After` com um limite de espera máximo configurável.
+### 2.5 Documentação e Governança — Nota: 7/10
 
-**Custo em cloud:** arquitetura serverless (Firestore + Firebase Hosting, sem servidor próprio) — sem infraestrutura own para provisionar/custear além dos limites de uso do Firebase, que cresce com uso real. Nenhum padrão de leitura custoso identificado (ver 2.6).
+README bilíngue sincronizado e atualizado com o código real (a nota sobre ARQ-001 já foi removida do texto porque o achado foi resolvido) (**DOC-S1**). Os 3 ADRs existentes (`docs/adr/`) são honestos sobre suas limitações metodológicas em vez de inventar contexto retroativo (**DOC-S2**), e documentam trade-offs negativos genuínos, não só benefícios (**DOC-S3**). Conventional Commits tem enforcement real no CI, não só documentação (**DOC-S4**).
 
-### 2.5 Documentação e Governança
+**Achado estrutural:** os 5 documentos de análise (`docs/1` a `5`) ainda declaram cabeçalho `2026-09-10`/`8f2ae1e` mesmo após 3 commits que resolveram 15 itens — um leitor que confie só no cabeçalho concluiria erroneamente qual é o estado real documentado (**DOC-001**, corrigido nesta própria versão 3.0).
 
-`README.md`/`README.en.md` são bem mantidos, com arquitetura, fluxo do jogo, setup de Spotify/Firebase e convenção de commits documentados — acima da média para um projeto deste porte (**DOC-S1**). Há `.github/PULL_REQUEST_TEMPLATE.md` e o CI impõe Conventional Commits (**DOC-S2**).
+`CHANGELOG.md` documenta apenas 1 de ~15 mudanças relevantes ocorridas desde sua criação — risco de virar documento decorativo se o padrão não mudar (**DOC-002**). Nenhuma tag Git existe; `pubspec.yaml` está congelado em `1.0.0+1` desde o primeiro commit, sem nenhum critério documentado de quando isso deve mudar (**DOC-003**).
 
-Uma afirmação do README está desatualizada: a seção "Status do projeto" diz "Sem observabilidade/crash reporting em produção (Crashlytics/Sentry)", mas `firebase_crashlytics` já está integrado e ativo (`lib/domain/error_reporting.dart`, dependência em `pubspec.yaml`, commit `557ebee feat: integra Firebase Crashlytics`) (**DOC-001**).
+**Achado quantificado nesta sessão:** `flutter pub outdated` real mostra **18 dependências diretas desatualizadas, 8 com major version disponível** (`cloud_firestore` 5.6→6.9, `firebase_core` 3.15→4.14, `spotify_sdk` 3.0→4.0, entre outras), e uma dependência transitiva (`path_provider_foundation`) travada numa versão **retracted** (retirada do pub.dev) — sem política de cadência de atualização documentada em nenhum lugar (**DOC-004**). Nenhuma vulnerabilidade confirmada nessas versões (osv-scanner rodou limpo), então é débito de manutenibilidade, não de segurança confirmada.
 
-Não há `CHANGELOG.md` nem tags Git (`git tag -l` vazio) apesar de `pubspec.yaml` declarar `version: 1.0.0+1` — não há como saber, a partir do repositório, o que mudou entre uma versão e outra (**DOC-002**). O histórico de commits anterior à adoção de Conventional Commits usa mensagens genéricas (`...`, `,,,,`, nomes de tela soltos) e não foi reescrito — decisão deliberada e documentada no próprio README (reescrever histórico público traria mais risco/custo do que benefício) (**DOC-004**). Não há ADRs registrando decisões de arquitetura (por que Clean Architecture simplificada, por que `dartz`/Either em vez de exceptions, por que sem backend próprio) — essas decisões só aparecem como comentários pontuais no código (**DOC-003**).
+Descrições de commit genéricas (`fix: apontamentos`, `fix:curto prazo`) persistem mesmo após a adoção formal de Conventional Commits, fora do escopo do que o README já reconhece e aceita para o histórico anterior (**DOC-005**). ADRs não cobrem pelo menos duas decisões de produto/governança relevantes já tomadas (idioma único pt-BR, gate de cobertura em 40%) — hoje registradas só como linhas de plano de ação (**DOC-006**).
 
-### 2.6 Performance e Escalabilidade
+### 2.6 Performance e Escalabilidade — Nota: 8/10
 
-A busca de música no Firestore é por chave de documento (`_firestore.collection('musicas').doc(codigo).get()`), não por query com filtro — leitura O(1) indexada por padrão, sem necessitar índices compostos (`firestore.indexes.json` está vazio, coerente com isso) (**PERF-S1**). `cached_network_image` evita redownload/redecodificação de artes de álbum já vistas (**PERF-S2**).
+Busca de música no Firestore por chave de documento (O(1), sem necessidade de índice composto) confirmado coerente com `firestore.indexes.json` vazio (**PERF-S1**). `cached_network_image` corretamente usado para artes de álbum, único ponto de imagem remota do app (**PERF-S2**). Retry com backoff seletivo (**PERF-S3**) e rate-limit do Spotify tratado respeitando `Retry-After` com teto de espera (**PERF-S4**).
 
-Dois caches em memória (`MusicaRepositoryImpl._cache`, `MusicaPlaybackRepositoryImpl._previewCache`) não têm TTL nem limite de tamanho — crescem enquanto a sessão do app durar. Para uma sessão de jogo física (dezenas/centenas de cartas), o impacto de memória é desprezível hoje; é um padrão que não escala se o volume por sessão crescer ordens de magnitude, mas não é urgente (**PERF-001**).
+Nenhum problema crítico de performance identificado — sem query O(n) desnecessária, sem N+1, sem chamada bloqueante, sem widget pesado sem justificativa.
 
-Não há backend próprio sob controle do time para otimizar — a escala horizontal é delegada ao Firebase e ao Spotify. Os únicos limites de contenção possíveis (quota de leitura do Firestore, rate limit da Web API do Spotify) já são tratados no código-cliente com retry/backoff (ver OPS-S1) (**PERF-002**, informativo).
+Os dois caches em memória sem TTL (`_cache`, `_previewCache`, antigo **PERF-001**) continuam sem TTL/limite — confirmado que vivem pela vida do processo (registrados como singleton em `di.dart`), não "por sessão de jogo" como o comentário do código sugere. O volume esperado ainda torna isso aceitável, mas a adição do `firebase_analytics` nesta sessão criou a oportunidade de fechar esse ciclo de "reavaliar com dado real" — hoje nenhum evento mede tamanho/hit-rate do cache, então a decisão de não agir continua sendo suposição informada, não conclusão medida (**PERF-001**, atenção, não crítico).
+
+O token de acesso do Spotify é obtido via platform channel a cada resolução de prévia sem cache/verificação de expiração no lado Dart — não é possível confirmar estaticamente se o SDK nativo já cacheia internamente (**PERF-002**, atenção, baixo impacto dado o volume). `_GlyphRingsPainter` reconstrói geometria a cada frame com `shouldRepaint => true` incondicional — plausivelmente barato dado o tamanho da área (320×320) e a simplicidade da geometria, mas sem cache de `Path` (**PERF-003**, informativo/cosmético).
 
 ---
 
@@ -133,14 +136,14 @@ Não há backend próprio sob controle do time para otimizar — a escala horizo
 
 | Eixo | Nota | Justificativa |
 |---|---|---|
-| Fundamentos | 7/10 | Separação de camadas real e testada nos fluxos principais; debt concentrado em inconsistência de DI, modelo de erro genérico demais e uma feature morta (idioma/país) |
-| Segurança | 7/10 | Controles corretos onde importam (Firestore rules, gitignore, consentimento, gitleaks); gaps de verificação (API key do Firebase, scan de dependências) e um fallback de assinatura silencioso |
-| Experiência | 5/10 | UX funcional e textos claros, mas zero acessibilidade (WCAG) em toda a base e inconsistência de design tokens |
-| Operações | 6/10 | CI real e resiliência de rede exemplar; cobertura de testes baixa e não gated concentrada fora dos caminhos críticos do jogo |
-| Documentação | 7/10 | Acima da média para o porte do projeto, com uma afirmação desatualizada e ausência de changelog/ADRs |
-| Performance | 7/10 | Arquitetura serverless bem desenhada para o caso de uso atual; únicos riscos são de baixa severidade e não urgentes |
+| Fundamentos | 7,5/10 | Modelo de erro e DI corrigidos com soluções idiomáticas; resta acoplamento domain→infra e duplicação de UI |
+| Segurança | 7,5/10 | Controles técnicos sólidos e verificados nesta sessão (0 CVEs); lacunas de ciclo de consentimento e um segredo de risco atenuado no histórico |
+| Experiência | 5,5/10 | Acessibilidade ausente na maioria absoluta das telas, incluindo fluxo bloqueante; uma feature documentada como entregue está vazia em produção |
+| Operações | 7,5/10 | Cobertura dobrou (54,3% real) com foco correto no caminho crítico; lacuna real na camada de controle de playback em tempo real |
+| Documentação | 7/10 | Estrutura de governança acima da média, mas execução sustentada (CHANGELOG, versionamento, dependências) ainda não consolidada |
+| Performance | 8/10 | Nenhum problema crítico; decisões de cache permanecem defensáveis mas sem dado real para fechar o ciclo de reavaliação |
 
-**Escore geral: 6,8/10**
+**Escore geral: 7,2/10**
 
 ---
 
@@ -150,58 +153,73 @@ Não há backend próprio sob controle do time para otimizar — a escala horizo
 | ID | Descrição | Evidência |
 |---|---|---|
 | ARQ-S1 | Clean Architecture consistente nos fluxos de Música/FAQ | `lib/domain/repository/`, `lib/data/repository/` |
-| ARQ-S2 | Exceções tipadas por camada | `lib/domain/exceptions/`, `lib/data/network/network_exceptions.dart` |
-| SEC-S1 | Firestore rules restritivas por padrão | `firestore.rules:18-26` |
-| SEC-S2 | Segredos reais corretamente fora do Git | `.gitignore:50-56` |
+| ARQ-S2 | Exceções tipadas por camada | `lib/domain/exceptions/` |
+| ARQ-S3 | DI idempotente via extension própria | `lib/app/di.dart:57-71` |
+| ARQ-S4 | Retry/backoff testado e reaplicado | `lib/data/network/retry.dart` |
+| ARQ-S5 | Arquivos grandes de UI com teste proporcional | `test/presentation/game/player_music_premium_view_test.dart` |
+| ARQ-S6 | Zero TODO/FIXME/HACK em `lib/` | busca textual |
+| SEC-S1 | Firestore rules deny-by-default | `firestore.rules:18-26` |
+| SEC-S2 | Build de release falha explicitamente sem keystore | `android/app/build.gradle.kts:24-33` |
 | SEC-S3 | Consentimento Spotify aplicado no serviço | `lib/data/network/spotify_service.dart:21-25` |
-| SEC-S4 | Gitleaks no CI | `.github/workflows/ci.yml` |
-| SEC-S5 | Assinatura de release + minify/shrink/ProGuard | `android/app/build.gradle.kts:55-76` |
-| EXP-S1 | Diálogo de consentimento transparente | `lib/presentation/change_spotify/widgets/spotify_consent_dialog.dart:43-63` |
-| EXP-S2 | Onboarding de dev bem documentado | `README.md` |
-| OPS-S1 | Retry/backoff testado e reaplicado | `lib/data/network/retry.dart` |
-| OPS-S2 | Pipeline de CI real (analyze/format/test/gitleaks/commits) | `.github/workflows/ci.yml` |
-| OPS-S3 | Wrapper de Crashlytics que não mascara erro original | `lib/domain/error_reporting.dart` |
-| DOC-S1 | README bilíngue e detalhado | `README.md`, `README.en.md` |
-| DOC-S2 | PR template + Conventional Commits aplicado | `.github/PULL_REQUEST_TEMPLATE.md` |
-| PERF-S1 | Leitura Firestore O(1) por chave de documento | `lib/data/network/musica_firestore_data_source.dart:37-40` |
-| PERF-S2 | `cached_network_image` para artes de álbum | `pubspec.yaml` |
+| SEC-S6 | Supply chain limpo (verificado nesta sessão) | osv-scanner: 133 pacotes, 0 vulnerabilidades |
+| EXP-S1 | Mensagens de erro específicas e acionáveis | `lib/presentation/game/game_viewmodel.dart:98-167` |
+| EXP-S2 | Padrão correto de acessibilidade já existe e é replicável | `change_spotify_view.dart:76-99` |
+| EXP-S3 | Migração de cores hardcoded 100% concluída | busca 0 ocorrências fora de `color_manager.dart` |
+| EXP-S5 | Onboarding de dev bilíngue e sincronizado | `README.md`, `README.en.md` |
+| OPS-S1 | Retry/backoff 100% coberto | `lib/data/network/retry.dart` |
+| OPS-S3 | Analytics de produto cobrindo funil completo | `lib/domain/analytics_reporting.dart` |
+| OPS-S4 | CI com gate de cobertura + gitleaks + osv-scan | `.github/workflows/ci.yml` |
+| OPS-S5 | Cobertura do fluxo crítico de negócio >87% em todos os arquivos-chave | `coverage/lcov.info` (medido nesta sessão) |
+| DOC-S1 | README sincronizado com código real | `README.md`, `README.en.md` |
+| DOC-S2 | ADRs honestos sobre limitações metodológicas | `docs/adr/001,002,003` |
+| DOC-S4 | Conventional Commits com enforcement real no CI | `.github/workflows/ci.yml:22-46` |
+| PERF-S1 | Leitura Firestore O(1) por chave de documento | `lib/data/network/musica_firestore_data_source.dart:36-39` |
+| PERF-S4 | Rate-limit do Spotify tratado com `Retry-After` | `lib/data/network/spotify_webapi.dart:116-146` |
 
 ### Atenções
 | ID | Descrição | Evidência |
 |---|---|---|
-| ARQ-001 | ~~Bypass do padrão de DI no fluxo de preview~~ — **resolvido** | `lib/presentation/game/game_view.dart` |
-| ARQ-002 | ~~Códigos de erro de `Failure` colidem entre use cases~~ — **resolvido** (`Failure` agora é `sealed class` com subclasse tipada por domínio) | `lib/domain/failure.dart` |
-| ARQ-004 | Boilerplate repetitivo de registro no DI | `lib/app/di.dart` |
-| ARQ-005 | ~~Idioma/país persistidos mas nunca lidos de volta~~ — **resolvido** (removido; app é só em português) | `lib/app/app_prefs.dart`, `lib/domain/enum/settings_enum.dart` |
-| ARQ-006 | `exit(1)` para encerrar o app em vez de `SystemNavigator.pop()` | `lib/presentation/first_time/first_time_view.dart:35`, `lib/presentation/home/home_view.dart:38` |
-| SEC-001 | Config Firebase versionada — API key sem restrição confirmada | `android/app/google-services.json`, `lib/firebase_options.dart` |
-| SEC-002 | Fallback silencioso para assinatura de debug | `android/app/build.gradle.kts:67-73` |
-| SEC-003 | ~~Sem scan de dependências no CI~~ — **resolvido**: job `osv-scan` adicionado | `.github/workflows/ci.yml` |
-| SEC-004 | Retenção de dados do Crashlytics não documentada | — (requer revisão jurídica) |
-| EXP-002 | ~~18 arquivos com cor hardcoded fora do design system~~ — **resolvido**: escopo real era 29 arquivos, todos migrados para tokens de `ColorManager` | `lib/presentation/resource/color_manager.dart` |
-| EXP-003 | Botões customizados sem rótulo/role explícito | `spotify_consent_dialog.dart`, `first_time_view.dart` |
-| OPS-002 | ~~CI não gera/gateia cobertura de testes~~ — **resolvido**: gate de 40% + artefato publicado | `.github/workflows/ci.yml` |
-| OPS-003 | `debugPrint` em vez de `reportNonFatalError` em 2 pontos | `faqs_view_model.dart:27`, `session_tile.dart:101` |
-| OPS-004 | Sem analytics de produto | — |
-| DOC-001 | README desatualizado sobre Crashlytics | `README.md:139` |
-| DOC-002 | Sem CHANGELOG/tags | `git tag -l` vazio |
-| DOC-004 | Histórico de commits pré-Conventional Commits não reescrito (aceito, não é uma falha) | `git log --oneline`, `README.md` |
-| DOC-003 | Sem ADRs | — |
-| PERF-001 | Caches em memória sem TTL/limite | `musica_repository_impl.dart:18`, `musica_playback_repository_impl.dart:24` |
+| ARQ-101 | `domain/` acopla a SDKs de infraestrutura (Crashlytics/Analytics/plugin Spotify) | `lib/domain/analytics_reporting.dart:1`, `error_reporting.dart:1` |
+| ARQ-102 | Reporte de erro inesperado inconsistente entre repositórios | `musica_repository_impl.dart:35-36`, `faq_repository_impl.dart:20-21` |
+| ARQ-103 | UI de erro duplicada entre telas de player | `player_music_premium_view.dart:233-255` vs `play_music_free_view.dart:110-133` |
+| ARQ-104 | Estilo de DI misto dentro do mesmo arquivo | `lib/presentation/game/game_view.dart:5,118,128` |
+| ARQ-105 | Boilerplate de registro ainda alto (informativo) | `lib/app/di.dart:73-133` |
+| SEC-001 | `SPOTIFY_CLIENT_ID` no histórico git (repo confirmado privado, risco atenuado) | `git log --all --diff-filter=A -- .env` |
+| SEC-002 | Sem revogação de consentimento Spotify no app | `lib/presentation/settings/settings_view.dart:61` |
+| SEC-003 | `allowBackup` não desabilitado (contradiz promessa da política) | `android/app/src/main/AndroidManifest.xml` |
+| SEC-004 | `ContactView` vazio, único canal LGPD real é e-mail externo | `lib/presentation/contact/contact_view.dart` |
+| SEC-005 | 18 dependências desatualizadas, 1 transitiva retracted | `flutter pub outdated` (executado nesta sessão) |
+| EXP-002 | Botão "voltar" duplicado sem componentização | 5+ arquivos, ver `docs/3-TECH_DEBT_REGISTER.md` |
+| EXP-004 | Estado de erro do FAQ sem mensagem nem retry | `faqs_view.dart:89-99`, `empty_container.dart` |
+| EXP-005 | Uso inconsistente de tokens de design já existentes | `home_view.dart:76,105` |
+| EXP-006 | Typo `bagroundColor` propagado em 17 arquivos | `color_manager.dart:13` |
+| EXP-007 | Nomenclatura português/inglês mista (`Musica*`) | `lib/domain/model/musica.dart` |
+| OPS-001 | `SpotifyPlaybackControlRepositoryImpl` sem tratamento de erro/teste (33,3% cobertura) | `lib/data/repository/spotify_playback_control_repository_impl.dart` |
+| OPS-002 | `PreviewPlaybackControlRepositoryImpl` (just_audio) em 0% de cobertura | mesmo arquivo |
+| OPS-003 | Guard de conectividade sem teste | `network_info.dart`, `connectivity_guard.dart` |
+| OPS-004 | >1000 linhas de telas frequentes sem nenhum teste | Settings, FAQ, Home, Splash, Rules |
+| DOC-002 | CHANGELOG defasado (1 de ~15 mudanças documentadas) | `CHANGELOG.md` |
+| DOC-003 | Sem tags Git, versão congelada desde o commit inicial | `git tag -l` vazio, `pubspec.yaml:5` |
+| DOC-004 | Dependências desatualizadas sem política de cadência | `flutter pub outdated` |
+| DOC-006 | ADRs não cobrem decisões de produto/governança relevantes já tomadas | idioma único, gate de cobertura 40% |
+| PERF-001 | Caches em memória sem TTL/limite, sem telemetria para reavaliar | `musica_repository_impl.dart:18`, `musica_playback_repository_impl.dart:25` |
+| PERF-002 | Token Spotify sem cache/expiração explícita no lado Dart | `spotify_service.dart:38-46` |
 
 ### Críticos
 | ID | Descrição | Evidência |
 |---|---|---|
-| ARQ-003 | `barcodes.first` sem checar lista vazia — crash potencial ao escanear | `lib/presentation/game/game_view.dart:76` |
-| EXP-001 | Zero acessibilidade (`Semantics`/`Tooltip`) em todo o app | busca em `lib/presentation` (0 ocorrências) |
-| OPS-001 | ~~Cobertura de testes baixa e concentrada fora dos caminhos críticos~~ — **resolvido**: `spotify_service.dart` e `musica_firestore_data_source.dart` agora cobertos (90%/96%) | `coverage/lcov.info`, `test/data/network/spotify_service_test.dart` |
+| EXP-001 | Acessibilidade ausente na maioria absoluta das telas, incluindo fluxo bloqueante de permissão de câmera | busca em `lib/presentation` (8 de muitos arquivos têm `Semantics`) |
+| EXP-003 | `ContactView` é placeholder vazio mas documentado como funcionalidade entregue no README | `lib/presentation/contact/contact_view.dart`, `README.md:15,50` |
 
 ---
 
 ## 5. Cobertura da análise — o que não foi investigado em profundidade
 
-- **Scan de vulnerabilidades de dependências**: não executei o OSV-Scanner nem `dart pub outdated` nesta sessão. O script `scripts/scan_dependencies.sh` existe mas não foi rodado — ver SEC-003.
-- **Conteúdo integral da política de privacidade/termos**: li por amostragem de palavras-chave (`hosting/privacidade/index.html`, 282 linhas), não linha a linha contra cada requisito LGPD/GDPR. Recomenda-se revisão jurídica dedicada antes de tratar o checklist da seção 2.2/SECURITY_REPORT como suficiente.
-- **Build/configuração iOS**: não existe (`ios/` ausente do repositório) — não avaliado porque não há o que avaliar.
-- **Testes de widget/integração end-to-end do fluxo completo de jogo**: avaliados pela leitura dos arquivos de teste existentes, não executados nesta sessão (não é objetivo desta análise rodar a suíte).
-- **Conteúdo real de `.env`**: não lido, por conter potenciais credenciais reais (só `.env.example` foi inspecionado).
+- **Visibilidade real do repositório GitHub**: inferida via `404` da API pública sem autenticação (indicativo de privado), não confirmada diretamente nas configurações do GitHub.
+- **Restrição da API key do Firebase no Google Cloud Console**: não verificável a partir do repositório (mesma limitação da v2.0).
+- **Dependências nativas Gradle/Android**: o `osv-scanner` rodado cobriu apenas o ecossistema Dart/pub via `pubspec.lock`, não plugins/dependências Java/Kotlin nativas.
+- **Teste dinâmico (DAST) ou tráfego de rede real**: toda a análise de rede foi estática, por leitura de código.
+- **FPS/latência real em device físico**: afirmações de custo de CPU em `_GlyphRingsPainter` (PERF-003) são estimativas qualitativas, não medições de profiling.
+- **Conteúdo integral de `hosting/termos/index.html`**: não lido linha a linha nesta rodada (fora do escopo direto dos 6 eixos).
+- **Uso real de PRs no GitHub**: histórico local mostra só 1 merge de PR — não foi possível confirmar via `gh` (não disponível neste ambiente) se o `PULL_REQUEST_TEMPLATE.md` é de fato preenchido na prática.
+- **Build/configuração iOS**: não existe (`ios/` ausente) — não avaliado por não haver o que avaliar.
