@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app/app_prefs.dart';
 import '../../domain/enum/settings_enum.dart';
 import '../../domain/exceptions/spotify_consent_exception.dart';
+import '../resource/color_manager.dart';
 import '../change_spotify/connect_spotify_premium_view_model.dart';
 import '../change_spotify/widgets/spotify_consent_dialog.dart';
 import 'widget/game_mode.dart';
@@ -69,13 +70,13 @@ class _SettingsViewState extends State<SettingsView> {
     final isPremium = _planType == PlanType.premium;
     return SafeArea(
       child: Scaffold(
-        backgroundColor: Color(0XFF08050D),
+        backgroundColor: ColorManager.bagroundColor,
         appBar: AppBar(
           centerTitle: true,
           title: Text(
             'Configurações',
             style: TextStyle(
-              color: Color(0XFFCDBDFF),
+              color: ColorManager.lavender,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -93,7 +94,7 @@ class _SettingsViewState extends State<SettingsView> {
                   'Configurações do spotify',
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: Color(0XFFA9A2B5),
+                    color: ColorManager.textMuted,
                   ),
                 ),
                 SizedBox(height: 12),
@@ -102,7 +103,7 @@ class _SettingsViewState extends State<SettingsView> {
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                     decoration: BoxDecoration(
-                      color: Color(0XFF110B1A),
+                      color: ColorManager.cardBackground,
                       border: Border.all(
                         width: 1,
                         color: Colors.white.withValues(alpha: 0.15),
@@ -116,7 +117,7 @@ class _SettingsViewState extends State<SettingsView> {
                           children: [
                             Icon(
                               Icons.music_note,
-                              color: Color(0XFF1DB954),
+                              color: ColorManager.spotifyGreen,
                               size: 18,
                             ),
                             SizedBox(width: 4),
@@ -124,7 +125,7 @@ class _SettingsViewState extends State<SettingsView> {
                               'Spotify',
                               style: TextStyle(
                                 fontSize: 20,
-                                color: Color(0XFF1DB954),
+                                color: ColorManager.spotifyGreen,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -134,7 +135,7 @@ class _SettingsViewState extends State<SettingsView> {
                           isPremium ? 'PREMIUM' : 'FREE',
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
-                            color: Color(0XFF1DB954),
+                            color: ColorManager.spotifyGreen,
                           ),
                         ),
                       ],

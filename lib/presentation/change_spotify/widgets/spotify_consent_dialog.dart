@@ -104,8 +104,11 @@ class SpotifyConsentDialog extends StatelessWidget {
                       height: 48,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(24),
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF6C2BFF), Color(0xFFFF469E)],
+                        gradient: LinearGradient(
+                          colors: [
+                            ColorManager.gradientPurple,
+                            ColorManager.gradientPink,
+                          ],
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
                         ),

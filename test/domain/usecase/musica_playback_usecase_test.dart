@@ -1,5 +1,6 @@
 import 'package:beatspan/domain/enum/settings_enum.dart';
 import 'package:beatspan/domain/exceptions/playback_exceptions.dart';
+import 'package:beatspan/domain/failure.dart';
 import 'package:beatspan/domain/model/musica_playback_result.dart';
 import 'package:beatspan/domain/repository/musica_playback_repository.dart';
 import 'package:beatspan/domain/usecase/musica_playback_usecase.dart';
@@ -94,8 +95,7 @@ void main() {
     );
 
     final failure = result.fold((f) => f, (_) => null);
-    expect(failure, isNotNull);
-    expect(failure!.code, musicaPlaybackInvalidUriCode);
+    expect(failure, isA<MusicaPlaybackUriInvalida>());
     verifyZeroInteractions(repository);
   });
 
@@ -115,8 +115,7 @@ void main() {
       );
 
       final failure = result.fold((f) => f, (_) => null);
-      expect(failure, isNotNull);
-      expect(failure!.code, musicaPlaybackPreviewUnavailableCode);
+      expect(failure, isA<MusicaPlaybackPreviaIndisponivel>());
     },
   );
 
@@ -136,9 +135,8 @@ void main() {
       );
 
       final failure = result.fold((f) => f, (_) => null);
-      expect(failure, isNotNull);
-      expect(failure!.code, musicaPlaybackConnectionErrorCode);
-      expect(failure.message, 'Tempo de conexão esgotado.');
+      expect(failure, isA<MusicaPlaybackErroConexao>());
+      expect(failure!.message, 'Tempo de conexão esgotado.');
     },
   );
 
@@ -158,9 +156,8 @@ void main() {
       );
 
       final failure = result.fold((f) => f, (_) => null);
-      expect(failure, isNotNull);
-      expect(failure!.code, musicaPlaybackSpotifyAuthErrorCode);
-      expect(failure.message, 'Falha ao autorizar o Spotify.');
+      expect(failure, isA<MusicaPlaybackSpotifyNaoAutorizado>());
+      expect(failure!.message, 'Falha ao autorizar o Spotify.');
     },
   );
 
@@ -180,8 +177,7 @@ void main() {
       );
 
       final failure = result.fold((f) => f, (_) => null);
-      expect(failure, isNotNull);
-      expect(failure!.code, musicaPlaybackUnexpectedErrorCode);
+      expect(failure, isA<MusicaPlaybackErroInesperado>());
     },
   );
 }

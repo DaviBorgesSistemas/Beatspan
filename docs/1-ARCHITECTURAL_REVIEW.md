@@ -170,7 +170,7 @@ Não há backend próprio sob controle do time para otimizar — a escala horizo
 | ID | Descrição | Evidência |
 |---|---|---|
 | ARQ-001 | ~~Bypass do padrão de DI no fluxo de preview~~ — **resolvido** | `lib/presentation/game/game_view.dart` |
-| ARQ-002 | Códigos de erro de `Failure` colidem entre use cases | `lib/domain/usecase/{spotify_playback,musica_playback,preview_playback}_usecase.dart` |
+| ARQ-002 | ~~Códigos de erro de `Failure` colidem entre use cases~~ — **resolvido** (`Failure` agora é `sealed class` com subclasse tipada por domínio) | `lib/domain/failure.dart` |
 | ARQ-004 | Boilerplate repetitivo de registro no DI | `lib/app/di.dart` |
 | ARQ-005 | ~~Idioma/país persistidos mas nunca lidos de volta~~ — **resolvido** (removido; app é só em português) | `lib/app/app_prefs.dart`, `lib/domain/enum/settings_enum.dart` |
 | ARQ-006 | `exit(1)` para encerrar o app em vez de `SystemNavigator.pop()` | `lib/presentation/first_time/first_time_view.dart:35`, `lib/presentation/home/home_view.dart:38` |
@@ -178,9 +178,9 @@ Não há backend próprio sob controle do time para otimizar — a escala horizo
 | SEC-002 | Fallback silencioso para assinatura de debug | `android/app/build.gradle.kts:67-73` |
 | SEC-003 | ~~Sem scan de dependências no CI~~ — **resolvido**: job `osv-scan` adicionado | `.github/workflows/ci.yml` |
 | SEC-004 | Retenção de dados do Crashlytics não documentada | — (requer revisão jurídica) |
-| EXP-002 | 18 arquivos com cor hardcoded fora do design system | ex.: `lib/presentation/first_time/first_time_view.dart` |
+| EXP-002 | ~~18 arquivos com cor hardcoded fora do design system~~ — **resolvido**: escopo real era 29 arquivos, todos migrados para tokens de `ColorManager` | `lib/presentation/resource/color_manager.dart` |
 | EXP-003 | Botões customizados sem rótulo/role explícito | `spotify_consent_dialog.dart`, `first_time_view.dart` |
-| OPS-002 | CI não gera/gateia cobertura de testes | `.github/workflows/ci.yml` |
+| OPS-002 | ~~CI não gera/gateia cobertura de testes~~ — **resolvido**: gate de 40% + artefato publicado | `.github/workflows/ci.yml` |
 | OPS-003 | `debugPrint` em vez de `reportNonFatalError` em 2 pontos | `faqs_view_model.dart:27`, `session_tile.dart:101` |
 | OPS-004 | Sem analytics de produto | — |
 | DOC-001 | README desatualizado sobre Crashlytics | `README.md:139` |

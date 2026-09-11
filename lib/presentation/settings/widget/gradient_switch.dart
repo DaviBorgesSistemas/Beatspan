@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../resource/color_manager.dart';
 import 'card_border.dart';
 
 class GradientSwitch extends StatelessWidget {
@@ -42,7 +43,7 @@ class GradientSwitch extends StatelessWidget {
             height: _thumbSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: value ? Colors.white : Color(0XFFA9A2B5),
+              color: value ? Colors.white : ColorManager.textMuted,
             ),
           ),
         ),

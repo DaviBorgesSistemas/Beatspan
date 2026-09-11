@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
-const kSelectedGradient = LinearGradient(
-  colors: [Color(0XFF6C2BFF), Color(0XFFFF469E)],
+import '../../resource/color_manager.dart';
+
+final kSelectedGradient = LinearGradient(
+  colors: [ColorManager.gradientPurple, ColorManager.gradientPink],
   begin: AlignmentDirectional.bottomStart,
   end: AlignmentDirectional.topEnd,
 );
@@ -42,7 +44,7 @@ class CardBorder extends StatelessWidget {
       ),
       child: Container(
         decoration: BoxDecoration(
-          color: Color(0XFF110B1A),
+          color: ColorManager.cardBackground,
           borderRadius: _inset(borderRadius),
         ),
         child: child,

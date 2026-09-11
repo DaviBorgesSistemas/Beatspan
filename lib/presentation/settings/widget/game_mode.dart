@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/app_prefs.dart';
 import '../../../domain/enum/settings_enum.dart';
+import '../../resource/color_manager.dart';
 import 'card_border.dart';
 
 class GameMode extends StatefulWidget {
@@ -41,7 +42,10 @@ class _GameModeState extends State<GameMode> {
 
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(width: 2, color: Color(0X80CDBDFF)),
+        border: Border.all(
+          width: 2,
+          color: ColorManager.lavender.withValues(alpha: 0.50),
+        ),
       ),
       child: selected
           ? Container(
@@ -66,7 +70,7 @@ class _GameModeState extends State<GameMode> {
           'Modo de jogo',
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            color: Color(0XFFA9A2B5),
+            color: ColorManager.textMuted,
           ),
         ),
         SizedBox(height: 12),
@@ -96,7 +100,7 @@ class _GameModeState extends State<GameMode> {
                               ? buttonRadio(trackMode == 0)
                               : Text(
                                   'Indisponível',
-                                  style: TextStyle(color: Color(0XFFA9A2B5)),
+                                  style: TextStyle(color: ColorManager.textMuted),
                                 ),
                           SizedBox(width: 24),
                           Expanded(
@@ -109,7 +113,7 @@ class _GameModeState extends State<GameMode> {
                                   style: TextStyle(
                                     fontWeight: FontWeight.w600,
                                     fontSize: 18,
-                                    color: Color(0XFFF8F7FC),
+                                    color: ColorManager.textLight,
                                   ),
                                 ),
                                 SizedBox(height: 4),
@@ -117,7 +121,7 @@ class _GameModeState extends State<GameMode> {
                                   'Reproduza a faixa inteira desde o início. Requer Spotify Premium.',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: Color(0XFFA9A2B5),
+                                    color: ColorManager.textMuted,
                                   ),
                                 ),
                               ],
@@ -154,7 +158,7 @@ class _GameModeState extends State<GameMode> {
                                   style: TextStyle(
                                     fontWeight: FontWeight.w600,
                                     fontSize: 18,
-                                    color: Color(0XFFF8F7FC),
+                                    color: ColorManager.textLight,
                                   ),
                                 ),
                                 SizedBox(height: 4),
@@ -162,7 +166,7 @@ class _GameModeState extends State<GameMode> {
                                   'Reproduza pré-escutas de 30 segundos. Não requer Spotify Premium.',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: Color(0XFFA9A2B5),
+                                    color: ColorManager.textMuted,
                                   ),
                                 ),
                               ],

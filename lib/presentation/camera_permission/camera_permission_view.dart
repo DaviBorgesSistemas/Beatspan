@@ -48,7 +48,7 @@ class CameraPermissionView extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w900,
-                      color: Color(0XFFF8F7FC),
+                      color: ColorManager.textLight,
                       height: 1.3,
                     ),
                   ),
@@ -56,7 +56,9 @@ class CameraPermissionView extends StatelessWidget {
                   Text(
                     'O app BEATSPAN precisa acessar a câmera do dispositivo para escanear os QR codes das cartas.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Color(0XB3F8F7FC)),
+                    style: TextStyle(
+                      color: ColorManager.textLight.withValues(alpha: 0.70),
+                    ),
                   ),
                 ],
               ),
@@ -69,8 +71,11 @@ class CameraPermissionView extends StatelessWidget {
                   height: 56,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(28),
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF6C2BFF), Color(0xFFFF469E)],
+                    gradient: LinearGradient(
+                      colors: [
+                        ColorManager.gradientPurple,
+                        ColorManager.gradientPink,
+                      ],
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                     ),
@@ -111,10 +116,10 @@ class _CameraGraphic extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.002),
         shape: BoxShape.circle,
-        border: Border.all(width: 2, color: Color(0XFFFF469E)),
+        border: Border.all(width: 2, color: ColorManager.gradientPink),
         boxShadow: [
           BoxShadow(
-            color: Color(0xFFFF469E),
+            color: ColorManager.gradientPink,
             blurRadius: 15,
             spreadRadius: 0,
             offset: Offset(0, 0),
@@ -123,10 +128,10 @@ class _CameraGraphic extends StatelessWidget {
       ),
       child: Container(
         decoration: BoxDecoration(
-          color: Color(0XFF110B1A),
+          color: ColorManager.cardBackground,
           shape: BoxShape.circle,
         ),
-        child: Icon(Icons.qr_code_2, size: 140, color: Color(0xFF2CCBF5)),
+        child: Icon(Icons.qr_code_2, size: 140, color: ColorManager.primary),
       ),
     );
   }

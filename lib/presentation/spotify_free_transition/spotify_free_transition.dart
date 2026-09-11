@@ -26,7 +26,10 @@ class SpotifyFreeTransition extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(width: 1, color: Color(0X33CDBDFF)),
+                  border: Border.all(
+                    width: 1,
+                    color: ColorManager.lavender.withValues(alpha: 0.20),
+                  ),
                 ),
                 child: Icon(Icons.arrow_back, color: Colors.white),
               ),
@@ -42,12 +45,17 @@ class SpotifyFreeTransition extends StatelessWidget {
                   SizedBox(height: 8),
                   Text(
                     'BEATSPAN SEM SPOTIFY PREMIUM',
-                    style: TextStyle(fontSize: 16, color: Color(0XFFF8F7FC)),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: ColorManager.textLight,
+                    ),
                   ),
                   SizedBox(height: 16),
                   Text(
                     'Você pode jogar Beatspan sem Spotify Premium. Após escanear uma carta, vire o telefone para ouvir um preview de 30s.',
-                    style: TextStyle(color: Color(0XB3F8F7FC)),
+                    style: TextStyle(
+                      color: ColorManager.textLight.withValues(alpha: 0.70),
+                    ),
                   ),
                 ],
               ),
@@ -66,8 +74,11 @@ class SpotifyFreeTransition extends StatelessWidget {
                       height: 56,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(28),
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF6C2BFF), Color(0xFFFF469E)],
+                        gradient: LinearGradient(
+                          colors: [
+                            ColorManager.gradientPurple,
+                            ColorManager.gradientPink,
+                          ],
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
                         ),
@@ -100,7 +111,10 @@ class SpotifyFreeTransition extends StatelessWidget {
                       height: 56,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(28),
-                        border: Border.all(width: 2, color: Color(0XFFFF469E)),
+                        border: Border.all(
+                          width: 2,
+                          color: ColorManager.gradientPink,
+                        ),
                       ),
                       child: Material(
                         color: Colors.transparent,
@@ -113,7 +127,7 @@ class SpotifyFreeTransition extends StatelessWidget {
                             child: Text(
                               'LER AS REGRAS',
                               style: TextStyle(
-                                color: Color(0XFFFF469E),
+                                color: ColorManager.gradientPink,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w900,
                               ),

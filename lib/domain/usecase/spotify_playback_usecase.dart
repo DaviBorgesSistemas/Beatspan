@@ -8,31 +8,20 @@ import '../failure.dart';
 import '../model/playback_state.dart';
 import '../repository/spotify_playback_control_repository.dart';
 
-const int spotifyPlaybackAuthErrorCode = 1;
-
-const int spotifyPlaybackUnexpectedErrorCode = 2;
-
-/// O plugin nativo `spotify_sdk` não está registrado para este engine/build
-/// — distinto de uma falha de autorização, pois nem chega a tentar conectar.
-const int spotifyPlaybackPluginMissingErrorCode = 3;
-
-/// Limite de requisições da Web API do Spotify atingido (HTTP 429), mesmo
-/// após o retry automático que já respeita o header `Retry-After`.
-const int spotifyPlaybackRateLimitedErrorCode = 4;
-
 class SpotifyPlaybackUseCase {
   final SpotifyPlaybackControlRepository _repository;
 
   SpotifyPlaybackUseCase(this._repository);
 
-  Future<Either<Failure, Unit>> startPlayback(String spotifyUri) async {
+  Future<Either<SpotifyPlaybackFailure, Unit>> startPlayback(
+    String spotifyUri,
+  ) async {
     try {
       await _repository.playFullTrack(spotifyUri);
       return const Right(unit);
     } on SpotifyConsentRequiredException {
-      return Left(
-        Failure(
-          spotifyPlaybackAuthErrorCode,
+      return const Left(
+        SpotifyPlaybackNaoAutorizado(
           'É necessário aceitar o consentimento do Spotify antes de tocar as faixas.',
         ),
       );
@@ -43,8 +32,7 @@ class SpotifyPlaybackUseCase {
         information: const ['SpotifyPlaybackUseCase.startPlayback'],
       );
       return Left(
-        Failure(
-          spotifyPlaybackPluginMissingErrorCode,
+        SpotifyPlaybackPluginAusente(
           'Plugin spotify_sdk não foi encontrado/registrado para este engine.\n$e',
         ),
       );
@@ -58,8 +46,7 @@ class SpotifyPlaybackUseCase {
         ],
       );
       return Left(
-        Failure(
-          spotifyPlaybackAuthErrorCode,
+        SpotifyPlaybackNaoAutorizado(
           'Falha ao autorizar o acesso ao Spotify (${e.code}).',
         ),
       );
@@ -71,9 +58,7 @@ class SpotifyPlaybackUseCase {
           'SpotifyPlaybackUseCase.startPlayback: erro não classificado',
         ],
       );
-      return Left(
-        Failure(spotifyPlaybackUnexpectedErrorCode, 'Erro inesperado: $e'),
-      );
+      return Left(SpotifyPlaybackErroInesperado('Erro inesperado: $e'));
     }
   }
 
@@ -96,14 +81,15 @@ class SpotifyPlaybackUseCase {
     }
   }
 
-  Future<Either<Failure, bool>> saveTrack(String trackId) async {
+  Future<Either<SpotifyPlaybackFailure, bool>> saveTrack(
+    String trackId,
+  ) async {
     try {
       final saved = await _repository.saveTrack(trackId);
       return Right(saved);
     } on SpotifyConsentRequiredException {
-      return Left(
-        Failure(
-          spotifyPlaybackAuthErrorCode,
+      return const Left(
+        SpotifyPlaybackNaoAutorizado(
           'É necessário aceitar o consentimento do Spotify antes de salvar faixas.',
         ),
       );
@@ -114,10 +100,10 @@ class SpotifyPlaybackUseCase {
         information: const ['SpotifyPlaybackUseCase.saveTrack'],
       );
       return Left(
-        Failure(
-          spotifyPlaybackRateLimitedErrorCode,
+        SpotifyPlaybackLimiteRequisicoes(
           'Limite de requisições do Spotify atingido. Tente novamente em '
           '${e.retryAfter.inSeconds}s.',
+          e.retryAfter,
         ),
       );
     } catch (e, s) {
@@ -126,9 +112,7 @@ class SpotifyPlaybackUseCase {
         s,
         information: const ['SpotifyPlaybackUseCase.saveTrack'],
       );
-      return Left(
-        Failure(spotifyPlaybackUnexpectedErrorCode, 'Erro inesperado: $e'),
-      );
+      return Left(SpotifyPlaybackErroInesperado('Erro inesperado: $e'));
     }
   }
 }

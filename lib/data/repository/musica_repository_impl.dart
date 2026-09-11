@@ -18,7 +18,7 @@ class MusicaRepositoryImpl implements MusicaRepository {
   final Map<String, Musica> _cache = {};
 
   @override
-  Future<Either<Failure, Musica>> getByCodigo(String codigo) async {
+  Future<Either<MusicaFailure, Musica>> getByCodigo(String codigo) async {
     final cached = _cache[codigo];
     if (cached != null) {
       return Right(cached);
@@ -28,12 +28,12 @@ class MusicaRepositoryImpl implements MusicaRepository {
       final musica = await _dataSource.getByCodigo(codigo);
       _cache[codigo] = musica;
       return Right(musica);
-    } on MusicaNaoEncontradaException catch (e) {
-      return Left(Failure(404, e.toString()));
+    } on MusicaNaoEncontradaException {
+      return const Left(MusicaNaoEncontrada());
     } on MusicaConsultaException catch (e) {
-      return Left(Failure(0, e.message));
+      return Left(MusicaConsultaErro(e.message));
     } catch (e) {
-      return Left(Failure(0, 'Erro inesperado ao buscar a música: $e'));
+      return Left(MusicaConsultaErro('Erro inesperado ao buscar a música: $e'));
     }
   }
 }

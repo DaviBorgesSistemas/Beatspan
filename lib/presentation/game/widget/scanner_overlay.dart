@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../resource/color_manager.dart';
+
 class ScannerOverlay extends StatefulWidget {
   const ScannerOverlay({super.key});
 
@@ -12,8 +14,8 @@ class _ScannerOverlayState extends State<ScannerOverlay>
   late final AnimationController _scanController;
   late final Animation<double> _scanPosition;
 
-  static const _pink = Color(0xFFFF1B8D);
-  static const _purple = Color(0xFF6C2BFF);
+  static final _pink = ColorManager.accentPink;
+  static final _purple = ColorManager.gradientPurple;
 
   @override
   void initState() {
@@ -121,11 +123,11 @@ class _ScannerOverlayState extends State<ScannerOverlay>
                           child: Container(
                             height: 2,
                             decoration: BoxDecoration(
-                              gradient: const LinearGradient(
+                              gradient: LinearGradient(
                                 colors: [
-                                  Color(0xFF6C2BFF),
-                                  Color(0xFFFFB0CB),
-                                  Color(0xFF6C2BFF),
+                                  ColorManager.gradientPurple,
+                                  ColorManager.scannerPinkLight,
+                                  ColorManager.gradientPurple,
                                 ],
                                 stops: [0.0, 0.5, 1.0],
                               ),
@@ -180,7 +182,7 @@ class _ScannerOverlayState extends State<ScannerOverlay>
     double? right,
     required List<_CornerSide> borders,
   }) {
-    const side = BorderSide(color: _pink, width: 4);
+    final side = BorderSide(color: _pink, width: 4);
     return Positioned(
       top: top,
       bottom: bottom,

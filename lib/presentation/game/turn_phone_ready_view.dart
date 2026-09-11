@@ -5,6 +5,7 @@ import 'package:proximity_sensor/proximity_sensor.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
 import '../../domain/enum/settings_enum.dart';
+import '../resource/color_manager.dart';
 import '../resource/screen_manager.dart';
 import '../routes_manager.dart';
 
@@ -18,7 +19,7 @@ class TurnPhoneReadyView extends StatefulWidget {
   final TurnPhoneMode mode;
   final VoidCallback onReady;
 
-  static const _background = Color(0xFF08050D);
+  static final _background = ColorManager.bagroundColor;
 
   @override
   State<TurnPhoneReadyView> createState() => _TurnPhoneReadyViewState();
@@ -178,7 +179,7 @@ class _TurnPhoneReadyViewState extends State<TurnPhoneReadyView>
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.normal,
-                color: Color(0XFFA9A2B5),
+                color: ColorManager.textMuted,
               ),
             ),
             SizedBox(height: 4),
@@ -205,10 +206,10 @@ class _TurnPhoneReadyViewState extends State<TurnPhoneReadyView>
 
   Widget _gradientTitle(String text) {
     return ShaderMask(
-      shaderCallback: (bounds) => const LinearGradient(
+      shaderCallback: (bounds) => LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Color(0xFFFF469E), Color(0xFF6C2BFF)],
+        colors: [ColorManager.gradientPink, ColorManager.gradientPurple],
       ).createShader(bounds),
       child: Text(
         text,
@@ -237,7 +238,7 @@ class _TurnPhoneReadyViewState extends State<TurnPhoneReadyView>
                   child: Text(
                     'Coloque o dispositivo virado para baixo para começar a música.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Color(0XFFA9A2B5)),
+                    style: TextStyle(color: ColorManager.textMuted),
                   ),
                 ),
               ],
@@ -268,7 +269,7 @@ class _TurnPhoneReadyViewState extends State<TurnPhoneReadyView>
                   child: Text(
                     'A música começará em...',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Color(0XFFA9A2B5)),
+                    style: TextStyle(color: ColorManager.textMuted),
                   ),
                 ),
                 SizedBox(height: 12),

@@ -5,12 +5,12 @@ import '../model/musica.dart';
 import '../repository/musica_repository.dart';
 import 'base_usecase.dart';
 
-class GetMusicaUseCase extends BaseUseCase<String, Musica> {
+class GetMusicaUseCase extends BaseUseCase<String, Musica, MusicaFailure> {
   final MusicaRepository _repository;
   GetMusicaUseCase(this._repository);
 
   @override
-  Future<Either<Failure, Musica>> execute(String input) async {
+  Future<Either<MusicaFailure, Musica>> execute(String input) async {
     return _repository.getByCodigo(input);
   }
 }

@@ -4,5 +4,5 @@ import '../failure.dart';
 import '../model/musica.dart';
 
 abstract class MusicaRepository {
-  Future<Either<Failure, Musica>> getByCodigo(String codigo);
+  Future<Either<MusicaFailure, Musica>> getByCodigo(String codigo);
 }

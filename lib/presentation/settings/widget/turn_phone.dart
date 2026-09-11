@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/app_prefs.dart';
 import '../../../domain/enum/settings_enum.dart';
+import '../../resource/color_manager.dart';
 import 'card_border.dart';
 import 'gradient_switch.dart';
 
@@ -69,7 +70,10 @@ class _TurnPhoneState extends State<TurnPhone> {
 
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(width: 2, color: Color(0X80CDBDFF)),
+        border: Border.all(
+          width: 2,
+          color: ColorManager.lavender.withValues(alpha: 0.50),
+        ),
       ),
       child: selected
           ? Container(
@@ -95,7 +99,7 @@ class _TurnPhoneState extends State<TurnPhone> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Color(0XFF110B1A),
+                color: ColorManager.cardBackground,
                 border: Border.all(
                   width: 1,
                   color: Colors.white.withValues(alpha: 0.15),
@@ -125,12 +129,12 @@ class _TurnPhoneState extends State<TurnPhone> {
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 18,
-                            color: Color(0XFFF8F7FC),
+                            color: ColorManager.textLight,
                           ),
                         ),
                         Text(
                           'Após escanear uma carta, coloque o dispositivo virado para baixo. Isso oculta detalhes da faixa e mantém o jogo justo.',
-                          style: TextStyle(color: Color(0XFFA9A2B5)),
+                          style: TextStyle(color: ColorManager.textMuted),
                         ),
                       ],
                     ),
@@ -165,12 +169,12 @@ class _TurnPhoneState extends State<TurnPhone> {
                                     style: TextStyle(
                                       fontWeight: FontWeight.w600,
                                       fontSize: 18,
-                                      color: Color(0XFFF8F7FC),
+                                      color: ColorManager.textLight,
                                     ),
                                   ),
                                   Text(
                                     'A faixa começa a tocar quando você vira o telefone.',
-                                    style: TextStyle(color: Color(0XFFA9A2B5)),
+                                    style: TextStyle(color: ColorManager.textMuted),
                                   ),
                                 ],
                               ),
@@ -206,12 +210,12 @@ class _TurnPhoneState extends State<TurnPhone> {
                                     style: TextStyle(
                                       fontWeight: FontWeight.w600,
                                       fontSize: 18,
-                                      color: Color(0XFFF8F7FC),
+                                      color: ColorManager.textLight,
                                     ),
                                   ),
                                   Text(
                                     'A faixa começa a tocar quando você vira o telefone.',
-                                    style: TextStyle(color: Color(0XFFA9A2B5)),
+                                    style: TextStyle(color: ColorManager.textMuted),
                                   ),
                                 ],
                               ),

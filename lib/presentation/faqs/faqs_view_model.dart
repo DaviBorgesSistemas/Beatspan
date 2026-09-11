@@ -30,7 +30,7 @@ class FaqsViewModel {
           StackTrace.current,
           information: [
             'FaqsViewModel._getFaqs',
-            'Failure.code=${failure.code}',
+            'Failure.runtimeType=${failure.runtimeType}',
           ],
         );
         state.value = FlowState.error;

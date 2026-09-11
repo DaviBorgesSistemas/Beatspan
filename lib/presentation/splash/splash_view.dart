@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import '../../app/app_prefs.dart';
 import '../resource/assets_manager.dart';
+import '../resource/color_manager.dart';
 import '../resource/screen_manager.dart';
 import '../routes_manager.dart';
 import 'widgets/loading_dots.dart';
@@ -143,7 +144,7 @@ class _SplashViewState extends State<SplashView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0XFF08050D),
+      backgroundColor: ColorManager.bagroundColor,
       body: AnimatedBuilder(
         animation: _c,
         builder: (context, _) {
@@ -185,11 +186,11 @@ class _SplashViewState extends State<SplashView>
                       child: Transform.translate(
                         offset: _taglineOffset.value * 40,
                         child: ShaderMask(
-                          shaderCallback: (bounds) => const LinearGradient(
+                          shaderCallback: (bounds) => LinearGradient(
                             colors: [
-                              Color(0xFF6C5CE7),
-                              Color(0xFFE84BC7),
-                              Color(0xFFFF8A3D),
+                              ColorManager.splashPurple,
+                              ColorManager.gradientMagenta,
+                              ColorManager.gradientOrange,
                             ],
                           ).createShader(bounds),
                           child: const Text(
@@ -220,11 +221,11 @@ class _SplashViewState extends State<SplashView>
                     SizedBox(height: 16),
                     Text(
                       'CARREGANDO...',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w300,
                         letterSpacing: 4.0,
-                        color: Color(0xFFA9A2B5),
+                        color: ColorManager.textMuted,
                       ),
                     ),
                   ],

@@ -1,6 +1,7 @@
 import 'package:beatspan/data/data_source/faq_local_data_source.dart';
 import 'package:beatspan/data/data_source/json_assets.dart';
 import 'package:beatspan/data/repository/faq_repository_impl.dart';
+import 'package:beatspan/domain/failure.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -48,7 +49,6 @@ void main() {
 
     expect(result.isLeft(), isTrue);
     final failure = result.fold((f) => f, (_) => null);
-    expect(failure, isNotNull);
-    expect(failure!.code, 0);
+    expect(failure, isA<FaqErroInesperado>());
   });
 }

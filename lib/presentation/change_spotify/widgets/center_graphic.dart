@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../resource/color_manager.dart';
+
 class CenterGraphic extends StatelessWidget {
   const CenterGraphic({super.key});
 
@@ -11,10 +13,13 @@ class CenterGraphic extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.002),
         shape: BoxShape.circle,
-        border: Border.all(width: 2, color: Color(0XFF6824FC)),
+        border: Border.all(
+          width: 2,
+          color: ColorManager.centerGraphicPurple,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Color(0xFF6824FC),
+            color: ColorManager.centerGraphicPurple,
             blurRadius: 15,
             spreadRadius: 0,
             offset: Offset(0, 0),
@@ -23,7 +28,7 @@ class CenterGraphic extends StatelessWidget {
       ),
       child: Container(
         decoration: BoxDecoration(
-          color: Color(0XFF110B1A),
+          color: ColorManager.cardBackground,
           shape: BoxShape.circle,
         ),
         child: Icon(Icons.graphic_eq, size: 70),

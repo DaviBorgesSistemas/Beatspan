@@ -87,7 +87,10 @@ class _ChangeSpotifyViewState extends State<ChangeSpotifyView> {
                 child: Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(width: 1, color: Color(0X33CDBDFF)),
+                    border: Border.all(
+                      width: 1,
+                      color: ColorManager.lavender.withValues(alpha: 0.20),
+                    ),
                   ),
                   child: Icon(Icons.arrow_back, color: Colors.white),
                 ),
@@ -104,12 +107,17 @@ class _ChangeSpotifyViewState extends State<ChangeSpotifyView> {
                   SizedBox(height: 8),
                   Text(
                     'CONEXÃO SPOTIFY PREMIUM',
-                    style: TextStyle(fontSize: 16, color: Color(0XFFF8F7FC)),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: ColorManager.textLight,
+                    ),
                   ),
                   SizedBox(height: 16),
                   Text(
                     'Se você tem uma conta Spotify Premium, conecte o app ao Beatspan. Certifique-se de que o app está instalado no dispositivo.',
-                    style: TextStyle(color: Color(0XB3F8F7FC)),
+                    style: TextStyle(
+                      color: ColorManager.textLight.withValues(alpha: 0.70),
+                    ),
                   ),
                 ],
               ),
@@ -132,8 +140,11 @@ class _ChangeSpotifyViewState extends State<ChangeSpotifyView> {
                         height: 56,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(28),
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF6C2BFF), Color(0xFFFF469E)],
+                          gradient: LinearGradient(
+                            colors: [
+                              ColorManager.gradientPurple,
+                              ColorManager.gradientPink,
+                            ],
                             begin: Alignment.centerLeft,
                             end: Alignment.centerRight,
                           ),
@@ -178,7 +189,7 @@ class _ChangeSpotifyViewState extends State<ChangeSpotifyView> {
                           borderRadius: BorderRadius.circular(28),
                           border: Border.all(
                             width: 2,
-                            color: Color(0XFF6824FC),
+                            color: ColorManager.centerGraphicPurple,
                           ),
                         ),
                         child: Material(
@@ -194,7 +205,7 @@ class _ChangeSpotifyViewState extends State<ChangeSpotifyView> {
                               child: Text(
                                 'NÃO TENHO SPOTIFY PREMIUM',
                                 style: TextStyle(
-                                  color: Color(0XFF6824FC),
+                                  color: ColorManager.centerGraphicPurple,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w900,
                                 ),

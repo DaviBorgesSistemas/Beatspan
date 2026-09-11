@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../resource/color_manager.dart';
+
 class LoadingDots extends StatefulWidget {
   final AnimationController controller;
   const LoadingDots({super.key, required this.controller});
@@ -11,12 +13,12 @@ class LoadingDots extends StatefulWidget {
 class _LoadingDotsState extends State<LoadingDots>
     with SingleTickerProviderStateMixin {
   static const _dotCount = 5;
-  static const _dotColors = [
-    Color(0xFF6C5CE7),
-    Color(0xFF9C4FE0),
-    Color(0xFFE84BC7),
-    Color(0xFFFF6F5C),
-    Color(0xFFFF8A3D),
+  static final _dotColors = [
+    ColorManager.splashPurple,
+    ColorManager.splashViolet,
+    ColorManager.gradientMagenta,
+    ColorManager.splashCoral,
+    ColorManager.gradientOrange,
   ];
 
   late final AnimationController _loop;

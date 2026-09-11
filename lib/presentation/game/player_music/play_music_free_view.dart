@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../domain/model/playback_state.dart';
 import '../../../domain/usecase/preview_playback_usecase.dart';
 import '../../../domain/usecase/spotify_playback_usecase.dart';
+import '../../resource/color_manager.dart';
 import '../../share/widgets/beatspan_loading_overlay.dart';
 import '../../share/widgets/next_card_button.dart';
 
@@ -92,7 +93,7 @@ class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF08050D),
+      backgroundColor: ColorManager.bagroundColor,
       body: SafeArea(
         child: _isLoading
             ? const BeatspanLoadingOverlay(
@@ -158,7 +159,7 @@ class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Color(0XFF110B1A),
+              color: ColorManager.cardBackground,
               border: Border.all(
                 width: 1,
                 color: Colors.white.withValues(alpha: 0.05),
@@ -180,14 +181,14 @@ class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
                 SizedBox(height: 24),
                 Text(
                   widget.trackName ?? '',
-                  style: TextStyle(fontSize: 16, color: Color(0XFFF8F7FC)),
+                  style: TextStyle(fontSize: 16, color: ColorManager.textLight),
                 ),
                 SizedBox(height: 4),
                 Row(
                   children: [
                     Text(
                       widget.artistName ?? '',
-                      style: TextStyle(fontSize: 18, color: Color(0XFFA9A2B5)),
+                      style: TextStyle(fontSize: 18, color: ColorManager.textMuted),
                     ),
                     SizedBox(width: 8),
                     Container(
@@ -196,16 +197,16 @@ class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: Color(0XFF06B6D4).withValues(alpha: 0.1),
+                        color: ColorManager.cyanAccent.withValues(alpha: 0.1),
                         border: Border.all(
-                          color: Color(0XFF06B6D4).withValues(alpha: 0.2),
+                          color: ColorManager.cyanAccent.withValues(alpha: 0.2),
                         ),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         'PRÉVIA',
                         style: TextStyle(
-                          color: Color(0XFF06B6D4),
+                          color: ColorManager.cyanAccent,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -318,7 +319,7 @@ class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
                   ),
                   child: Icon(
                     playing ? Icons.pause : Icons.play_arrow,
-                    color: Color(0XFF110B1A),
+                    color: ColorManager.cardBackground,
                     size: 20,
                   ),
                 ),

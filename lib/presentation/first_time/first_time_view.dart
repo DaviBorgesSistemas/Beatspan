@@ -70,7 +70,7 @@ class _FirstTimeViewState extends State<FirstTimeView> {
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
                       fontSize: 28,
-                      color: Color(0xFFF8F7FC),
+                      color: ColorManager.textLight,
                     ),
                   ),
                 ),
@@ -82,7 +82,7 @@ class _FirstTimeViewState extends State<FirstTimeView> {
                   style: TextStyle(
                     fontWeight: FontWeight.normal,
                     fontSize: 18,
-                    color: Color(0xFFF8F7FC),
+                    color: ColorManager.textLight,
                   ),
                 ),
                 SizedBox(height: 16),
@@ -96,12 +96,16 @@ class _FirstTimeViewState extends State<FirstTimeView> {
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               width: 1,
-                              color: Color(0X33FFB0CB),
+                              color: ColorManager.scannerPinkLight.withValues(
+                                alpha: 0.20,
+                              ),
                             ),
-                            color: Color(0XFF110B1A),
+                            color: ColorManager.cardBackground,
                             boxShadow: [
                               BoxShadow(
-                                color: Color(0x80000000),
+                                color: ColorManager.black.withValues(
+                                  alpha: 0.50,
+                                ),
                                 offset: Offset(0, 4),
                                 blurRadius: 30,
                                 spreadRadius: 0,
@@ -112,7 +116,7 @@ class _FirstTimeViewState extends State<FirstTimeView> {
                             child: Text(
                               '1983',
                               style: TextStyle(
-                                color: Color(0XFFFFB0CB),
+                                color: ColorManager.scannerPinkLight,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                               ),
@@ -130,12 +134,16 @@ class _FirstTimeViewState extends State<FirstTimeView> {
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               width: 1,
-                              color: Color(0X33FFB0CB),
+                              color: ColorManager.scannerPinkLight.withValues(
+                                alpha: 0.20,
+                              ),
                             ),
-                            color: Color(0XFF110B1A),
+                            color: ColorManager.cardBackground,
                             boxShadow: [
                               BoxShadow(
-                                color: Color(0x80000000),
+                                color: ColorManager.black.withValues(
+                                  alpha: 0.50,
+                                ),
                                 offset: Offset(0, 4),
                                 blurRadius: 30,
                                 spreadRadius: 0,
@@ -146,7 +154,7 @@ class _FirstTimeViewState extends State<FirstTimeView> {
                             child: Text(
                               '2009',
                               style: TextStyle(
-                                color: Color(0XFFFFB0CB),
+                                color: ColorManager.scannerPinkLight,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                               ),
@@ -168,8 +176,11 @@ class _FirstTimeViewState extends State<FirstTimeView> {
                     height: 56,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(28),
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF6C2BFF), Color(0xFFFF469E)],
+                      gradient: LinearGradient(
+                        colors: [
+                          ColorManager.gradientPurple,
+                          ColorManager.gradientPink,
+                        ],
                         stops: [0.0, 100],
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
@@ -208,7 +219,10 @@ class _FirstTimeViewState extends State<FirstTimeView> {
                     height: 56,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(28),
-                      border: Border.all(width: 2, color: Color(0XFFFFB0CB)),
+                      border: Border.all(
+                        width: 2,
+                        color: ColorManager.scannerPinkLight,
+                      ),
                     ),
                     child: Material(
                       color: Colors.transparent,
@@ -223,7 +237,7 @@ class _FirstTimeViewState extends State<FirstTimeView> {
                           child: Text(
                             'CONTINUAR',
                             style: TextStyle(
-                              color: Color(0XFFFFB0CB),
+                              color: ColorManager.scannerPinkLight,
                               fontSize: 14,
                               fontWeight: FontWeight.w900,
                             ),

@@ -3,5 +3,5 @@ import '../failure.dart';
 import '../model/faqs.dart';
 
 abstract class FaqRepository {
-  Future<Either<Failure, List<Faq>>> getFaqs();
+  Future<Either<FaqFailure, List<Faq>>> getFaqs();
 }

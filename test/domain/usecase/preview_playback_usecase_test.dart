@@ -1,3 +1,4 @@
+import 'package:beatspan/domain/failure.dart';
 import 'package:beatspan/domain/model/playback_state.dart';
 import 'package:beatspan/domain/repository/preview_playback_control_repository.dart';
 import 'package:beatspan/domain/usecase/preview_playback_usecase.dart';
@@ -38,9 +39,9 @@ void main() {
       expect(
         result,
         isA<Left>().having(
-          (l) => l.value.code,
-          'code',
-          previewPlaybackUnexpectedErrorCode,
+          (l) => l.value,
+          'value',
+          isA<PreviewPlaybackErroInesperado>(),
         ),
       );
     });

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../resource/color_manager.dart';
+
 class BeatspanLoadingOverlay extends StatefulWidget {
   final String message;
   final bool fillBackground;
@@ -45,14 +47,14 @@ class _BeatspanLoadingOverlayState extends State<BeatspanLoadingOverlay>
               width: 72,
               height: 72,
               padding: const EdgeInsets.all(3),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: SweepGradient(
                   colors: [
-                    Color(0xFF6C2BFF),
-                    Color(0xFFE84BC7),
-                    Color(0xFFFF8A3D),
-                    Color(0xFF6C2BFF),
+                    ColorManager.gradientPurple,
+                    ColorManager.gradientMagenta,
+                    ColorManager.gradientOrange,
+                    ColorManager.gradientPurple,
                   ],
                 ),
               ),
@@ -83,7 +85,7 @@ class _BeatspanLoadingOverlayState extends State<BeatspanLoadingOverlay>
       label: widget.message,
       excludeSemantics: true,
       child: widget.fillBackground
-          ? ColoredBox(color: const Color(0xFF08050D), child: content)
+          ? ColoredBox(color: ColorManager.bagroundColor, child: content)
           : ColoredBox(
               color: Colors.black.withValues(alpha: 0.75),
               child: content,

@@ -5,11 +5,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../domain/enum/settings_enum.dart';
+import '../../../domain/failure.dart';
 import '../../../domain/model/musica_playback_result.dart';
 import '../../../domain/model/playback_state.dart';
 import '../../../domain/usecase/musica_playback_usecase.dart';
 import '../../../domain/usecase/preview_playback_usecase.dart';
 import '../../../domain/usecase/spotify_playback_usecase.dart';
+import '../../resource/color_manager.dart';
 import '../../share/widgets/beatspan_loading_overlay.dart';
 import '../../share/widgets/next_card_button.dart';
 import 'play_music_free_view.dart';
@@ -20,12 +22,23 @@ class PlayerMusicPremiumView extends StatefulWidget {
   final MusicaPlaybackUseCase musicaPlaybackUseCase;
   final PreviewPlaybackUseCase Function() previewPlaybackUseCaseFactory;
 
+  /// Escape hatch só para testes: quando fornecido, substitui o resultado de
+  /// `kIsWeb || Platform.isAndroid || Platform.isIOS` em [_initSpotify].
+  /// `flutter test` roda numa VM que não é nenhuma dessas plataformas, então
+  /// sem isso o código sempre cai no branch de "plataforma não suportada" e
+  /// os demais branches (sucesso, falhas do Spotify, fallback, stream de
+  /// estado) ficam estruturalmente inacessíveis em teste de widget. Em
+  /// produção este parâmetro é sempre `null` e o comportamento é idêntico ao
+  /// atual.
+  final bool? isPlatformSupportedForTest;
+
   const PlayerMusicPremiumView({
     super.key,
     required this.initialUri,
     required this.spotifyPlaybackUseCase,
     required this.musicaPlaybackUseCase,
     required this.previewPlaybackUseCaseFactory,
+    this.isPlatformSupportedForTest,
   });
 
   @override
@@ -40,9 +53,9 @@ class _PlayerMusicPremiumViewState extends State<PlayerMusicPremiumView> {
 
   Stream<PlaybackState>? _playerStateStream;
 
-  static const _background = Color(0xFF08050D);
-  static const _purple = Color(0xFF6C2BFF);
-  static const _pink = Color(0xFFFF469E);
+  static final _background = ColorManager.bagroundColor;
+  static final _purple = ColorManager.gradientPurple;
+  static final _pink = ColorManager.gradientPink;
 
   @override
   void initState() {
@@ -57,7 +70,10 @@ class _PlayerMusicPremiumViewState extends State<PlayerMusicPremiumView> {
   }
 
   Future<void> _initSpotify() async {
-    if (!(kIsWeb || Platform.isAndroid || Platform.isIOS)) {
+    final isPlatformSupported =
+        widget.isPlatformSupportedForTest ??
+        (kIsWeb || Platform.isAndroid || Platform.isIOS);
+    if (!isPlatformSupported) {
       setState(() {
         _pluginAvailable = false;
         _loading = false;
@@ -72,15 +88,14 @@ class _PlayerMusicPremiumViewState extends State<PlayerMusicPremiumView> {
 
     await result.fold(
       (failure) async {
-        if (failure.code == spotifyPlaybackAuthErrorCode) {
+        if (failure is SpotifyPlaybackNaoAutorizado) {
           final fellBack = await _tryFallbackToPreview();
           if (fellBack) return;
         }
         if (!mounted) return;
         setState(() {
           _loading = false;
-          _pluginAvailable =
-              failure.code != spotifyPlaybackPluginMissingErrorCode;
+          _pluginAvailable = failure is! SpotifyPlaybackPluginAusente;
           _error = failure.message;
         });
       },
@@ -348,11 +363,11 @@ class _VisualGlyphsCardState extends State<_VisualGlyphsCard>
           borderRadius: BorderRadius.circular(24),
           color: Colors.white.withValues(alpha: 0.05),
           border: Border.all(
-            color: const Color(0xFF6C2BFF).withValues(alpha: 0.2),
+            color: ColorManager.gradientPurple.withValues(alpha: 0.2),
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF6C2BFF).withValues(alpha: 0.15),
+              color: ColorManager.gradientPurple.withValues(alpha: 0.15),
               blurRadius: 40,
             ),
           ],
@@ -382,7 +397,7 @@ class _VisualGlyphsCardState extends State<_VisualGlyphsCard>
             ),
             DecoratedBox(
               decoration: BoxDecoration(
-                color: const Color(0xFF08050D).withValues(alpha: 0.3),
+                color: ColorManager.bagroundColor.withValues(alpha: 0.3),
               ),
             ),
             Container(
@@ -390,7 +405,7 @@ class _VisualGlyphsCardState extends State<_VisualGlyphsCard>
               height: 80,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFF8F7FC),
+                color: ColorManager.textLight,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.white.withValues(alpha: 0.25),
@@ -400,7 +415,7 @@ class _VisualGlyphsCardState extends State<_VisualGlyphsCard>
               ),
               child: Icon(
                 widget.playing ? Icons.pause : Icons.play_arrow,
-                color: const Color(0xFF08050D),
+                color: ColorManager.bagroundColor,
                 size: 36,
               ),
             ),
@@ -451,8 +466,8 @@ class _GlyphRingsPainter extends CustomPainter {
     for (var i = 0; i < _rings.length; i++) {
       final ring = _rings[i];
       final gradientColors = [
-        const Color(0xFF6C2BFF).withValues(alpha: ring.opacity),
-        const Color(0xFFFF469E).withValues(alpha: ring.opacity),
+        ColorManager.gradientPurple.withValues(alpha: ring.opacity),
+        ColorManager.gradientPink.withValues(alpha: ring.opacity),
       ];
       final paint = Paint()
         ..shader =

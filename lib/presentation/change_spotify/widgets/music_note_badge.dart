@@ -18,7 +18,7 @@ class MusicNoteBadge extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             offset: Offset(0, 0),
-            color: const Color(0xFFFF469E),
+            color: ColorManager.gradientPink,
             blurRadius: 15,
             spreadRadius: 0,
           ),
@@ -31,7 +31,7 @@ class MusicNoteBadge extends StatelessWidget {
         ),
         child: Icon(
           Icons.music_note,
-          color: const Color(0xFFFF469E),
+          color: ColorManager.gradientPink,
           size: size * 0.55,
         ),
       ),

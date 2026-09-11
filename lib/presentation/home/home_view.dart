@@ -92,12 +92,17 @@ class _HomeViewState extends State<HomeView> {
                       ),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(50),
-                        border: Border.all(width: 1, color: Color(0X4DFFB0CB)),
+                        border: Border.all(
+                          width: 1,
+                          color: ColorManager.scannerPinkLight.withValues(
+                            alpha: 0.30,
+                          ),
+                        ),
                       ),
                       child: Text(
                         'O JOGO DA FESTA DA MÚSICA',
                         style: TextStyle(
-                          color: Color(0XFFFFB0CB),
+                          color: ColorManager.scannerPinkLight,
                           fontSize: 16,
                         ),
                       ),
@@ -121,8 +126,11 @@ class _HomeViewState extends State<HomeView> {
                         height: 56,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(28),
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF6C2BFF), Color(0xFFFF7A1A)],
+                          gradient: LinearGradient(
+                            colors: [
+                              ColorManager.gradientPurple,
+                              ColorManager.homeOrange,
+                            ],
                             begin: Alignment.centerLeft,
                             end: Alignment.centerRight,
                           ),
@@ -152,7 +160,9 @@ class _HomeViewState extends State<HomeView> {
                           borderRadius: BorderRadius.circular(28),
                           border: Border.all(
                             width: 2,
-                            color: Color(0X80FFB0CB),
+                            color: ColorManager.scannerPinkLight.withValues(
+                              alpha: 0.50,
+                            ),
                           ),
                         ),
                         child: Material(
@@ -168,7 +178,7 @@ class _HomeViewState extends State<HomeView> {
                               child: Text(
                                 'REGRAS E CONFIGURAÇÕES',
                                 style: TextStyle(
-                                  color: Color(0XFFFFB0CB),
+                                  color: ColorManager.scannerPinkLight,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w400,
                                 ),

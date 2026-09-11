@@ -40,6 +40,8 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   flutter_launcher_icons: ^0.14.4
   mocktail: ^1.0.4
+  permission_handler_platform_interface: 4.4.0
+  plugin_platform_interface: 2.1.8
 
 
 flutter:

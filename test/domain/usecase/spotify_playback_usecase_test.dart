@@ -1,5 +1,6 @@
 import 'package:beatspan/domain/exceptions/rate_limited_exception.dart';
 import 'package:beatspan/domain/exceptions/spotify_consent_exception.dart';
+import 'package:beatspan/domain/failure.dart';
 import 'package:beatspan/domain/model/playback_state.dart';
 import 'package:beatspan/domain/repository/spotify_playback_control_repository.dart';
 import 'package:beatspan/domain/usecase/spotify_playback_usecase.dart';
@@ -44,9 +45,9 @@ void main() {
         expect(
           result,
           isA<Left>().having(
-            (l) => l.value.code,
-            'code',
-            spotifyPlaybackAuthErrorCode,
+            (l) => l.value,
+            'value',
+            isA<SpotifyPlaybackNaoAutorizado>(),
           ),
         );
       },
@@ -64,9 +65,9 @@ void main() {
         expect(
           result,
           isA<Left>().having(
-            (l) => l.value.code,
-            'code',
-            spotifyPlaybackPluginMissingErrorCode,
+            (l) => l.value,
+            'value',
+            isA<SpotifyPlaybackPluginAusente>(),
           ),
         );
       },
@@ -82,9 +83,9 @@ void main() {
       expect(
         result,
         isA<Left>().having(
-          (l) => l.value.code,
-          'code',
-          spotifyPlaybackAuthErrorCode,
+          (l) => l.value,
+          'value',
+          isA<SpotifyPlaybackNaoAutorizado>(),
         ),
       );
     });
@@ -99,9 +100,9 @@ void main() {
       expect(
         result,
         isA<Left>().having(
-          (l) => l.value.code,
-          'code',
-          spotifyPlaybackUnexpectedErrorCode,
+          (l) => l.value,
+          'value',
+          isA<SpotifyPlaybackErroInesperado>(),
         ),
       );
     });
@@ -163,9 +164,9 @@ void main() {
         expect(
           result,
           isA<Left>().having(
-            (l) => l.value.code,
-            'code',
-            spotifyPlaybackAuthErrorCode,
+            (l) => l.value,
+            'value',
+            isA<SpotifyPlaybackNaoAutorizado>(),
           ),
         );
       },
@@ -179,9 +180,9 @@ void main() {
       expect(
         result,
         isA<Left>().having(
-          (l) => l.value.code,
-          'code',
-          spotifyPlaybackUnexpectedErrorCode,
+          (l) => l.value,
+          'value',
+          isA<SpotifyPlaybackErroInesperado>(),
         ),
       );
     });
@@ -199,9 +200,9 @@ void main() {
           result,
           isA<Left>()
               .having(
-                (l) => l.value.code,
-                'code',
-                spotifyPlaybackRateLimitedErrorCode,
+                (l) => l.value,
+                'value',
+                isA<SpotifyPlaybackLimiteRequisicoes>(),
               )
               .having((l) => l.value.message, 'message', contains('3s')),
         );

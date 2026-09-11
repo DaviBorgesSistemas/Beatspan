@@ -5,14 +5,12 @@ import '../failure.dart';
 import '../model/playback_state.dart';
 import '../repository/preview_playback_control_repository.dart';
 
-const int previewPlaybackUnexpectedErrorCode = 1;
-
 class PreviewPlaybackUseCase {
   final PreviewPlaybackControlRepository _repository;
 
   PreviewPlaybackUseCase(this._repository);
 
-  Future<Either<Failure, Unit>> load(String previewUrl) async {
+  Future<Either<PreviewPlaybackFailure, Unit>> load(String previewUrl) async {
     try {
       await _repository.load(previewUrl);
       return const Right(unit);
@@ -22,9 +20,8 @@ class PreviewPlaybackUseCase {
         s,
         information: const ['PreviewPlaybackUseCase.load'],
       );
-      return Left(
-        Failure(
-          previewPlaybackUnexpectedErrorCode,
+      return const Left(
+        PreviewPlaybackErroInesperado(
           'Não foi possível carregar a prévia de 30 segundos.',
         ),
       );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_prefs.dart';
+import '../../domain/failure.dart';
 import '../../domain/usecase/get_musica_usecase.dart';
 import '../../domain/usecase/musica_playback_usecase.dart';
 import 'game_navigation_event.dart';
@@ -83,16 +84,15 @@ class GameViewModel {
     );
 
     if (spotifyUri == null) {
-      final failureCode = result.fold((failure) => failure.code, (_) => 0);
-      if (failureCode == 404) {
-        navigationEvent.value = const NavigateToError(
+      final failure = result.fold((failure) => failure, (_) => null);
+      navigationEvent.value = switch (failure) {
+        MusicaNaoEncontrada() => const NavigateToError(
           title: 'MÚSICA NÃO ENCONTRADA',
           message:
               'Não encontramos essa carta no nosso catálogo. Tente escanear novamente.',
-        );
-      } else {
-        navigationEvent.value = _connectionErrorEvent;
-      }
+        ),
+        MusicaConsultaErro() || null => _connectionErrorEvent,
+      };
       return;
     }
 
@@ -113,32 +113,27 @@ class GameViewModel {
     );
 
     navigationEvent.value = result.fold((failure) {
-      switch (failure.code) {
-        case musicaPlaybackPreviewUnavailableCode:
-          return const NavigateToError(
-            title: 'PRÉVIA INDISPONÍVEL',
-            message:
-                'Essa faixa não tem uma prévia de 30 segundos disponível no plano Free. Tente outra carta ou use o Spotify Premium.',
-          );
-        case musicaPlaybackConnectionErrorCode:
-          return _connectionErrorEvent;
-        case musicaPlaybackSpotifyAuthErrorCode:
-          return const NavigateToError(
-            title: 'SPOTIFY NÃO AUTORIZADO',
-            message:
-                'Não foi possível autorizar o acesso ao Spotify. Verifique se o app do Spotify está instalado, atualizado e conectado à sua conta, então tente novamente.',
-            icon: Icons.lock_outline_rounded,
-          );
-        case musicaPlaybackUnexpectedErrorCode:
-          return const NavigateToError(
-            title: 'ALGO DEU ERRADO',
-            message:
-                'Ocorreu um erro inesperado ao preparar a música. Tente escanear a carta novamente.',
-            icon: Icons.error_outline_rounded,
-          );
-        default:
-          return const NavigateToError();
-      }
+      return switch (failure) {
+        MusicaPlaybackPreviaIndisponivel() => const NavigateToError(
+          title: 'PRÉVIA INDISPONÍVEL',
+          message:
+              'Essa faixa não tem uma prévia de 30 segundos disponível no plano Free. Tente outra carta ou use o Spotify Premium.',
+        ),
+        MusicaPlaybackErroConexao() => _connectionErrorEvent,
+        MusicaPlaybackSpotifyNaoAutorizado() => const NavigateToError(
+          title: 'SPOTIFY NÃO AUTORIZADO',
+          message:
+              'Não foi possível autorizar o acesso ao Spotify. Verifique se o app do Spotify está instalado, atualizado e conectado à sua conta, então tente novamente.',
+          icon: Icons.lock_outline_rounded,
+        ),
+        MusicaPlaybackErroInesperado() => const NavigateToError(
+          title: 'ALGO DEU ERRADO',
+          message:
+              'Ocorreu um erro inesperado ao preparar a música. Tente escanear a carta novamente.',
+          icon: Icons.error_outline_rounded,
+        ),
+        MusicaPlaybackUriInvalida() => const NavigateToError(),
+      };
     }, (playback) => NavigateToPlayer(playback));
   }
 

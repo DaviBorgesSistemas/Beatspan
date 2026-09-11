@@ -60,8 +60,29 @@ jobs:
       - name: Verificar formatação
         run: dart format --output=none --set-exit-if-changed .
 
-      - name: Rodar testes
-        run: flutter test
+      - name: Rodar testes com cobertura
+        run: flutter test --coverage
+
+      - name: Verificar cobertura mínima (40%)
+        run: |
+          awk '
+            /^LF:/ { lf += substr($0, 4) }
+            /^LH:/ { lh += substr($0, 4) }
+            END {
+              pct = (lf > 0) ? (100 * lh / lf) : 0
+              printf "Cobertura de linhas: %d/%d (%.1f%%)\n", lh, lf, pct
+              if (pct < 40) {
+                print "Abaixo da meta mínima de 40%."
+                exit 1
+              }
+            }
+          ' coverage/lcov.info
+
+      - name: Publicar relatório de cobertura
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/lcov.info
 
   osv-scan:
     permissions:

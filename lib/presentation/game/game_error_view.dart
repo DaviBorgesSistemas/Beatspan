@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../resource/color_manager.dart';
 import '../share/widgets/next_card_button.dart';
 
 class GameErrorView extends StatelessWidget {
@@ -18,7 +19,7 @@ class GameErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF08050D),
+      backgroundColor: ColorManager.bagroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -61,10 +62,13 @@ class GameErrorView extends StatelessWidget {
               const Spacer(),
               NextCardButton(
                 expandWidth: true,
-                gradientColors: const [Color(0xFFFF1B8D), Color(0xFFFF5A1B)],
+                gradientColors: [
+                  ColorManager.accentPink,
+                  ColorManager.errorOrange,
+                ],
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFFF1B8D).withValues(alpha: 0.4),
+                    color: ColorManager.accentPink.withValues(alpha: 0.4),
                     blurRadius: 24,
                     offset: const Offset(0, 8),
                   ),

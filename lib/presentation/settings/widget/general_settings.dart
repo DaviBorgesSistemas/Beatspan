@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../resource/color_manager.dart';
 import '../../routes_manager.dart';
 
 class GeneralSettings extends StatelessWidget {
@@ -14,7 +15,7 @@ class GeneralSettings extends StatelessWidget {
           'Geral',
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            color: Color(0XFFA9A2B5),
+            color: ColorManager.textMuted,
           ),
         ),
         SizedBox(height: 12),
@@ -25,7 +26,7 @@ class GeneralSettings extends StatelessWidget {
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             decoration: BoxDecoration(
-              color: Color(0XFF110B1A),
+              color: ColorManager.cardBackground,
               border: Border.all(
                 width: 1,
                 color: Colors.white.withValues(alpha: 0.15),
@@ -40,9 +41,9 @@ class GeneralSettings extends StatelessWidget {
               children: [
                 Text(
                   'Como Jogar',
-                  style: TextStyle(fontSize: 18, color: Color(0XFFF8F7FC)),
+                  style: TextStyle(fontSize: 18, color: ColorManager.textLight),
                 ),
-                Icon(Icons.link, color: Color(0XFFF8F7FC)),
+                Icon(Icons.link, color: ColorManager.textLight),
               ],
             ),
           ),
@@ -55,7 +56,7 @@ class GeneralSettings extends StatelessWidget {
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             decoration: BoxDecoration(
-              color: Color(0XFF110B1A),
+              color: ColorManager.cardBackground,
               border: Border.all(
                 width: 1,
                 color: Colors.white.withValues(alpha: 0.15),
@@ -70,9 +71,9 @@ class GeneralSettings extends StatelessWidget {
               children: [
                 Text(
                   'Perguntas frequentes',
-                  style: TextStyle(fontSize: 18, color: Color(0XFFF8F7FC)),
+                  style: TextStyle(fontSize: 18, color: ColorManager.textLight),
                 ),
-                Icon(Icons.link, color: Color(0XFFF8F7FC)),
+                Icon(Icons.link, color: ColorManager.textLight),
               ],
             ),
           ),

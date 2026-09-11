@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../resource/color_manager.dart';
+
 class NoInternetView extends StatefulWidget {
   const NoInternetView({super.key});
 
@@ -36,11 +38,11 @@ class _NoInternetViewState extends State<NoInternetView>
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFFFF1B8D), Color(0xFFFF8A00)],
+            colors: [ColorManager.accentPink, ColorManager.noInternetOrange],
           ),
         ),
         child: SafeArea(
@@ -111,7 +113,7 @@ class _NoInternetViewState extends State<NoInternetView>
                     onPressed: () => Navigator.of(context).pop(),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFFFF1B8D),
+                      foregroundColor: ColorManager.accentPink,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(28),
                       ),

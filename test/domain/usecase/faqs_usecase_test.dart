@@ -28,7 +28,7 @@ void main() {
   });
 
   test('repassa a falha do repositório sem alterá-la', () async {
-    final failure = Failure(0, 'erro ao ler asset');
+    final failure = FaqErroInesperado('erro ao ler asset');
     when(() => repository.getFaqs()).thenAnswer((_) async => Left(failure));
 
     final result = await useCase.execute(null);

@@ -137,9 +137,9 @@ void main() {
     test(
       'emite NavigateToError "música não encontrada" para failure 404',
       () async {
-        when(
-          () => getMusicaUseCase.execute(codigo),
-        ).thenAnswer((_) async => Left(Failure(404, 'não encontrada')));
+        when(() => getMusicaUseCase.execute(codigo)).thenAnswer(
+          (_) async => const Left(MusicaNaoEncontrada()),
+        );
 
         await viewModel.handleDetectedCode('https://beatspangame.com/$codigo');
 
@@ -151,9 +151,9 @@ void main() {
     test(
       'emite NavigateToError de conexão para outra falha do GetMusicaUseCase',
       () async {
-        when(
-          () => getMusicaUseCase.execute(codigo),
-        ).thenAnswer((_) async => Left(Failure(500, 'erro de rede')));
+        when(() => getMusicaUseCase.execute(codigo)).thenAnswer(
+          (_) async => Left(MusicaConsultaErro('erro de rede')),
+        );
 
         await viewModel.handleDetectedCode('https://beatspangame.com/$codigo');
 
@@ -210,8 +210,7 @@ void main() {
           () => getMusicaUseCase.execute(codigo),
         ).thenAnswer((_) async => Right(musica));
         when(() => musicaPlaybackUseCase.execute(any())).thenAnswer(
-          (_) async =>
-              Left(Failure(musicaPlaybackPreviewUnavailableCode, 'sem prévia')),
+          (_) async => const Left(MusicaPlaybackPreviaIndisponivel()),
         );
 
         await viewModel.handleDetectedCode('https://beatspangame.com/$codigo');
@@ -230,7 +229,7 @@ void main() {
         ).thenAnswer((_) async => Right(musica));
         when(() => musicaPlaybackUseCase.execute(any())).thenAnswer(
           (_) async => Left(
-            Failure(musicaPlaybackSpotifyAuthErrorCode, 'sem autorização'),
+            MusicaPlaybackSpotifyNaoAutorizado('sem autorização'),
           ),
         );
 

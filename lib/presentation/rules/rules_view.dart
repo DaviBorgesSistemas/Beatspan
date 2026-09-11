@@ -31,7 +31,10 @@ class _RulesViewState extends State<RulesView> {
             child: Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(width: 1, color: Color(0X33CDBDFF)),
+                border: Border.all(
+                  width: 1,
+                  color: ColorManager.lavender.withValues(alpha: 0.20),
+                ),
               ),
               child: Icon(Icons.arrow_back, color: Colors.white),
             ),

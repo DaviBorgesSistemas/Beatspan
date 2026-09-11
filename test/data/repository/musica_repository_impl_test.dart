@@ -1,6 +1,7 @@
 import 'package:beatspan/data/network/musica_firestore_data_source.dart';
 import 'package:beatspan/data/repository/musica_repository_impl.dart';
 import 'package:beatspan/domain/exception/musica_exceptions.dart';
+import 'package:beatspan/domain/failure.dart';
 import 'package:beatspan/domain/model/musica.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -41,7 +42,7 @@ void main() {
     );
 
     test(
-      'retorna Left(Failure(404, ...)) quando a música não é encontrada',
+      'retorna Left(MusicaNaoEncontrada) quando a música não é encontrada',
       () async {
         when(
           () => dataSource.getByCodigo('9999'),
@@ -51,14 +52,14 @@ void main() {
 
         expect(result.isLeft(), isTrue);
         result.fold(
-          (failure) => expect(failure.code, 404),
+          (failure) => expect(failure, isA<MusicaNaoEncontrada>()),
           (_) => fail('esperava Left'),
         );
       },
     );
 
     test(
-      'retorna Left(Failure(0, ...)) quando há erro de consulta (rede/Firestore)',
+      'retorna Left(MusicaConsultaErro) quando há erro de consulta (rede/Firestore)',
       () async {
         when(
           () => dataSource.getByCodigo('0006'),
@@ -68,14 +69,14 @@ void main() {
 
         expect(result.isLeft(), isTrue);
         result.fold((failure) {
-          expect(failure.code, 0);
+          expect(failure, isA<MusicaConsultaErro>());
           expect(failure.message, 'Sem conexão com o servidor.');
         }, (_) => fail('esperava Left'));
       },
     );
 
     test(
-      'retorna Left(Failure(0, ...)) para qualquer exceção inesperada',
+      'retorna Left(MusicaConsultaErro) para qualquer exceção inesperada',
       () async {
         when(
           () => dataSource.getByCodigo('0006'),
@@ -85,7 +86,7 @@ void main() {
 
         expect(result.isLeft(), isTrue);
         result.fold(
-          (failure) => expect(failure.code, 0),
+          (failure) => expect(failure, isA<MusicaConsultaErro>()),
           (_) => fail('esperava Left'),
         );
       },

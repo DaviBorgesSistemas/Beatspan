@@ -37,7 +37,7 @@ void main() {
   );
 
   test('repassa a falha do repositório sem alterá-la', () async {
-    final failure = Failure(404, 'não encontrada');
+    final failure = const MusicaNaoEncontrada();
     when(
       () => repository.getByCodigo('9999'),
     ).thenAnswer((_) async => Left(failure));

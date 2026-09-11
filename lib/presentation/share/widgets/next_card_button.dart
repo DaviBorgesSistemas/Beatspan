@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../resource/color_manager.dart';
+
 class NextCardButton extends StatelessWidget {
   final VoidCallback? onTap;
   final bool expandWidth;
   final EdgeInsetsGeometry margin;
-  final List<Color> gradientColors;
+  final List<Color>? gradientColors;
   final Color textColor;
   final List<BoxShadow>? boxShadow;
 
@@ -13,7 +15,7 @@ class NextCardButton extends StatelessWidget {
     this.onTap,
     this.expandWidth = false,
     this.margin = const EdgeInsets.symmetric(horizontal: 24),
-    this.gradientColors = const [Color(0xFF6C2BFF), Color(0xFFFF469E)],
+    this.gradientColors,
     this.textColor = Colors.white,
     this.boxShadow,
   });
@@ -21,6 +23,9 @@ class NextCardButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final effectiveOnTap = onTap ?? () => Navigator.of(context).pop();
+    final effectiveGradientColors =
+        gradientColors ??
+        [ColorManager.gradientPurple, ColorManager.gradientPink];
 
     return Semantics(
       button: true,
@@ -34,7 +39,7 @@ class NextCardButton extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(28),
           gradient: LinearGradient(
-            colors: gradientColors,
+            colors: effectiveGradientColors,
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ),

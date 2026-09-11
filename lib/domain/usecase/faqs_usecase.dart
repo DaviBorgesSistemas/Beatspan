@@ -5,12 +5,12 @@ import '../model/faqs.dart';
 import '../repository/faq_repository.dart';
 import 'base_usecase.dart';
 
-class FaqsUseCase extends BaseUseCase<void, Object> {
+class FaqsUseCase extends BaseUseCase<void, List<Faq>, FaqFailure> {
   final FaqRepository _repository;
   FaqsUseCase(this._repository);
 
   @override
-  Future<Either<Failure, List<Faq>>> execute(void input) async {
+  Future<Either<FaqFailure, List<Faq>>> execute(void input) async {
     return _repository.getFaqs();
   }
 }
