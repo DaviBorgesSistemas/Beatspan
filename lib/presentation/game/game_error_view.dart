@@ -39,6 +39,8 @@ class GameErrorView extends StatelessWidget {
                 ),
               ),
               const Spacer(),
+              Icon(icon, color: Colors.white, size: 48),
+              const SizedBox(height: 20),
               Text(
                 title,
                 textAlign: TextAlign.center,

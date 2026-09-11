@@ -178,6 +178,15 @@
         ao código de cada carta. Essa consulta não envia dados pessoais —
         apenas o código lido do QR code.
       </li>
+      <li>
+        <strong>Estatísticas de uso (analytics):</strong> usamos o Firebase
+        Analytics para entender como o jogo é usado — por exemplo, quantas
+        cartas são escaneadas, se a música toca com sucesso pelo Spotify ou
+        cai para a prévia de 30 segundos, e a taxa de erros nesse processo.
+        Esses eventos não incluem nome, e-mail ou qualquer dado que
+        identifique você pessoalmente, nem são associados à sua conta
+        Spotify.
+      </li>
     </ul>
 
     <h3>2.3 Preferências armazenadas apenas no seu dispositivo</h3>
@@ -212,7 +221,7 @@
     </p>
     <ul>
       <li><strong>Spotify</strong> — autenticação e reprodução de música.</li>
-      <li><strong>Google Firebase</strong> (Firestore e Crashlytics) — catálogo de músicas e diagnóstico técnico de falhas.</li>
+      <li><strong>Google Firebase</strong> (Firestore, Crashlytics e Analytics) — catálogo de músicas, diagnóstico técnico de falhas e estatísticas de uso do jogo.</li>
     </ul>
     <p>Cada um desses serviços trata os dados de acordo com sua própria política de privacidade.</p>
 
@@ -223,9 +232,12 @@
       armazenados no Firebase Crashlytics por até 90 dias, conforme a
       política de retenção padrão do Firebase
       (<a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">firebase.google.com/support/privacy</a>),
-      sendo excluídos automaticamente após esse período. Não mantemos token
-      de acesso do Spotify persistido pelo BEATSPAN além do necessário para a
-      sessão de jogo.
+      sendo excluídos automaticamente após esse período. Os eventos de uso
+      coletados pelo Firebase Analytics ficam retidos por até 14 meses,
+      também conforme a política padrão do Google, sendo excluídos
+      automaticamente após esse prazo. Não mantemos token de acesso do
+      Spotify persistido pelo BEATSPAN além do necessário para a sessão de
+      jogo.
     </p>
 
     <h2>6. Seus direitos (LGPD)</h2>

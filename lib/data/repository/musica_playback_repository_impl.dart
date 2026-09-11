@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 
+import '../../domain/analytics_reporting.dart';
 import '../../domain/error_reporting.dart';
 import '../../domain/exceptions/playback_exceptions.dart';
 import '../../domain/exceptions/rate_limited_exception.dart';
@@ -58,6 +59,9 @@ class MusicaPlaybackRepositoryImpl implements MusicaPlaybackRepository {
         );
         previewUrl = itunesTrack?.previewUrl;
         albumArtUrl ??= itunesTrack?.artworkUrl;
+        if (previewUrl != null) {
+          reportAnalyticsEvent(AnalyticsEvent.itunesFallbackUsed);
+        }
       }
 
       if (previewUrl == null) return null;

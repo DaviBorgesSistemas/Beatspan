@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../camera_permission/camera_permission_view.dart';
@@ -35,7 +34,7 @@ class _HomeViewState extends State<HomeView> {
         fontSize: 16.0,
       );
     } else {
-      exit(1);
+      SystemNavigator.pop();
     }
   }
 

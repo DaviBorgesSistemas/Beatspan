@@ -49,140 +49,118 @@ void systemChromeConfigure() async {
 
 final instance = GetIt.instance;
 
+/// Registro idempotente: registra apenas se [T] ainda não estiver
+/// registrado em [GetIt]. Cada módulo de DI pode ser chamado mais de uma
+/// vez (ex.: `initAppModule` seguido de um teste que também o chama, ou
+/// `initFaqsModule`/`initSpotifyModule` acionados por navegação repetida)
+/// sem lançar `StateError` de registro duplicado.
+extension _IdempotentRegistration on GetIt {
+  void registerLazySingletonIfAbsent<T extends Object>(
+    T Function() factoryFunc,
+  ) {
+    if (!isRegistered<T>()) registerLazySingleton<T>(factoryFunc);
+  }
+
+  void registerFactoryIfAbsent<T extends Object>(T Function() factoryFunc) {
+    if (!isRegistered<T>()) registerFactory<T>(factoryFunc);
+  }
+
+  void unregisterIfRegistered<T extends Object>() {
+    if (isRegistered<T>()) unregister<T>();
+  }
+}
+
 Future<void> initAppModule() async {
   final sharedPrefs = await SharedPreferences.getInstance();
-  if (!instance.isRegistered<SharedPreferences>()) {
-    instance.registerLazySingleton<SharedPreferences>(() => sharedPrefs);
-  }
+  instance.registerLazySingletonIfAbsent<SharedPreferences>(() => sharedPrefs);
 
-  if (!instance.isRegistered<AppPreferences>()) {
-    instance.registerLazySingleton<AppPreferences>(
-      () => AppPreferences(instance<SharedPreferences>()),
-    );
-  }
+  instance.registerLazySingletonIfAbsent<AppPreferences>(
+    () => AppPreferences(instance<SharedPreferences>()),
+  );
 
-  if (!instance.isRegistered<NetworkInfo>()) {
-    instance.registerLazySingleton<NetworkInfo>(
-      () => NetworkInfoImpl(Connectivity()),
-    );
-  }
-  if (!instance.isRegistered<SpotifyService>()) {
-    instance.registerLazySingleton<SpotifyService>(
-      () => SpotifyService(
-        clientId: _requiredEnv('SPOTIFY_CLIENT_ID'),
-        redirectUrl: _requiredEnv('SPOTIFY_REDIRECT_URL'),
-        appPreferences: instance<AppPreferences>(),
-      ),
-    );
-  }
+  instance.registerLazySingletonIfAbsent<NetworkInfo>(
+    () => NetworkInfoImpl(Connectivity()),
+  );
+  instance.registerLazySingletonIfAbsent<SpotifyService>(
+    () => SpotifyService(
+      clientId: _requiredEnv('SPOTIFY_CLIENT_ID'),
+      redirectUrl: _requiredEnv('SPOTIFY_REDIRECT_URL'),
+      appPreferences: instance<AppPreferences>(),
+    ),
+  );
 
-  if (!instance.isRegistered<MusicaFirestoreDataSource>()) {
-    instance.registerLazySingleton<MusicaFirestoreDataSource>(
-      () => MusicaFirestoreDataSource(),
-    );
-  }
-  if (!instance.isRegistered<MusicaRepository>()) {
-    instance.registerLazySingleton<MusicaRepository>(
-      () => MusicaRepositoryImpl(instance()),
-    );
-  }
-  if (!instance.isRegistered<GetMusicaUseCase>()) {
-    instance.registerFactory<GetMusicaUseCase>(
-      () => GetMusicaUseCase(instance()),
-    );
-  }
+  instance.registerLazySingletonIfAbsent<MusicaFirestoreDataSource>(
+    () => MusicaFirestoreDataSource(),
+  );
+  instance.registerLazySingletonIfAbsent<MusicaRepository>(
+    () => MusicaRepositoryImpl(instance()),
+  );
+  instance.registerFactoryIfAbsent<GetMusicaUseCase>(
+    () => GetMusicaUseCase(instance()),
+  );
 
-  if (!instance.isRegistered<ItunesSearchApi>()) {
-    instance.registerLazySingleton<ItunesSearchApi>(() => ItunesSearchApi());
-  }
-  if (!instance.isRegistered<MusicaPlaybackRepository>()) {
-    instance.registerLazySingleton<MusicaPlaybackRepository>(
-      () => MusicaPlaybackRepositoryImpl(
-        instance<SpotifyService>(),
-        instance<ItunesSearchApi>(),
-      ),
-    );
-  }
-  if (!instance.isRegistered<MusicaPlaybackUseCase>()) {
-    instance.registerFactory<MusicaPlaybackUseCase>(
-      () => MusicaPlaybackUseCase(instance()),
-    );
-  }
+  instance.registerLazySingletonIfAbsent<ItunesSearchApi>(
+    () => ItunesSearchApi(),
+  );
+  instance.registerLazySingletonIfAbsent<MusicaPlaybackRepository>(
+    () => MusicaPlaybackRepositoryImpl(
+      instance<SpotifyService>(),
+      instance<ItunesSearchApi>(),
+    ),
+  );
+  instance.registerFactoryIfAbsent<MusicaPlaybackUseCase>(
+    () => MusicaPlaybackUseCase(instance()),
+  );
 
-  if (!instance.isRegistered<SpotifyPlaybackControlRepository>()) {
-    instance.registerLazySingleton<SpotifyPlaybackControlRepository>(
-      () => SpotifyPlaybackControlRepositoryImpl(instance<SpotifyService>()),
-    );
-  }
-  if (!instance.isRegistered<SpotifyPlaybackUseCase>()) {
-    instance.registerFactory<SpotifyPlaybackUseCase>(
-      () => SpotifyPlaybackUseCase(instance()),
-    );
-  }
+  instance.registerLazySingletonIfAbsent<SpotifyPlaybackControlRepository>(
+    () => SpotifyPlaybackControlRepositoryImpl(instance<SpotifyService>()),
+  );
+  instance.registerFactoryIfAbsent<SpotifyPlaybackUseCase>(
+    () => SpotifyPlaybackUseCase(instance()),
+  );
 
-  if (!instance.isRegistered<PreviewPlaybackUseCase>()) {
-    instance.registerFactory<PreviewPlaybackUseCase>(
-      () => PreviewPlaybackUseCase(PreviewPlaybackControlRepositoryImpl()),
-    );
-  }
+  instance.registerFactoryIfAbsent<PreviewPlaybackUseCase>(
+    () => PreviewPlaybackUseCase(PreviewPlaybackControlRepositoryImpl()),
+  );
 
-  if (!instance.isRegistered<GameViewModel>()) {
-    instance.registerFactory<GameViewModel>(
-      () => GameViewModel(
-        appPreferences: instance<AppPreferences>(),
-        getMusicaUseCase: instance<GetMusicaUseCase>(),
-        musicaPlaybackUseCase: instance<MusicaPlaybackUseCase>(),
-      ),
-    );
-  }
+  instance.registerFactoryIfAbsent<GameViewModel>(
+    () => GameViewModel(
+      appPreferences: instance<AppPreferences>(),
+      getMusicaUseCase: instance<GetMusicaUseCase>(),
+      musicaPlaybackUseCase: instance<MusicaPlaybackUseCase>(),
+    ),
+  );
 }
 
 void initFaqsModule() {
-  if (!instance.isRegistered<FaqLocalDataSource>()) {
-    instance.registerLazySingleton<FaqLocalDataSource>(
-      () => FaqLocalDataSourceImpl(),
-    );
-  }
-  if (!instance.isRegistered<FaqRepository>()) {
-    instance.registerLazySingleton<FaqRepository>(
-      () => FaqRepositoryImpl(instance()),
-    );
-  }
-  if (!instance.isRegistered<FaqsUseCase>()) {
-    instance.registerFactory<FaqsUseCase>(() => FaqsUseCase(instance()));
-  }
-  if (!instance.isRegistered<FaqsViewModel>()) {
-    instance.registerFactory<FaqsViewModel>(() => FaqsViewModel(instance()));
-  }
+  instance.registerLazySingletonIfAbsent<FaqLocalDataSource>(
+    () => FaqLocalDataSourceImpl(),
+  );
+  instance.registerLazySingletonIfAbsent<FaqRepository>(
+    () => FaqRepositoryImpl(instance()),
+  );
+  instance.registerFactoryIfAbsent<FaqsUseCase>(
+    () => FaqsUseCase(instance()),
+  );
+  instance.registerFactoryIfAbsent<FaqsViewModel>(
+    () => FaqsViewModel(instance()),
+  );
 }
 
 void initSpotifyModule() {
-  if (!instance.isRegistered<ConnectSpotifyPremiumViewModel>()) {
-    instance.registerFactory<ConnectSpotifyPremiumViewModel>(
-      () => ConnectSpotifyPremiumViewModel(
-        instance<SpotifyService>(),
-        instance<AppPreferences>(),
-      ),
-    );
-  }
+  instance.registerFactoryIfAbsent<ConnectSpotifyPremiumViewModel>(
+    () => ConnectSpotifyPremiumViewModel(
+      instance<SpotifyService>(),
+      instance<AppPreferences>(),
+    ),
+  );
 }
 
 void disposeFaqsModule() {
-  if (instance.isRegistered<FaqsViewModel>()) {
-    instance.unregister<FaqsViewModel>();
-  }
-
-  if (instance.isRegistered<FaqsUseCase>()) {
-    instance.unregister<FaqsUseCase>();
-  }
-
-  if (instance.isRegistered<FaqRepository>()) {
-    instance.unregister<FaqRepository>();
-  }
-
-  if (instance.isRegistered<FaqLocalDataSource>()) {
-    instance.unregister<FaqLocalDataSource>();
-  }
+  instance.unregisterIfRegistered<FaqsViewModel>();
+  instance.unregisterIfRegistered<FaqsUseCase>();
+  instance.unregisterIfRegistered<FaqRepository>();
+  instance.unregisterIfRegistered<FaqLocalDataSource>();
 }
 
 Future<void> resetModules() async {

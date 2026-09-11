@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_prefs.dart';
+import '../../domain/analytics_reporting.dart';
 import '../../domain/failure.dart';
+import '../../domain/model/musica_playback_result.dart';
 import '../../domain/usecase/get_musica_usecase.dart';
 import '../../domain/usecase/musica_playback_usecase.dart';
 import 'game_navigation_event.dart';
@@ -59,15 +61,18 @@ class GameViewModel {
   }
 
   Future<void> handleDetectedCode(String rawValue) async {
+    reportAnalyticsEvent(AnalyticsEvent.qrScanned);
     final result = validate(rawValue);
 
     if (result == QrValidationResult.invalid) {
+      reportAnalyticsEvent(AnalyticsEvent.qrInvalid);
       navigationEvent.value = const NavigateToError();
       return;
     }
 
     final codigo = extractCodigo(rawValue);
     if (codigo == null) {
+      reportAnalyticsEvent(AnalyticsEvent.qrInvalid);
       navigationEvent.value = const NavigateToError();
       return;
     }
@@ -85,6 +90,9 @@ class GameViewModel {
 
     if (spotifyUri == null) {
       final failure = result.fold((failure) => failure, (_) => null);
+      reportAnalyticsEvent(AnalyticsEvent.musicaLookupFailed, {
+        'reason': failure.runtimeType.toString(),
+      });
       navigationEvent.value = switch (failure) {
         MusicaNaoEncontrada() => const NavigateToError(
           title: 'MÚSICA NÃO ENCONTRADA',
@@ -113,6 +121,9 @@ class GameViewModel {
     );
 
     navigationEvent.value = result.fold((failure) {
+      reportAnalyticsEvent(AnalyticsEvent.playbackFailed, {
+        'reason': failure.runtimeType.toString(),
+      });
       return switch (failure) {
         MusicaPlaybackPreviaIndisponivel() => const NavigateToError(
           title: 'PRÉVIA INDISPONÍVEL',
@@ -134,7 +145,20 @@ class GameViewModel {
         ),
         MusicaPlaybackUriInvalida() => const NavigateToError(),
       };
-    }, (playback) => NavigateToPlayer(playback));
+    }, (playback) {
+      // A fonte exata da prévia (Spotify vs. fallback iTunes) é reportada
+      // separadamente em `AnalyticsEvent.itunesFallbackUsed`, no ponto em
+      // que essa decisão realmente acontece
+      // (`MusicaPlaybackRepositoryImpl._fetchPreview`) — aqui só distinguimos
+      // faixa completa (Premium) de prévia de 30s (Free/preview).
+      reportAnalyticsEvent(AnalyticsEvent.playbackStarted, {
+        'source': switch (playback) {
+          FullTrackPlayback() => PlaybackSource.spotifyFull,
+          PreviewPlayback() => PlaybackSource.spotifyPreview,
+        },
+      });
+      return NavigateToPlayer(playback);
+    });
   }
 
   static const _connectionErrorEvent = NavigateToError(

@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../resource/assets_manager.dart';
 import '../resource/color_manager.dart';
@@ -32,7 +31,7 @@ class _FirstTimeViewState extends State<FirstTimeView> {
         fontSize: 16.0,
       );
     } else {
-      exit(1);
+      SystemNavigator.pop();
     }
   }
 
