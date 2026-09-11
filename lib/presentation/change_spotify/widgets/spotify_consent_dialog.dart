@@ -54,18 +54,27 @@ class SpotifyConsentDialog extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            GestureDetector(
+            Semantics(
+              link: true,
+              label: 'Leia a Política de Privacidade completa',
+              excludeSemantics: true,
               onTap: () => launchUrl(
                 Uri.parse(_privacyPolicyUrl),
                 mode: LaunchMode.externalApplication,
               ),
-              child: Text(
-                'Leia a Política de Privacidade completa',
-                style: TextStyle(
-                  color: ColorManager.yellowLink,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  decoration: TextDecoration.underline,
+              child: GestureDetector(
+                onTap: () => launchUrl(
+                  Uri.parse(_privacyPolicyUrl),
+                  mode: LaunchMode.externalApplication,
+                ),
+                child: Text(
+                  'Leia a Política de Privacidade completa',
+                  style: TextStyle(
+                    color: ColorManager.yellowLink,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
               ),
             ),
@@ -86,28 +95,34 @@ class SpotifyConsentDialog extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Container(
-                    height: 48,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(24),
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF6C2BFF), Color(0xFFFF469E)],
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                      ),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
+                  child: Semantics(
+                    button: true,
+                    label: 'Aceitar e conectar',
+                    excludeSemantics: true,
+                    onTap: () => Navigator.of(context).pop(true),
+                    child: Container(
+                      height: 48,
+                      decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(24),
-                        onTap: () => Navigator.of(context).pop(true),
-                        child: const Center(
-                          child: Text(
-                            'Aceitar e conectar',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w900,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF6C2BFF), Color(0xFFFF469E)],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(24),
+                          onTap: () => Navigator.of(context).pop(true),
+                          child: const Center(
+                            child: Text(
+                              'Aceitar e conectar',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w900,
+                              ),
                             ),
                           ),
                         ),

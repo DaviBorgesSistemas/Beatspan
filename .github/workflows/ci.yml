@@ -62,3 +62,14 @@ jobs:
 
       - name: Rodar testes
         run: flutter test
+
+  osv-scan:
+    permissions:
+      # Necessário para publicar o SARIF no CodeQL/Code Scanning.
+      actions: read
+      security-events: write
+      contents: read
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.5.1"
+    with:
+      scan-args: |-
+        --lockfile=pubspec.lock

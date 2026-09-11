@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../app/app_prefs.dart';
-import '../../data/repository/preview_playback_control_repository_impl.dart';
+import '../../app/di.dart';
 import '../../domain/model/musica_playback_result.dart';
 import '../../domain/usecase/musica_playback_usecase.dart';
 import '../../domain/usecase/preview_playback_usecase.dart';
@@ -72,6 +72,7 @@ class _GameViewState extends State<GameView> {
 
   void _onDetect(BarcodeCapture capture) async {
     if (_isHandlingCode) return;
+    if (capture.barcodes.isEmpty) return;
 
     final barcode = capture.barcodes.first;
     final value = barcode.rawValue;
@@ -114,7 +115,7 @@ class _GameViewState extends State<GameView> {
           spotifyPlaybackUseCase: widget.spotifyPlaybackUseCase,
           musicaPlaybackUseCase: widget.musicaPlaybackUseCase,
           previewPlaybackUseCaseFactory: () =>
-              PreviewPlaybackUseCase(PreviewPlaybackControlRepositoryImpl()),
+              instance<PreviewPlaybackUseCase>(),
         ),
       ),
       PreviewPlayback() => _navigateToPlayer(
@@ -124,9 +125,7 @@ class _GameViewState extends State<GameView> {
           trackName: playback.trackName,
           artistName: playback.artistName,
           albumArtUrl: playback.albumArtUrl,
-          previewPlaybackUseCase: PreviewPlaybackUseCase(
-            PreviewPlaybackControlRepositoryImpl(),
-          ),
+          previewPlaybackUseCase: instance<PreviewPlaybackUseCase>(),
           spotifyPlaybackUseCase: widget.spotifyPlaybackUseCase,
         ),
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:ffi';
 import '../../domain/enum/flow_state.dart';
+import '../../domain/error_reporting.dart';
 import '../../domain/model/faqs.dart';
 import '../../domain/usecase/faqs_usecase.dart';
 
@@ -24,7 +25,14 @@ class FaqsViewModel {
     state.value = FlowState.loading;
     (await _faqsUseCase.execute(Void)).fold(
       (failure) {
-        debugPrint('Erro:${failure.message}');
+        reportNonFatalError(
+          Exception(failure.message),
+          StackTrace.current,
+          information: [
+            'FaqsViewModel._getFaqs',
+            'Failure.code=${failure.code}',
+          ],
+        );
         state.value = FlowState.error;
       },
       (success) {

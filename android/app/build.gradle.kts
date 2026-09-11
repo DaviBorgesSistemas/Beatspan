@@ -12,14 +12,30 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-// Keystore de release: nunca versionado (ver docs/2-SECURITY_REPORT.md, SEC-011).
-// Sem android/key.properties, o release cai de volta para a assinatura de debug
-// (mantém `flutter build apk --debug`/CI funcionando sem a keystore de produção).
+// Keystore de release: nunca versionado (ver docs/2-SECURITY_REPORT.md, SEC-002).
+// Sem android/key.properties, qualquer task de release falha explicitamente
+// (ver checagem via gradle.taskGraph.whenReady abaixo) — builds de debug/CI
+// continuam funcionando sem a keystore de produção.
 val keystorePropertiesFile = rootProject.file("key.properties")
 val keystoreProperties = Properties()
 val hasKeystoreProperties = keystorePropertiesFile.exists()
 if (hasKeystoreProperties) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
+// SEC-002: falha o build antes de compilar/assinar qualquer task de release
+// sem a keystore de produção, em vez de cair silenciosamente para a
+// assinatura de debug. Usa o grafo de tasks resolvido (não a fase de
+// configuração) para não afetar `flutter build apk --debug`/`flutter test`.
+gradle.taskGraph.whenReady {
+    val buildingRelease = allTasks.any { it.name.contains("Release") }
+    if (buildingRelease && !hasKeystoreProperties) {
+        throw GradleException(
+            "Build de release sem android/key.properties. Crie o arquivo a partir de " +
+                "android/key.properties.example com a keystore de produção antes de gerar " +
+                "um build de release (ver docs/2-SECURITY_REPORT.md, SEC-002)."
+        )
+    }
 }
 
 android {
@@ -65,7 +81,10 @@ android {
     buildTypes {
         release {
             // Usa a keystore de produção quando android/key.properties existe
-            // (ver android/key.properties.example); sem ela, cai para debug.
+            // (ver android/key.properties.example). O fallback para debug abaixo
+            // só é avaliado na fase de configuração (AGP configura todas as build
+            // types); a task graph check acima já aborta o build antes de gerar
+            // qualquer artefato de release assinado com a chave de debug.
             signingConfig = if (hasKeystoreProperties) {
                 signingConfigs.getByName("release")
             } else {

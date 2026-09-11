@@ -1,7 +1,10 @@
 import 'package:beatspan/app/app_prefs.dart';
+import 'package:beatspan/app/di.dart';
 import 'package:beatspan/domain/model/musica_playback_result.dart';
+import 'package:beatspan/domain/model/playback_state.dart';
 import 'package:beatspan/domain/usecase/get_musica_usecase.dart';
 import 'package:beatspan/domain/usecase/musica_playback_usecase.dart';
+import 'package:beatspan/domain/usecase/preview_playback_usecase.dart';
 import 'package:beatspan/domain/usecase/spotify_playback_usecase.dart';
 import 'package:beatspan/presentation/game/game_error_view.dart';
 import 'package:beatspan/presentation/game/game_navigation_event.dart';
@@ -10,8 +13,10 @@ import 'package:beatspan/presentation/game/game_viewmodel.dart';
 import 'package:beatspan/presentation/game/player_music/play_music_free_view.dart';
 import 'package:beatspan/presentation/game/player_music/player_music_premium_view.dart';
 import 'package:beatspan/presentation/game/turn_phone_ready_view.dart';
+import 'package:dartz/dartz.dart' hide State;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -22,6 +27,9 @@ class _MockMusicaPlaybackUseCase extends Mock
 
 class _MockSpotifyPlaybackUseCase extends Mock
     implements SpotifyPlaybackUseCase {}
+
+class _MockPreviewPlaybackUseCase extends Mock
+    implements PreviewPlaybackUseCase {}
 
 void main() {
   late AppPreferences appPreferences;
@@ -40,6 +48,28 @@ void main() {
     );
     spotifyPlaybackUseCase = _MockSpotifyPlaybackUseCase();
     when(() => spotifyPlaybackUseCase.pause()).thenAnswer((_) async {});
+
+    // GameView resolve PreviewPlaybackUseCase via get_it (ARQ-001) em vez de
+    // instanciar diretamente — registra um fake aqui para os testes não
+    // dependerem de initAppModule()/Firebase reais.
+    if (instance.isRegistered<PreviewPlaybackUseCase>()) {
+      instance.unregister<PreviewPlaybackUseCase>();
+    }
+    instance.registerFactory<PreviewPlaybackUseCase>(() {
+      final mock = _MockPreviewPlaybackUseCase();
+      when(() => mock.load(any())).thenAnswer((_) async => const Right(unit));
+      when(
+        () => mock.playerStateStream,
+      ).thenAnswer((_) => const Stream<PlaybackState>.empty());
+      when(() => mock.dispose()).thenAnswer((_) async {});
+      return mock;
+    });
+  });
+
+  tearDown(() {
+    if (instance.isRegistered<PreviewPlaybackUseCase>()) {
+      instance.unregister<PreviewPlaybackUseCase>();
+    }
   });
 
   Widget buildSubject() {
@@ -59,6 +89,22 @@ void main() {
 
     expect(find.byType(GameView), findsOneWidget);
   });
+
+  testWidgets(
+    'ignora BarcodeCapture sem barcodes detectados sem lançar exceção '
+    '(ARQ-003)',
+    (tester) async {
+      await tester.pumpWidget(buildSubject());
+      await tester.pump();
+
+      final scanner = tester.widget<MobileScanner>(find.byType(MobileScanner));
+      scanner.onDetect!(const BarcodeCapture());
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(GameView), findsOneWidget);
+    },
+  );
 
   testWidgets(
     'navega para GameErrorView quando o ViewModel emite NavigateToError',

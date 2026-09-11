@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Roda o OSV-Scanner (https://github.com/google/osv-scanner) contra o pubspec.lock
-# para checar vulnerabilidades conhecidas nas dependências do projeto (SEC-010).
+# para checar vulnerabilidades conhecidas nas dependências do projeto (SEC-003).
 #
 # Uso: ./scripts/scan_dependencies.sh
 #

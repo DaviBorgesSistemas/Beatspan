@@ -6,13 +6,13 @@ Beatspan is a Flutter app that companions a **Hitster**-style music card game: e
 
 ## Features
 
-- **Splash screen, language and country selection** on first launch, with local persistence of preferences.
+- **Splash screen** on first launch, with local persistence of preferences. App is Portuguese (pt-BR) only — no language/country selection.
 - **QR code scanning** via camera (`mobile_scanner`), validating links from the `beatspangame.com` domain (and the Firebase Hosting domains used during development).
 - **Track resolution via Firestore** — the code extracted from the URL is looked up in the `musicas` collection, which returns the track's `spotify_uri` (see `docs/2-SECURITY_REPORT.md` for the schema and security rules).
 - **Track playback via Spotify** — Premium users play the full track through Spotify App Remote (`spotify_sdk`); Free plan users fetch the 30s preview via the Spotify Web API, with a fallback to the iTunes Search API.
 - **Rules screen** with illustrations.
 - **FAQ** loaded from a local JSON file (`assets/json/faq.json`), with a dedicated repository and use case.
-- **Settings**: switch Spotify account, upgrade to Premium, language, country, contact, and app sharing.
+- **Settings**: switch Spotify account, upgrade to Premium, contact, and app sharing.
 
 ## Tech stack
 
@@ -41,18 +41,18 @@ lib/
 │   ├── network/         # SpotifyService (App Remote), SpotifyWebApi (REST), MusicaFirestoreDataSource, ItunesSearchApi, NetworkInfo
 │   └── repository/      # repository implementations (FaqRepositoryImpl, MusicaRepositoryImpl)
 ├── domain/
-│   ├── enum/            # FlowState, PlanType, CountryType, LanguageType
+│   ├── enum/            # FlowState, PlanType, TurnPhoneMode, GameModeType
 │   ├── exception/        # domain exceptions (e.g. MusicaNaoEncontradaException)
 │   ├── model/            # domain models (e.g. Faqs, Musica)
 │   ├── repository/       # abstract contracts (FaqRepository, MusicaRepository)
 │   └── usecase/          # use cases (e.g. FaqsUsecase, GetMusicaUseCase)
 └── presentation/
     ├── splash, home, game, rules, settings, faqs, contact,
-    │   country, language, change_spotify, connect_spotify_premium, share
+    │   change_spotify, connect_spotify_premium, share
     └── resource/         # color, font, style, theme, screen and asset managers
 ```
 
-> Note: the FAQ and music-lookup-by-code (Firestore) features implement the full stack (repository + usecase + datasource). The Spotify/iTunes playback flow inside `GameView` still talks directly to `SpotifyService`/`SpotifyWebApi`/`ItunesSearchApi`, without a repository/usecase — see `docs/1-ARCHITECTURAL_REVIEW.md`, finding `ARQ-003`.
+> Note: the FAQ and music-lookup-by-code (Firestore) features implement the full stack (repository + usecase + datasource). The Spotify/iTunes playback flow inside `GameView` still talks directly to `SpotifyService`/`SpotifyWebApi`/`ItunesSearchApi`, without a repository/usecase — see `docs/1-ARCHITECTURAL_REVIEW.md`, finding `ARQ-001`.
 
 ## Main game flow
 
@@ -109,7 +109,7 @@ dart run flutter_native_splash:create
 
 ## Commit convention
 
-The project follows [Conventional Commits](https://www.conventionalcommits.org/): `<type>: <description>`, with types `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `security`, `style`, `perf`. Generic messages (`...`, `..`, bare screen names) should no longer be used — commits predating this convention were not rewritten (see `docs/1-ARCHITECTURAL_REVIEW.md`, finding `DOC-005`).
+The project follows [Conventional Commits](https://www.conventionalcommits.org/): `<type>: <description>`, with types `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `security`, `style`, `perf`. Generic messages (`...`, `..`, bare screen names) should no longer be used — commits predating this convention were not rewritten (see `docs/1-ARCHITECTURAL_REVIEW.md`, finding `DOC-004`).
 
 Example: `fix: correctly validates track links without a locale prefix`.
 
@@ -130,7 +130,6 @@ Actively under development, pre-launch (not yet published on app stores). Known 
 - No game logic yet (rounds, scoring, timeline, winning) — the app currently covers the scan-and-play flow only.
 - No multiplayer or state sync across devices.
 - Test coverage still early-stage (see `test/`) — `GameView`/players still need coverage.
-- No observability/crash reporting in production (Crashlytics/Sentry).
 - iOS build not configured — only Android is functional today.
 
 See [docs/1-ARCHITECTURAL_REVIEW.md](docs/1-ARCHITECTURAL_REVIEW.md) for the full technical breakdown and [docs/4-ACTION_PLAN.md](docs/4-ACTION_PLAN.md) for the prioritized fix plan, with a progress checklist.

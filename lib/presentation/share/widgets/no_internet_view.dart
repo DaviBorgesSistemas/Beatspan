@@ -50,16 +50,22 @@ class _NoInternetViewState extends State<NoInternetView>
               children: [
                 Align(
                   alignment: Alignment.topRight,
-                  child: GestureDetector(
+                  child: Semantics(
+                    button: true,
+                    label: 'Fechar',
+                    excludeSemantics: true,
                     onTap: () => Navigator.of(context).pop(),
-                    child: const SizedBox(
-                      width: 44,
-                      height: 44,
-                      child: Center(
-                        child: Icon(
-                          Icons.close,
-                          color: Colors.white,
-                          size: 32,
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: const SizedBox(
+                        width: 48,
+                        height: 48,
+                        child: Center(
+                          child: Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: 32,
+                          ),
                         ),
                       ),
                     ),

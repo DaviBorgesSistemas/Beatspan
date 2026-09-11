@@ -3,8 +3,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../domain/enum/settings_enum.dart';
 
 const String prefsKeyPlanType = 'PREFS_KEY_PLAN_TYPE';
-const String prefsKeyLanguage = 'PREFS_KEY_LANG';
-const String prefsKeyCountry = 'PREFS_KEY_CONTRY';
 const String prefsKeyTurnPhoneEnabled = 'PREFS_KEY_TURN_PHONE_ENABLED';
 const String prefsKeyTurnPhoneMode = 'PREFS_KEY_TURN_PHONE_MODE';
 const String prefsKeyGameMode = 'PREFS_KEY_GAME_MODE';
@@ -15,24 +13,6 @@ class AppPreferences {
   final SharedPreferences _sharedPreferences;
 
   AppPreferences(this._sharedPreferences);
-
-  Future<void> setAppLanguage(LanguageType lang) async {
-    await _sharedPreferences.setString(prefsKeyLanguage, lang.name);
-  }
-
-  Future<LanguageType?> getAppLanguage() async {
-    final lang = _sharedPreferences.getString(prefsKeyLanguage);
-    return lang != null ? LanguageType.values.byName(lang) : null;
-  }
-
-  Future<void> setAppCountry(CountryType country) async {
-    await _sharedPreferences.setString(prefsKeyCountry, country.name);
-  }
-
-  Future<CountryType?> getAppCountry() async {
-    final country = _sharedPreferences.getString(prefsKeyCountry);
-    return country != null ? CountryType.values.byName(country) : null;
-  }
 
   Future<void> setAppPlanType(PlanType plan) async {
     await _sharedPreferences.setString(prefsKeyPlanType, plan.name);
@@ -78,14 +58,10 @@ class AppPreferences {
   }
 
   Future<void> setSpotifyConsentAccepted(bool accepted) async {
-    await _sharedPreferences.setBool(
-      prefsKeySpotifyConsentAccepted,
-      accepted,
-    );
+    await _sharedPreferences.setBool(prefsKeySpotifyConsentAccepted, accepted);
   }
 
   bool hasAcceptedSpotifyConsent() {
-    return _sharedPreferences.getBool(prefsKeySpotifyConsentAccepted) ??
-        false;
+    return _sharedPreferences.getBool(prefsKeySpotifyConsentAccepted) ?? false;
   }
 }

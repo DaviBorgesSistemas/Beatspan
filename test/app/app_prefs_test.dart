@@ -11,45 +11,38 @@ void main() {
     appPreferences = AppPreferences(await SharedPreferences.getInstance());
   });
 
-  test('idioma retorna null quando nunca foi definido e persiste quando definido', () async {
-    expect(await appPreferences.getAppLanguage(), isNull);
+  test(
+    'plano retorna null quando nunca foi definido e persiste quando definido',
+    () async {
+      expect(await appPreferences.getAppPlanType(), isNull);
 
-    await appPreferences.setAppLanguage(LanguageType.english);
+      await appPreferences.setAppPlanType(PlanType.premium);
 
-    expect(await appPreferences.getAppLanguage(), LanguageType.english);
-  });
+      expect(await appPreferences.getAppPlanType(), PlanType.premium);
+    },
+  );
 
-  test('país retorna null quando nunca foi definido e persiste quando definido', () async {
-    expect(await appPreferences.getAppCountry(), isNull);
+  test(
+    'vire o telefone é false por padrão e persiste quando alterado',
+    () async {
+      expect(appPreferences.getTurnPhoneEnabled(), isFalse);
 
-    await appPreferences.setAppCountry(CountryType.estadosunidos);
+      await appPreferences.setTurnPhoneEnabled(true);
 
-    expect(await appPreferences.getAppCountry(), CountryType.estadosunidos);
-  });
+      expect(appPreferences.getTurnPhoneEnabled(), isTrue);
+    },
+  );
 
-  test('plano retorna null quando nunca foi definido e persiste quando definido', () async {
-    expect(await appPreferences.getAppPlanType(), isNull);
+  test(
+    'modo de vire o telefone é giroscópio por padrão e persiste quando alterado',
+    () async {
+      expect(appPreferences.getTurnPhoneMode(), TurnPhoneMode.gyroscope);
 
-    await appPreferences.setAppPlanType(PlanType.premium);
+      await appPreferences.setTurnPhoneMode(TurnPhoneMode.countdown);
 
-    expect(await appPreferences.getAppPlanType(), PlanType.premium);
-  });
-
-  test('vire o telefone é false por padrão e persiste quando alterado', () async {
-    expect(appPreferences.getTurnPhoneEnabled(), isFalse);
-
-    await appPreferences.setTurnPhoneEnabled(true);
-
-    expect(appPreferences.getTurnPhoneEnabled(), isTrue);
-  });
-
-  test('modo de vire o telefone é giroscópio por padrão e persiste quando alterado', () async {
-    expect(appPreferences.getTurnPhoneMode(), TurnPhoneMode.gyroscope);
-
-    await appPreferences.setTurnPhoneMode(TurnPhoneMode.countdown);
-
-    expect(appPreferences.getTurnPhoneMode(), TurnPhoneMode.countdown);
-  });
+      expect(appPreferences.getTurnPhoneMode(), TurnPhoneMode.countdown);
+    },
+  );
 
   test(
     'modo de jogo é preview por padrão, hasGameMode reflete se já foi definido',

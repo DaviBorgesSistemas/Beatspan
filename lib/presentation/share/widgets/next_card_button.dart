@@ -20,40 +20,48 @@ class NextCardButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: expandWidth ? double.infinity : null,
-      margin: expandWidth ? EdgeInsets.zero : margin,
-      height: 56,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        gradient: LinearGradient(
-          colors: gradientColors,
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        boxShadow: boxShadow,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
+    final effectiveOnTap = onTap ?? () => Navigator.of(context).pop();
+
+    return Semantics(
+      button: true,
+      label: 'Próxima carta',
+      excludeSemantics: true,
+      onTap: effectiveOnTap,
+      child: Container(
+        width: expandWidth ? double.infinity : null,
+        margin: expandWidth ? EdgeInsets.zero : margin,
+        height: 56,
+        decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(28),
-          onTap: onTap ?? () => Navigator.of(context).pop(),
-          child: Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'PRÓXIMA CARTA',
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.0,
+          gradient: LinearGradient(
+            colors: gradientColors,
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+          boxShadow: boxShadow,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(28),
+            onTap: effectiveOnTap,
+            child: Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'PRÓXIMA CARTA',
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.0,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Icon(Icons.arrow_forward, color: textColor, size: 18),
-              ],
+                  const SizedBox(width: 8),
+                  Icon(Icons.arrow_forward, color: textColor, size: 18),
+                ],
+              ),
             ),
           ),
         ),

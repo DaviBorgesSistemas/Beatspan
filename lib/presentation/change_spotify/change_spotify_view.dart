@@ -73,18 +73,24 @@ class _ChangeSpotifyViewState extends State<ChangeSpotifyView> {
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: ColorManager.bagroundColor,
-          leading: GestureDetector(
-            onTap: () {
-              Navigator.of(context).pop();
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(width: 1, color: Color(0X33CDBDFF)),
+          leading: Semantics(
+            button: true,
+            label: 'Voltar',
+            excludeSemantics: true,
+            onTap: () => Navigator.of(context).pop(),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).pop();
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(left: 16),
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(width: 1, color: Color(0X33CDBDFF)),
+                  ),
+                  child: Icon(Icons.arrow_back, color: Colors.white),
                 ),
-                child: Icon(Icons.arrow_back, color: Colors.white),
               ),
             ),
           ),
@@ -109,7 +115,7 @@ class _ChangeSpotifyViewState extends State<ChangeSpotifyView> {
               ),
               Align(
                 alignment: Alignment.center,
-                child: SpotifyConnectGraphic(),
+                child: ExcludeSemantics(child: SpotifyConnectGraphic()),
               ),
               Positioned(
                 bottom: 0,
@@ -117,64 +123,81 @@ class _ChangeSpotifyViewState extends State<ChangeSpotifyView> {
                 right: 0,
                 child: Column(
                   children: [
-                    Container(
-                      height: 56,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(28),
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF6C2BFF), Color(0xFFFF469E)],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ),
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
+                    Semantics(
+                      button: true,
+                      label: 'Ligar com Spotify',
+                      excludeSemantics: true,
+                      onTap: () => _connectSpotify(context),
+                      child: Container(
+                        height: 56,
+                        decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(28),
-                          onTap: () => _connectSpotify(context),
-                          child: Center(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.graphic_eq),
-                                SizedBox(width: 8),
-                                Text(
-                                  'LIGAR COM SPOTIFY',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w900,
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF6C2BFF), Color(0xFFFF469E)],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(28),
+                            onTap: () => _connectSpotify(context),
+                            child: Center(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.graphic_eq),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'LIGAR COM SPOTIFY',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w900,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
                     SizedBox(height: 8),
-                    Container(
-                      height: 56,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(28),
-                        border: Border.all(width: 2, color: Color(0XFF6824FC)),
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
+                    Semantics(
+                      button: true,
+                      label: 'Não tenho Spotify Premium',
+                      excludeSemantics: true,
+                      onTap: () => Navigator.of(
+                        context,
+                      ).pushNamed(Routes.changeSpotifyFreeRoute),
+                      child: Container(
+                        height: 56,
+                        decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(28),
-                          onTap: () {
-                            Navigator.of(
-                              context,
-                            ).pushNamed(Routes.changeSpotifyFreeRoute);
-                          },
-                          child: Center(
-                            child: Text(
-                              'NÃO TENHO SPOTIFY PREMIUM',
-                              style: TextStyle(
-                                color: Color(0XFF6824FC),
-                                fontSize: 14,
-                                fontWeight: FontWeight.w900,
+                          border: Border.all(
+                            width: 2,
+                            color: Color(0XFF6824FC),
+                          ),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(28),
+                            onTap: () {
+                              Navigator.of(
+                                context,
+                              ).pushNamed(Routes.changeSpotifyFreeRoute);
+                            },
+                            child: Center(
+                              child: Text(
+                                'NÃO TENHO SPOTIFY PREMIUM',
+                                style: TextStyle(
+                                  color: Color(0XFF6824FC),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                ),
                               ),
                             ),
                           ),

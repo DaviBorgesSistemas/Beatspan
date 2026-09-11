@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import '../../../domain/error_reporting.dart';
 import '../../../domain/model/faqs.dart';
 import '../../resource/color_manager.dart';
 import '../../resource/font_manager.dart';
@@ -98,7 +99,11 @@ class _SessionTileState extends State<SessionTile> {
                   Navigator.pushNamed(context, '/$route');
                 }
               } else {
-                debugPrint('Formato de link não reconhecido: $target');
+                reportNonFatalError(
+                  Exception('Formato de link não reconhecido: $target'),
+                  StackTrace.current,
+                  information: const ['SessionTile.getContent'],
+                );
               }
             },
         ),

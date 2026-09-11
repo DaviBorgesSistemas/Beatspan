@@ -1,86 +1,60 @@
-# Registro de Débito Técnico — Beatspan
+# Beatspan — Tech Debt Register
 
-**Projeto:** Beatspan
-**Data da análise:** 2026-09-09
-**Versão do documento:** 2.0
+**Data da análise:** 2026-09-10
+**Versão do documento:** 2.0 (reanálise completa)
+**Commit analisado:** `8f2ae1e` (branch `beatspan_v2`)
 
----
-
-## Tabela de débitos
-
-| ID | Descrição | Categoria | Severidade | Esforço | Status | Impacto se não resolvido |
-|---|---|---|---|---|---|---|
-| SEC-001 | `.env` com credencial versionada no Git, corrigido e revertido em <24h | Infra/Segurança | Alta | P | ⚠️ Reaberto | Credencial permanece exposta indefinidamente; sinal de processo sem verificação |
-| OPS-008 | Exceções tratadas (`catch`) nunca reportadas ao Crashlytics | Infra | Crítica | P | Novo | Erros mais comuns/acionáveis em produção ficam invisíveis |
-| DOC-011 | Plano de ação afirma item crítico (`SEC-001`) como concluído quando já havia regredido | Docs/Processo | Crítica | P | Novo | Checklist perde credibilidade; decisões futuras baseadas em falsa confiança |
-| UX-009 | Mensagem genérica "verifique sua internet" mascara falha real de config/autorização do Spotify | Código | Crítica | M | Novo | Suporte e usuário não conseguem diagnosticar o problema real (confirmado em produção) |
-| OPS-001 | Só 22/76 arquivos de `lib/` tocados por teste; cobertura ~50% onde tocado | Testes | Alta | G | ✅ Alvos priorizados resolvidos (2026-09-10) | ~~Fluxos críticos (Spotify connect, GameView) sem rede de segurança~~ — `connect_spotify_premium_view_model.dart` e `GameView` agora têm teste; 71/89 arquivos tocados. 18 restantes majoritariamente não-testáveis por natureza |
-| SEC-011 | Release Android assinado com chave de debug, sem minify/ofuscação | Infra/Segurança | Alta | M | Novo | Impede publicação real; facilita engenharia reversa do binário |
-| ARQ-013 | Controle de reprodução Spotify ainda chama SDK direto do widget | Arquitetura | Média | M | ✅ Resolvido (2026-09-10) | ~~Lógica de playback não testável isoladamente~~ — extraído para `SpotifyPlaybackUseCase`/`PreviewPlaybackUseCase`, 21 testes novos |
-| ARQ-014 | `GameViewModel` anêmica; orquestração real mora em `GameView` | Arquitetura | Média | M | ✅ Resolvido (2026-09-10) | ~~Tela mais crítica do app sem separação testável de fluxo~~ — orquestração extraída para `GameViewModel`, 7 testes novos |
-| OPS-012 | Branches órfãs (`0a`,`developer`); 4 commits de segurança perdidos em `refatore` (`flutter_secure_storage`) | Infra/Processo | Média | M | ✅ Resolvido (2026-09-10) | ~~Trabalho de segurança já feito uma vez foi descartado sem registro~~ — branches remotas apagadas por decisão explícita do usuário, sem reintegração prévia; commits recuperáveis por hash até GC do GitHub |
-| DOC-005 | Convenção de commits documentada não sobrevive nem 1 dia — HEAD ainda usa `...` | Docs/Processo | Média | P (contínuo) | ✅ Resolvido (2026-09-10) | ~~`git blame`/changelog automático continuam inviáveis~~ — gate no CI + hook local opt-in (`.githooks/commit-msg`) impedem novos commits fora do padrão |
-| SEC-012 | Gate de consentimento OAuth não centralizado — 2 caminhos de gameplay o ignoram | Segurança/Compliance | Média | M | ✅ Resolvido (2026-09-10) | ~~Possível autorização OAuth sem disclosure, a confirmar~~ — checagem centralizada em `SpotifyService` |
-| OPS-009 | Zero testes de integração/e2e | Testes | Média | G | Avaliado (2026-09-10) | Regressão de contrato (Firestore/`spotify_sdk`) só aparece manualmente — caminho crítico completo é estruturalmente intestável em CI, decisão de device farm pago fica em aberto |
-| OPS-010 | Nenhuma chamada de rede tem retry/backoff | Código | Média | M | ✅ Resolvido (2026-09-10) | ~~Timeout transitório já propaga para tela de erro, sem 2ª tentativa~~ — helper `withRetry` aplicado a Spotify Web API, iTunes e Firestore |
-| OPS-011 | Sem fallback automático Premium → Free quando Spotify falha | Produto/Código | Média | M | ✅ Resolvido (2026-09-10) | ~~Usuário travado até ação manual~~ — `PlayerMusicPremiumView` tenta a prévia automaticamente em falha de auth |
-| ARQ-015 | DI manual com boilerplate; `disposeFaqsModule()` nunca chamada | Arquitetura | Média | M | Novo | Registros nunca desalocados; boilerplate replicado por feature nova |
-| PERF-010 | Sem tratamento de rate limit 429 da Web API do Spotify | Código | Média | M | ✅ Resolvido (2026-09-10) | ~~Indistinguível de "sem internet" em uso de festa (scans rápidos)~~ — retry respeitando `Retry-After` + `RateLimitedException` dedicada |
-| OPS-007 | CI sem gate de cobertura, build ou secret-scanning | Infra | Média | P | Novo | Não teria pego a regressão de `SEC-001` |
-| UX-001 | Design system usado em <15% das telas (5/46), 53 cores hardcoded em 18 arquivos | Código | Alta | M | Aberto, quantificado | Inconsistência visual; manutenção de tema em N lugares |
-| UX-003 | Zero uso de `Semantics`/acessibilidade | Código | Alta | M | Aberto | App inacessível a leitor de tela |
-| PERF-009 | `MusicaRepositoryImpl` sem cache (repositório irmão já tem) | Performance | Baixa | P | ✅ Resolvido (2026-09-10) | ~~Scan repetido da mesma carta refaz round-trip ao Firestore~~ — cache em memória para sucesso (não para 404/erro de rede) |
-| PERF-011 | `MobileScannerController` sem `formats: [qrCode]` | Performance | Baixa | P | ✅ Resolvido (2026-09-10) | ~~CPU/bateria gastos analisando formatos irrelevantes~~ |
-| ARQ-019 | `GameViewModel` não injetada via construtor (única exceção ao padrão) | Arquitetura | Baixa | P/M | ✅ Resolvido (2026-09-10) | ~~Regra de "como uma tela recebe dependências" não é única~~ — `GameView` agora recebe `viewModel` via construtor |
-| DOC-009 | Docs 1/3/5 nunca revisados desde a criação (1 dia) — sem cadência de revisão | Docs/Processo | Baixa | M (processo) | Novo | Documentos divergem do código em dias, não meses |
-| UX-011 | Alvos de toque < 48dp em botões fechar/voltar (inconsistente) | Código | Baixa | P | ✅ Resolvido (2026-09-10) | ~~Risco de não conformidade WCAG 2.5.5~~ — os 3 botões abaixo do mínimo (28-32px) agora têm área de toque de 44x44 |
-| PERF-012 | 3 pesos de fonte Montserrat (w100/w200/w500) sem uso, ~970KB mortos | Performance | Baixa | P | Novo | Tamanho de app maior sem benefício |
-| ARQ-016 | `dart:ffi`'s `Void` usado como sentinela em vez de `dartz.Unit` | Código | Baixa | P | Novo | Import de FFI sem necessidade real; ruído cognitivo |
-| ARQ-017 | `MyApp` pseudo-singleton incorreto + campo morto `appState` | Código | Baixa | P | Novo | Complexidade sem função real |
-| ARQ-018 | Catch genérico em `MusicaPlaybackUseCase` descarta exceções tipadas | Código | Baixa | P | Novo | Perde distinção timeout/conexão/resposta inválida já tipada |
-| UX-008 | Fallback "Erro desconhecido" em SnackBar sem próxima ação | Código | Baixa | P | Novo | Armadilha silenciosa se invariante for quebrada no futuro |
-| UX-010 | Typo "PREMIYM" visível ao usuário Free | Conteúdo | Baixa | P | ✅ Resolvido (2026-09-10) | ~~Falta de revisão de texto~~ |
-| PERF-013 | Cantos do scanner overlay recriados a cada frame de animação | Performance | Baixa | P | Novo | Custo de rebuild não medido, mas evitável |
-| DOC-010 | `docs/melhorias/*` vazias e não versionadas | Docs | Baixa | P | Novo | Estrutura incompleta, diverge entre clone e ambiente do autor |
-| ARQ-010 | Model `Musica.fromMap` retorna string vazia silenciosamente | Código | Baixa | P | Aberto | Erros de dado incompleto só aparecem depois |
-| ARQ-012 | Nomenclatura de arquivo inconsistente (`*viewmodel*` vs `*_view_model*`) | Código | Baixa | P | Aberto | Ruído cognitivo mínimo |
-| DOC-003 | Sem ADRs | Docs | Média | M (contínuo) | Aberto | Decisões perdem contexto histórico |
-| DOC-004 | Sem CHANGELOG/tags de release | Docs | Média | P (setup) | Aberto | Impossível saber o que mudou entre builds |
-| DOC-006 | Estratégia de branching pouco clara | Docs/Processo | Média | M | Aberto, agravado por `OPS-012` | Confusão sobre fonte de verdade |
-| DOC-007 | Sem política de atualização de dependências / Dependabot | Docs | Baixa | P | Aberto | Atualizações de segurança dependem de lembrete manual |
-| UX-004 | Contraste dark theme não verificado sistematicamente | Código | Média | P | Aberto | Risco WCAG AA não detectado antes de produção |
-| UX-005 | Responsividade só smartphone, sem breakpoints | Código | Média | M | Aberto, evidência nova | Layout fixo (320x320) pode estourar em telas pequenas |
-| UX-006 | Loading/erro desigual entre telas | Código | Média | P | Aberto parcial | Falha silenciosa em telas sem tratamento |
-| ARQ-006 | Dois padrões de erro (`Either` vs exceptions cruas) | Arquitetura | Média | G | Aberto | Curva de aprendizado maior; UX de erro inconsistente |
-| PERF-004 | Assets de imagem grandes sem otimização | Performance | Média | M | Aberto | App maior; decodificação mais lenta |
-| PERF-005 | `const` inconsistente em widgets | Performance | Baixa | P | Aberto, evidência nova (`home_view.dart`) | Rebuilds marginalmente mais custosos |
-
-**Esforço:** P = Pequeno (horas/1-2 dias) · M = Médio (dias/1-2 semanas) · G = Grande (múltiplas semanas)
+IDs referenciam `docs/1-ARCHITECTURAL_REVIEW.md`/`docs/2-SECURITY_REPORT.md` quando já levantados lá.
 
 ---
 
-## Débitos críticos vs. aceitáveis
+## 1. Catálogo de débito técnico
 
-### Críticos — ação imediata, não devem persistir além do próximo ciclo
-- **SEC-001 (Reaberto)** — trivial de corrigir (esforço P), mas já regrediu uma vez; corrigir sem um gate automatizado (`OPS-007`) é resolver o sintoma, não a causa.
-- **DOC-011** — o próprio mecanismo de controle de progresso (o plano de ação) mentiu sobre o estado do código. Sem corrigir isso, nenhum checklist futuro é confiável.
-- **OPS-008** — mudança barata (adicionar `recordError` nos catches de negócio) com alto retorno: hoje a equipe não sabe quais erros reais os usuários enfrentam.
-- **UX-009** — confirmado com evidência de produção nesta sessão; usuários e suporte perdem tempo real por causa de uma mensagem errada.
-
-### Aceitáveis a curto prazo (com justificativa)
-- **ARQ-016, ARQ-017, ARQ-018** — impacto real baixo, não afetam corretude nem UX percebida; adiar até ciclo de "polish".
-- **PERF-012, PERF-013** — otimizações pontuais sem sinal de jank reportado.
-- **DOC-010** — decisão de organização, não bug.
+| ID | Categoria | Descrição | Severidade | Esforço | Impacto se não resolvido |
+|---|---|---|---|---|---|
+| ARQ-003 | Código | `capture.barcodes.first` sem checar lista vazia em `GameView._onDetect` | **Crítica** | P (pequeno) | Crash não tratado ao escanear, em produção, sem stacktrace útil se não cair no Crashlytics antes de travar a UI |
+| OPS-001 | Testes | ~~Cobertura de testes concentrada; arquivos de rede críticos (`spotify_service.dart`, `musica_firestore_data_source.dart`) em 0%~~ — **resolvido**: ambos cobertos (90%/96%); `musica_firestore_data_source.dart` já tinha teste, `spotify_service.dart` ganhou `test/data/network/spotify_service_test.dart` | ~~Crítica~~ Resolvido | — | Restam lacunas menores: `faq_local_data_source.dart` (0%) e a maioria das telas de `presentation/` |
+| EXP-001 | Código/UX | Zero `Semantics`/`Tooltip` em todo `lib/presentation` | **Crítica** | M (médio) | App inacessível a jogadores que dependem de leitor de tela; risco de compliance de acessibilidade caso o app seja publicado em lojas com políticas de acessibilidade |
+| ARQ-001 | Arquitetura | ~~Bypass do padrão de DI (`get_it`) no fluxo de preview~~ — **resolvido** | ~~Média~~ Resolvido | — | — |
+| ARQ-002 | Arquitetura | Códigos de erro de `Failure` (`int`) colidem entre use cases distintos | Média | M | Risco de interpretação incorreta de um código de erro fora do contexto de origem; dificulta introduzir um handler de erro genérico |
+| ARQ-005 | Código/Produto | ~~`LanguageType`/`CountryType` persistidos mas nunca lidos de volta~~ — **resolvido**: decisão de produto (app só em português), código removido | ~~Média~~ Resolvido | — | — |
+| SEC-001 | Infra | Config Firebase versionada sem confirmação de restrição de API key | Média | P (verificação) | Risco de abuso da API key se não houver restrição configurada no Google Cloud Console (não é um problema de código) |
+| SEC-002 | Infra | Fallback silencioso para assinatura de debug no release | Média | P | Risco de publicar build mal assinado sem alerta |
+| SEC-003 | Infra/CI | ~~Sem scan de dependências automatizado no CI~~ — **resolvido** (job `osv-scan`) | ~~Média~~ Resolvido | — | — |
+| OPS-002 | CI | CI não mede/gateia cobertura de testes | Média | P | Cobertura pode regredir silenciosamente sem que ninguém note no PR |
+| EXP-002 | Código/Design | 18 arquivos com cor hardcoded fora do design system | Média | M | Mudança de paleta de marca exige caçar ocorrências manualmente; risco de inconsistência visual crescer com cada nova tela |
+| ARQ-004 | Código | Boilerplate repetitivo de `if (!instance.isRegistered<X>())` em `di.dart` | Baixa | P | Nenhum risco funcional; apenas manutenção mais verbosa que o necessário |
+| ARQ-006 | Código | `exit(1)` (dart:io) para encerrar o app em 2 pontos, em vez de `SystemNavigator.pop()` | Baixa | P | Pula o ciclo de vida do engine/plugins nativos ao fechar; comportamento pode variar entre fabricantes Android |
+| OPS-003 | Observabilidade | `debugPrint` em vez de `reportNonFatalError` em 2 pontos (`faqs_view_model.dart`, `session_tile.dart`) | Baixa | P | Erros nesses 2 pontos específicos não aparecem no Crashlytics em produção |
+| OPS-004 | Produto/Observabilidade | Sem analytics de produto (funil de jogo, taxa de erro de QR) | Baixa | G | Decisões de produto pré-lançamento sem dado de uso real — aceitável agora, arriscado se mantido pós-lançamento |
+| DOC-001 | Docs | README afirma que não há Crashlytics em produção — já integrado | Baixa | P | Novo dev/stakeholder lendo o README forma uma impressão incorreta do estado do projeto |
+| DOC-002 | Docs/Processo | Sem `CHANGELOG.md` nem tags Git, apesar de `pubspec.yaml` ter `version: 1.0.0+1` | Baixa | P | Impossível rastrear o que mudou entre builds a partir do repositório |
+| DOC-004 | Docs/Processo | Histórico de commits pré-Conventional Commits não reescrito | Informativo | — | Nenhum — decisão deliberada, já aceita (ver seção 2) |
+| DOC-003 | Docs | Sem ADRs para decisões de arquitetura relevantes | Baixa | M | Decisões (Clean Architecture simplificada, `dartz`/Either, sem backend próprio) dependem de memória da equipe, não de registro |
+| PERF-001 | Código | Caches em memória (`_cache`, `_previewCache`) sem TTL/limite de tamanho | Baixa | P | Sem impacto perceptível no tamanho de uso atual; não escala se o volume por sessão crescer ordens de magnitude |
 
 ---
 
-## Recomendação de priorização
+## 2. Débitos críticos vs. aceitáveis
 
-1. **Bloco de confiança em processo** (`SEC-001` + `DOC-011` + `OPS-007`) — sem um gate automatizado de secret-scanning, corrigir `SEC-001` de novo só adia a próxima regressão.
-2. **`OPS-008`** — isolado, barato, e é pré-requisito prático para diagnosticar `UX-009` e qualquer bug futuro relatado por usuário.
-3. **`UX-009`** — distinguir causas reais (config/auth vs. rede) no fluxo de playback; depende parcialmente de `OPS-008` estar em produção para validar a correção com dados reais.
-4. **`ARQ-013`/`ARQ-014`** — fechar o débito residual de `ARQ-003`/`ARQ-005` antes de adicionar novas features ao fluxo de jogo.
-5. **`OPS-012`** — decidir o destino de `0a`/`developer`/`refatore` (arquivar ou reintegrar) antes que mais trabalho seja perdido.
-6. Débitos de Documentação (`DOC-003`, `DOC-004`, `DOC-006`, `DOC-009`) e Performance pontuais (`PERF-009` a `PERF-013`) podem ser tratados em paralelo, por serem baratos e não bloqueantes.
+### Críticos — requerem ação antes do próximo ciclo de trabalho
+- **ARQ-003**: é um bug de crash potencial no caminho mais usado do app (escanear carta). Correção é trivial (checar `capture.barcodes.isEmpty` antes de `.first`) — não há motivo para não resolver no curto prazo.
+- **EXP-001**: zero acessibilidade em toda a base é estrutural, não um item isolado — quanto mais tempo passar sem um padrão de `Semantics` estabelecido, mais telas novas nascerão também sem ele.
+- **OPS-001** (resolvido): os arquivos que integravam com serviços externos (Spotify, Firestore) e estavam sem teste — os mais caros de diagnosticar sem cobertura — já foram endereçados.
 
-Ver sequenciamento detalhado por prazo em [4-ACTION_PLAN.md](4-ACTION_PLAN.md).
+### Aceitos por ora (com justificativa explícita)
+- **ARQ-004** (boilerplate no DI) e **ARQ-006** (`exit(1)`) — baixo risco, baixo esforço, mas não bloqueiam nada; resolver quando a área for tocada por outro motivo (não justifica uma tarefa dedicada isolada).
+- **OPS-004** (sem analytics de produto) — aceitável enquanto o app estiver em pré-lançamento sem tráfego real para analisar; deve ser reavaliado antes do lançamento público.
+- **PERF-001** (caches sem TTL) — o padrão de uso atual (sessão de jogo física, catálogo limitado) não expõe esse risco na prática; manter sob observação, não agir preventivamente sem dado de uso real que justifique.
+- **DOC-003** (sem ADRs) — retroativamente documentar decisões já tomadas tem valor menor do que adotar o hábito a partir de agora; não justifica um esforço dedicado a "escrever ADRs do passado".
+- **DOC-004** (histórico de commits não reescrito) — já aceito e documentado no próprio README; reescrever histórico Git público de um repositório compartilhado é mais arriscado do que o problema que resolveria.
+
+---
+
+## 3. Recomendação de priorização
+
+1. **ARQ-003** (crash no scanner) — corrigir imediatamente, é uma linha de código.
+2. **EXP-001** (acessibilidade) — estabelecer o padrão (`Semantics` nos componentes de `resource/`/`share/widgets/` reutilizáveis primeiro) antes de tentar cobrir 100% das telas de uma vez.
+3. ~~**OPS-001** (cobertura nos arquivos de rede)~~ — **resolvido**: `spotify_service.dart` e `musica_firestore_data_source.dart` cobertos. Lacuna remanescente, menor: `faq_local_data_source.dart` (0%) e a maior parte das telas de `presentation/`.
+4. **SEC-002** e **SEC-003** — ambos são configuração de pipeline, não código; podem ser resolvidos em paralelo sem dependência entre si.
+5. Demais itens médios (**ARQ-001**, **ARQ-002**, **ARQ-005**, **EXP-002**, **OPS-002**) — tratar conforme a área for tocada por outras mudanças, exceto se o time decidir abrir uma iniciativa dedicada de "consistência" (ver `docs/5-IMPROVEMENT_ROADMAP.md`).

@@ -47,10 +47,10 @@ app.*.map.json
 # Local tooling binaries (baixados sob demanda, ex.: scripts/scan_dependencies.sh)
 /.tools/
 
-# Credenciais locais — nunca versionar (ver docs/2-SECURITY_REPORT.md, SEC-001)
+# Credenciais locais — nunca versionar (ver docs/2-SECURITY_REPORT.md, SEC-S2)
 .env
 
-# Keystore de release Android — nunca versionar (ver docs/2-SECURITY_REPORT.md, SEC-011)
+# Keystore de release Android — nunca versionar (ver docs/2-SECURITY_REPORT.md, SEC-S2)
 /android/key.properties
 *.jks
 *.keystore

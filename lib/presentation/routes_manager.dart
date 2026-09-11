@@ -28,7 +28,6 @@ class Routes {
   static const String faqRoute = '/faq';
   static const String settingsRoute = '/settings';
   static const String contactRoute = '/contact';
-  static const String languageRoute = '/language';
   static const String gameRoute = '/game';
 }
 

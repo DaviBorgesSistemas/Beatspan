@@ -90,6 +90,7 @@ class _ScaffoldHitsterState extends State<ScaffoldHitster> {
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         leading: IconButton(
+          tooltip: 'Ajuda',
           icon: Icon(Icons.help_outline, color: ColorManager.white, size: 42),
           onPressed: () {
             initFaqsModule();
@@ -99,6 +100,7 @@ class _ScaffoldHitsterState extends State<ScaffoldHitster> {
         elevation: 0,
         actions: [
           IconButton(
+            tooltip: widget.sndRoute == '/close' ? 'Fechar' : 'Configurações',
             onPressed: () {
               widget.sndRoute == '/close'
                   ? Navigator.pop(context)
@@ -116,7 +118,9 @@ class _ScaffoldHitsterState extends State<ScaffoldHitster> {
       ),
       body: Stack(
         children: [
-          buildBackground(widget.colorFst, widget.colorSnd),
+          ExcludeSemantics(
+            child: buildBackground(widget.colorFst, widget.colorSnd),
+          ),
           widget.child != null ? widget.child! : const SizedBox(),
         ],
       ),

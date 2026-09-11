@@ -57,8 +57,8 @@ class _FirstTimeViewState extends State<FirstTimeView> {
               child: Image.asset(ImageAssets.splashWordmark),
             ),
           ),
-          body: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               children: [
                 SizedBox(height: 28),
@@ -157,32 +157,39 @@ class _FirstTimeViewState extends State<FirstTimeView> {
                     ),
                   ],
                 ),
-                Spacer(),
-                Container(
-                  height: 56,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(28),
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF6C2BFF), Color(0xFFFF469E)],
-                      stops: [0.0, 100],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
+                SizedBox(height: 24),
+                Semantics(
+                  button: true,
+                  label: 'Ler as regras',
+                  excludeSemantics: true,
+                  onTap: () =>
+                      Navigator.of(context).pushNamed(Routes.rulesRoute),
+                  child: Container(
+                    height: 56,
+                    decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(28),
-                      onTap: () {
-                        Navigator.of(context).pushNamed(Routes.rulesRoute);
-                      },
-                      child: Center(
-                        child: Text(
-                          'LER AS REGRAS',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w900,
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF6C2BFF), Color(0xFFFF469E)],
+                        stops: [0.0, 100],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(28),
+                        onTap: () {
+                          Navigator.of(context).pushNamed(Routes.rulesRoute);
+                        },
+                        child: Center(
+                          child: Text(
+                            'LER AS REGRAS',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                            ),
                           ),
                         ),
                       ),
@@ -190,28 +197,36 @@ class _FirstTimeViewState extends State<FirstTimeView> {
                   ),
                 ),
                 SizedBox(height: 8),
-                Container(
-                  height: 56,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(width: 2, color: Color(0XFFFFB0CB)),
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
+                Semantics(
+                  button: true,
+                  label: 'Continuar',
+                  excludeSemantics: true,
+                  onTap: () => Navigator.of(
+                    context,
+                  ).pushNamed(Routes.changeSpotifyRoute),
+                  child: Container(
+                    height: 56,
+                    decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(28),
-                      onTap: () {
-                        Navigator.of(
-                          context,
-                        ).pushNamed(Routes.changeSpotifyRoute);
-                      },
-                      child: Center(
-                        child: Text(
-                          'CONTINUAR',
-                          style: TextStyle(
-                            color: Color(0XFFFFB0CB),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w900,
+                      border: Border.all(width: 2, color: Color(0XFFFFB0CB)),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(28),
+                        onTap: () {
+                          Navigator.of(
+                            context,
+                          ).pushNamed(Routes.changeSpotifyRoute);
+                        },
+                        child: Center(
+                          child: Text(
+                            'CONTINUAR',
+                            style: TextStyle(
+                              color: Color(0XFFFFB0CB),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                            ),
                           ),
                         ),
                       ),

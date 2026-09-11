@@ -78,13 +78,16 @@ class _BeatspanLoadingOverlayState extends State<BeatspanLoadingOverlay>
       ),
     );
 
-    if (widget.fillBackground) {
-      return ColoredBox(color: const Color(0xFF08050D), child: content);
-    }
-
-    return ColoredBox(
-      color: Colors.black.withValues(alpha: 0.75),
-      child: content,
+    return Semantics(
+      liveRegion: true,
+      label: widget.message,
+      excludeSemantics: true,
+      child: widget.fillBackground
+          ? ColoredBox(color: const Color(0xFF08050D), child: content)
+          : ColoredBox(
+              color: Colors.black.withValues(alpha: 0.75),
+              child: content,
+            ),
     );
   }
 }
