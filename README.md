@@ -133,7 +133,7 @@ A pasta [docs/](docs/) contém uma análise arquitetural completa (fundamentos, 
 
 Projeto em desenvolvimento ativo, pré-lançamento (ainda não publicado nas lojas). Pontos conhecidos em aberto:
 
-- Ainda não há modelo de jogo (rodadas, pontuação, timeline, vitória) implementado — o app cobre hoje o fluxo de escanear e tocar a música.
+- Rodadas, pontuação e linha do tempo são geridas pelos próprios jogadores com as cartas físicas (o ano vem impresso na carta) — por design, o app só cobre o fluxo de escanear e tocar a música, sem precisar modelar isso digitalmente.
 - Sem suporte a multiplayer ou estado sincronizado entre dispositivos.
 - Cobertura de testes ainda inicial (ver `test/`) — falta cobrir `GameView`/players.
 - Build iOS não configurado — apenas Android está funcional hoje.

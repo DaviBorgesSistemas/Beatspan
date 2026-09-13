@@ -34,7 +34,7 @@
 
 | Título | ID | Esforço | Impacto | Responsável Sugerido | Critério de Aceite |
 |--------|----|---------|---------|---------------------|-------------------|
-| Implementar lógica de jogo (rodadas, pontuação, linha do tempo) | DEBT-001 | G | Alto | Produto / Mobile | Ao menos 1 modo de jogo completo funcional com rodadas e placar; documentado no README |
+| ~~Implementar lógica de jogo (rodadas, pontuação, linha do tempo)~~ — **Não aplicável, resolvido em 2026-09-13** | DEBT-001 | G | Alto | Produto / Mobile | ✅ Por design, rodadas/pontuação/linha do tempo são geridas pelos próprios jogadores com as cartas físicas (ano impresso na carta — ver `docs/prensa-beatspan.html`); o app só precisa cobrir escanear→tocar, que já está implementado e testado (`GameView`/`GameViewModel`); README.md/README.en.md atualizados pra deixar essa decisão explícita em vez de listá-la como lacuna |
 | Configurar build iOS (Firebase, entitlements, CI) | DEBT-002 | M | Médio | Mobile / DevOps | `firebase_options.dart` com configuração iOS; CI roda `flutter test` e `flutter build ios` sem erro |
 | Implementar CD (build e distribuição automatizada) | OPS-002 | M | Médio | DevOps | CI gera APK de release em tag semver; upload para Play Store internal track ou Firebase App Distribution automatizado |
 | Criar CHANGELOG e adotar versionamento semântico | DOC-002 | P | Baixo | Tech Lead | `CHANGELOG.md` criado; `pubspec.yaml` versão atualizada; processo de release documentado |

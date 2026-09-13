@@ -127,7 +127,7 @@ The [docs/](docs/) folder contains a full architectural analysis (fundamentals, 
 
 Actively under development, pre-launch (not yet published on app stores). Known open points:
 
-- No game logic yet (rounds, scoring, timeline, winning) — the app currently covers the scan-and-play flow only.
+- Rounds, scoring and the timeline are managed by the players themselves with the physical cards (the year is printed on the card) — by design, the app only covers the scan-and-play flow and doesn't need to model that digitally.
 - No multiplayer or state sync across devices.
 - Test coverage still early-stage (see `test/`) — `GameView`/players still need coverage.
 - iOS build not configured — only Android is functional today.
