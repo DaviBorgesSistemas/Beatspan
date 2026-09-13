@@ -17,3 +17,4 @@ Use `template.md` como ponto de partida.
 | [001](001-clean-architecture-simplificada.md) | Clean Architecture simplificada (presentation/domain/data) | Aceito |
 | [002](002-dartz-either-sealed-failure.md) | `dartz`/`Either` para erros de domínio, com `Failure` como sealed class por use case | Aceito |
 | [003](003-sem-backend-proprio.md) | Sem backend próprio — Firestore como catálogo, Spotify SDK direto no cliente | Aceito |
+| [004](004-dart-define-para-credenciais.md) | Injeção de credenciais via `--dart-define`, não `flutter_dotenv` | Aceito |

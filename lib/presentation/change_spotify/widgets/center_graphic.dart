@@ -13,10 +13,7 @@ class CenterGraphic extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.002),
         shape: BoxShape.circle,
-        border: Border.all(
-          width: 2,
-          color: ColorManager.centerGraphicPurple,
-        ),
+        border: Border.all(width: 2, color: ColorManager.centerGraphicPurple),
         boxShadow: [
           BoxShadow(
             color: ColorManager.centerGraphicPurple,

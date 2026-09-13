@@ -82,10 +82,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
-      expect(
-        find.text('Não foi possível carregar a prévia.'),
-        findsOneWidget,
-      );
+      expect(find.text('Não foi possível carregar a prévia.'), findsOneWidget);
       expect(find.widgetWithText(ElevatedButton, 'Voltar'), findsOneWidget);
     });
 
@@ -198,22 +195,21 @@ void main() {
       },
     );
 
-    testWidgets(
-      'botão salvar desabilitado (sem ação) quando trackId é null',
-      (tester) async {
-        when(
-          () => previewPlaybackUseCase.playerStateStream,
-        ).thenAnswer((_) => const Stream<PlaybackState>.empty());
+    testWidgets('botão salvar desabilitado (sem ação) quando trackId é null', (
+      tester,
+    ) async {
+      when(
+        () => previewPlaybackUseCase.playerStateStream,
+      ).thenAnswer((_) => const Stream<PlaybackState>.empty());
 
-        await tester.pumpWidget(buildSubject(trackId: null));
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(buildSubject(trackId: null));
+      await tester.pumpAndSettle();
 
-        await tester.tap(find.text('SALVAR NO SPOTIFY'));
-        await tester.pump();
+      await tester.tap(find.text('SALVAR NO SPOTIFY'));
+      await tester.pump();
 
-        verifyZeroInteractions(spotifyPlaybackUseCase);
-      },
-    );
+      verifyZeroInteractions(spotifyPlaybackUseCase);
+    });
 
     testWidgets('salvar no Spotify com sucesso atualiza para SALVO', (
       tester,

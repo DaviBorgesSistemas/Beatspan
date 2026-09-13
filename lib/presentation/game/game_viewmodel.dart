@@ -33,8 +33,16 @@ class GameViewModel {
     null,
   );
 
+  bool _disposed = false;
+
   void dispose() {
+    _disposed = true;
     navigationEvent.dispose();
+  }
+
+  void _emitNavigation(GameNavigationEvent event) {
+    if (_disposed) return;
+    navigationEvent.value = event;
   }
 
   QrValidationResult validate(String rawValue) {
@@ -66,14 +74,14 @@ class GameViewModel {
 
     if (result == QrValidationResult.invalid) {
       reportAnalyticsEvent(AnalyticsEvent.qrInvalid);
-      navigationEvent.value = const NavigateToError();
+      _emitNavigation(const NavigateToError());
       return;
     }
 
     final codigo = extractCodigo(rawValue);
     if (codigo == null) {
       reportAnalyticsEvent(AnalyticsEvent.qrInvalid);
-      navigationEvent.value = const NavigateToError();
+      _emitNavigation(const NavigateToError());
       return;
     }
 
@@ -82,6 +90,7 @@ class GameViewModel {
 
   Future<void> _handleBeatspanCode(String codigo) async {
     final result = await _getMusicaUseCase.execute(codigo);
+    if (_disposed) return;
 
     final spotifyUri = result.fold(
       (failure) => null,
@@ -93,14 +102,14 @@ class GameViewModel {
       reportAnalyticsEvent(AnalyticsEvent.musicaLookupFailed, {
         'reason': failure.runtimeType.toString(),
       });
-      navigationEvent.value = switch (failure) {
+      _emitNavigation(switch (failure) {
         MusicaNaoEncontrada() => const NavigateToError(
           title: 'MÚSICA NÃO ENCONTRADA',
           message:
               'Não encontramos essa carta no nosso catálogo. Tente escanear novamente.',
         ),
         MusicaConsultaErro() || null => _connectionErrorEvent,
-      };
+      });
       return;
     }
 
@@ -109,6 +118,7 @@ class GameViewModel {
 
   Future<void> _handleSpotifyTrack(String spotifyUri) async {
     final plan = await _appPreferences.getAppPlanType();
+    if (_disposed) return;
     if (plan == null) return;
     final gameMode = _appPreferences.getGameMode();
 
@@ -119,46 +129,52 @@ class GameViewModel {
         gameMode: gameMode,
       ),
     );
+    if (_disposed) return;
 
-    navigationEvent.value = result.fold((failure) {
-      reportAnalyticsEvent(AnalyticsEvent.playbackFailed, {
-        'reason': failure.runtimeType.toString(),
-      });
-      return switch (failure) {
-        MusicaPlaybackPreviaIndisponivel() => const NavigateToError(
-          title: 'PRÉVIA INDISPONÍVEL',
-          message:
-              'Essa faixa não tem uma prévia de 30 segundos disponível no plano Free. Tente outra carta ou use o Spotify Premium.',
-        ),
-        MusicaPlaybackErroConexao() => _connectionErrorEvent,
-        MusicaPlaybackSpotifyNaoAutorizado() => const NavigateToError(
-          title: 'SPOTIFY NÃO AUTORIZADO',
-          message:
-              'Não foi possível autorizar o acesso ao Spotify. Verifique se o app do Spotify está instalado, atualizado e conectado à sua conta, então tente novamente.',
-          icon: Icons.lock_outline_rounded,
-        ),
-        MusicaPlaybackErroInesperado() => const NavigateToError(
-          title: 'ALGO DEU ERRADO',
-          message:
-              'Ocorreu um erro inesperado ao preparar a música. Tente escanear a carta novamente.',
-          icon: Icons.error_outline_rounded,
-        ),
-        MusicaPlaybackUriInvalida() => const NavigateToError(),
-      };
-    }, (playback) {
-      // A fonte exata da prévia (Spotify vs. fallback iTunes) é reportada
-      // separadamente em `AnalyticsEvent.itunesFallbackUsed`, no ponto em
-      // que essa decisão realmente acontece
-      // (`MusicaPlaybackRepositoryImpl._fetchPreview`) — aqui só distinguimos
-      // faixa completa (Premium) de prévia de 30s (Free/preview).
-      reportAnalyticsEvent(AnalyticsEvent.playbackStarted, {
-        'source': switch (playback) {
-          FullTrackPlayback() => PlaybackSource.spotifyFull,
-          PreviewPlayback() => PlaybackSource.spotifyPreview,
+    _emitNavigation(
+      result.fold(
+        (failure) {
+          reportAnalyticsEvent(AnalyticsEvent.playbackFailed, {
+            'reason': failure.runtimeType.toString(),
+          });
+          return switch (failure) {
+            MusicaPlaybackPreviaIndisponivel() => const NavigateToError(
+              title: 'PRÉVIA INDISPONÍVEL',
+              message:
+                  'Essa faixa não tem uma prévia de 30 segundos disponível no plano Free. Tente outra carta ou use o Spotify Premium.',
+            ),
+            MusicaPlaybackErroConexao() => _connectionErrorEvent,
+            MusicaPlaybackSpotifyNaoAutorizado() => const NavigateToError(
+              title: 'SPOTIFY NÃO AUTORIZADO',
+              message:
+                  'Não foi possível autorizar o acesso ao Spotify. Verifique se o app do Spotify está instalado, atualizado e conectado à sua conta, então tente novamente.',
+              icon: Icons.lock_outline_rounded,
+            ),
+            MusicaPlaybackErroInesperado() => const NavigateToError(
+              title: 'ALGO DEU ERRADO',
+              message:
+                  'Ocorreu um erro inesperado ao preparar a música. Tente escanear a carta novamente.',
+              icon: Icons.error_outline_rounded,
+            ),
+            MusicaPlaybackUriInvalida() => const NavigateToError(),
+          };
         },
-      });
-      return NavigateToPlayer(playback);
-    });
+        (playback) {
+          // A fonte exata da prévia (Spotify vs. fallback iTunes) é reportada
+          // separadamente em `AnalyticsEvent.itunesFallbackUsed`, no ponto em
+          // que essa decisão realmente acontece
+          // (`MusicaPlaybackRepositoryImpl._fetchPreview`) — aqui só distinguimos
+          // faixa completa (Premium) de prévia de 30s (Free/preview).
+          reportAnalyticsEvent(AnalyticsEvent.playbackStarted, {
+            'source': switch (playback) {
+              FullTrackPlayback() => PlaybackSource.spotifyFull,
+              PreviewPlayback() => PlaybackSource.spotifyPreview,
+            },
+          });
+          return NavigateToPlayer(playback);
+        },
+      ),
+    );
   }
 
   static const _connectionErrorEvent = NavigateToError(

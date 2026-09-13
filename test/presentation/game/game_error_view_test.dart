@@ -8,7 +8,8 @@ void main() {
     return MaterialApp(
       home: GameErrorView(
         title: title ?? 'OPS, CÓDIGO QR\nDESCONHECIDO!',
-        message: message ??
+        message:
+            message ??
             'Você escaneou um QR code que não pertence a uma carta Beatspan. Tente outra carta do jogo!',
         icon: icon ?? Icons.qr_code_scanner_rounded,
       ),

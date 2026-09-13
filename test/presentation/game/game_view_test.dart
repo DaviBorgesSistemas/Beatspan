@@ -1,5 +1,4 @@
 import 'package:beatspan/app/app_prefs.dart';
-import 'package:beatspan/app/di.dart';
 import 'package:beatspan/domain/model/musica_playback_result.dart';
 import 'package:beatspan/domain/model/playback_state.dart';
 import 'package:beatspan/domain/usecase/get_musica_usecase.dart';
@@ -48,29 +47,17 @@ void main() {
     );
     spotifyPlaybackUseCase = _MockSpotifyPlaybackUseCase();
     when(() => spotifyPlaybackUseCase.pause()).thenAnswer((_) async {});
-
-    // GameView resolve PreviewPlaybackUseCase via get_it (ARQ-001) em vez de
-    // instanciar diretamente — registra um fake aqui para os testes não
-    // dependerem de initAppModule()/Firebase reais.
-    if (instance.isRegistered<PreviewPlaybackUseCase>()) {
-      instance.unregister<PreviewPlaybackUseCase>();
-    }
-    instance.registerFactory<PreviewPlaybackUseCase>(() {
-      final mock = _MockPreviewPlaybackUseCase();
-      when(() => mock.load(any())).thenAnswer((_) async => const Right(unit));
-      when(
-        () => mock.playerStateStream,
-      ).thenAnswer((_) => const Stream<PlaybackState>.empty());
-      when(() => mock.dispose()).thenAnswer((_) async {});
-      return mock;
-    });
   });
 
-  tearDown(() {
-    if (instance.isRegistered<PreviewPlaybackUseCase>()) {
-      instance.unregister<PreviewPlaybackUseCase>();
-    }
-  });
+  PreviewPlaybackUseCase buildPreviewPlaybackUseCase() {
+    final mock = _MockPreviewPlaybackUseCase();
+    when(() => mock.load(any())).thenAnswer((_) async => const Right(unit));
+    when(
+      () => mock.playerStateStream,
+    ).thenAnswer((_) => const Stream<PlaybackState>.empty());
+    when(() => mock.dispose()).thenAnswer((_) async {});
+    return mock;
+  }
 
   Widget buildSubject() {
     return MaterialApp(
@@ -79,6 +66,7 @@ void main() {
         viewModel: viewModel,
         spotifyPlaybackUseCase: spotifyPlaybackUseCase,
         musicaPlaybackUseCase: musicaPlaybackUseCase,
+        previewPlaybackUseCaseFactory: buildPreviewPlaybackUseCase,
       ),
     );
   }

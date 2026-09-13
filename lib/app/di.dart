@@ -1,7 +1,6 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -83,8 +82,14 @@ Future<void> initAppModule() async {
   );
   instance.registerLazySingletonIfAbsent<SpotifyService>(
     () => SpotifyService(
-      clientId: _requiredEnv('SPOTIFY_CLIENT_ID'),
-      redirectUrl: _requiredEnv('SPOTIFY_REDIRECT_URL'),
+      clientId: _requiredEnv(
+        'SPOTIFY_CLIENT_ID',
+        const String.fromEnvironment('SPOTIFY_CLIENT_ID'),
+      ),
+      redirectUrl: _requiredEnv(
+        'SPOTIFY_REDIRECT_URL',
+        const String.fromEnvironment('SPOTIFY_REDIRECT_URL'),
+      ),
       appPreferences: instance<AppPreferences>(),
     ),
   );
@@ -139,9 +144,7 @@ void initFaqsModule() {
   instance.registerLazySingletonIfAbsent<FaqRepository>(
     () => FaqRepositoryImpl(instance()),
   );
-  instance.registerFactoryIfAbsent<FaqsUseCase>(
-    () => FaqsUseCase(instance()),
-  );
+  instance.registerFactoryIfAbsent<FaqsUseCase>(() => FaqsUseCase(instance()));
   instance.registerFactoryIfAbsent<FaqsViewModel>(
     () => FaqsViewModel(instance()),
   );
@@ -168,12 +171,12 @@ Future<void> resetModules() async {
   await initAppModule();
 }
 
-String _requiredEnv(String key) {
-  final value = dotenv.env[key];
-  if (value == null || value.isEmpty) {
+String _requiredEnv(String name, String value) {
+  if (value.isEmpty) {
     throw StateError(
-      'Variável de ambiente "$key" não definida. Copie .env.example '
-      'para .env e preencha os valores antes de rodar o app.',
+      'Variável de ambiente "$name" não definida. Rode o app com '
+      '--dart-define=$name=valor ou --dart-define-from-file=env.json '
+      '(veja env.json.example para a lista completa de variáveis esperadas).',
     );
   }
   return value;

@@ -21,7 +21,7 @@ Beatspan é um app em Flutter que acompanha um jogo de cartas de música no esti
 | Injeção de dependência | `get_it` |
 | Result/Either | `dartz` |
 | Persistência local | `shared_preferences` |
-| Configuração por ambiente | `flutter_dotenv` |
+| Configuração por ambiente | `--dart-define-from-file` (compile-time) |
 | Backend / catálogo de músicas | `firebase_core`, `cloud_firestore` |
 | Rede / conectividade | `http`, `connectivity_plus` |
 | Integração Spotify | `spotify_sdk` (App Remote + Auth), Web API via `http` |
@@ -76,7 +76,7 @@ lib/
 
 O app precisa de credenciais do Spotify (Client ID e Redirect URI) para autenticar e tocar as faixas.
 
-- Copie `.env.example` para `.env` e preencha `SPOTIFY_CLIENT_ID` e `SPOTIFY_REDIRECT_URL` com suas credenciais. O app carrega esse arquivo via `flutter_dotenv` na inicialização ([lib/main.dart](lib/main.dart)) e lê as variáveis em [lib/app/di.dart](lib/app/di.dart) — sem elas definidas, o app lança um erro claro ao iniciar.
+- Copie `env.json.example` para `env.json` e preencha `SPOTIFY_CLIENT_ID` e `SPOTIFY_REDIRECT_URL` com suas credenciais. O app lê essas variáveis em tempo de compilação via `String.fromEnvironment` em [lib/app/di.dart](lib/app/di.dart) — sem elas definidas, o app lança um erro claro ao iniciar. Rode/compile passando o arquivo: `flutter run --dart-define-from-file=env.json` (o VS Code já faz isso nas configurações em `.vscode/launch.json`). `env.json` está no `.gitignore` e nunca deve ser versionado nem empacotado como asset — diferente da abordagem anterior com `.env`, os valores de `--dart-define` não são incluídos como arquivo extraível no APK/IPA.
 
 ## Configuração do Firebase
 

@@ -4,7 +4,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'app/app.dart';
 import 'app/di.dart';
@@ -18,13 +17,12 @@ void main() async {
 
   await runZonedGuarded(
     () async {
-      await dotenv.load(fileName: '.env');
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
       await _setupCrashlytics();
       await initAppModule();
-      runApp(MyApp());
+      runApp(const MyApp());
       FlutterNativeSplash.remove();
     },
     (error, stackTrace) {

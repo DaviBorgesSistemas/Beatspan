@@ -35,10 +35,7 @@ void main() {
     await tester.pumpWidget(buildSubject());
     await tester.pump();
 
-    expect(
-      find.text('BEATSPAN PRECISA ACESSAR\nSUA CÂMERA.'),
-      findsOneWidget,
-    );
+    expect(find.text('BEATSPAN PRECISA ACESSAR\nSUA CÂMERA.'), findsOneWidget);
     expect(
       find.text(
         'O app BEATSPAN precisa acessar a câmera do dispositivo para escanear os QR codes das cartas.',
@@ -91,48 +88,48 @@ void main() {
     expect(find.byType(CameraPermissionView), findsNothing);
   });
 
-  testWidgets(
-    'tocar em PERMITIR com status granted faz Navigator.pop(true)',
-    (tester) async {
-      when(() => mockPlatform.requestPermissions(any())).thenAnswer(
-        (_) async => {Permission.camera: PermissionStatus.granted},
-      );
+  testWidgets('tocar em PERMITIR com status granted faz Navigator.pop(true)', (
+    tester,
+  ) async {
+    when(
+      () => mockPlatform.requestPermissions(any()),
+    ).thenAnswer((_) async => {Permission.camera: PermissionStatus.granted});
 
-      const sentinel = Object();
-      dynamic result = sentinel;
+    const sentinel = Object();
+    dynamic result = sentinel;
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Builder(
-            builder: (context) => Scaffold(
-              body: Center(
-                child: ElevatedButton(
-                  onPressed: () async {
-                    result = await Navigator.of(context).push<bool>(
-                      MaterialPageRoute(
-                        builder: (_) => const CameraPermissionView(),
-                      ),
-                    );
-                  },
-                  child: const Text('abrir'),
-                ),
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: ElevatedButton(
+                onPressed: () async {
+                  result = await Navigator.of(context).push<bool>(
+                    MaterialPageRoute(
+                      builder: (_) => const CameraPermissionView(),
+                    ),
+                  );
+                },
+                child: const Text('abrir'),
               ),
             ),
           ),
         ),
-      );
+      ),
+    );
 
-      await tester.tap(find.text('abrir'));
-      await tester.pumpAndSettle();
+    await tester.tap(find.text('abrir'));
+    await tester.pumpAndSettle();
 
-      await tester.tap(find.text('PERMITIR'));
-      await tester.pumpAndSettle();
+    await tester.tap(find.text('PERMITIR'));
+    await tester.pumpAndSettle();
 
-      final poppedValue = result == sentinel ? null : result as bool?;
-      expect(poppedValue, isTrue);
-      expect(find.byType(CameraPermissionView), findsNothing);
-      verify(() => mockPlatform.requestPermissions([Permission.camera]))
-          .called(1);
-    },
-  );
+    final poppedValue = result == sentinel ? null : result as bool?;
+    expect(poppedValue, isTrue);
+    expect(find.byType(CameraPermissionView), findsNothing);
+    verify(
+      () => mockPlatform.requestPermissions([Permission.camera]),
+    ).called(1);
+  });
 }

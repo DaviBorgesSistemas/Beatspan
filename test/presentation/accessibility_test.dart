@@ -6,19 +6,30 @@
 
 import 'package:beatspan/app/app_prefs.dart';
 import 'package:beatspan/data/network/spotify_service.dart';
+import 'package:beatspan/domain/model/playback_state.dart';
+import 'package:beatspan/domain/usecase/preview_playback_usecase.dart';
+import 'package:beatspan/domain/usecase/spotify_playback_usecase.dart';
 import 'package:beatspan/presentation/change_spotify/change_spotify_view.dart';
 import 'package:beatspan/presentation/change_spotify/connect_spotify_premium_view_model.dart';
 import 'package:beatspan/presentation/change_spotify/widgets/spotify_consent_dialog.dart';
 import 'package:beatspan/presentation/first_time/first_time_view.dart';
+import 'package:beatspan/presentation/game/player_music/play_music_free_view.dart';
 import 'package:beatspan/presentation/share/widgets/next_card_button.dart';
 import 'package:beatspan/presentation/share/widgets/no_internet_view.dart';
 import 'package:beatspan/presentation/share/widgets/scaffold_hitster.dart';
+import 'package:dartz/dartz.dart' hide State;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _MockSpotifyService extends Mock implements SpotifyService {}
+
+class _MockPreviewPlaybackUseCase extends Mock
+    implements PreviewPlaybackUseCase {}
+
+class _MockSpotifyPlaybackUseCase extends Mock
+    implements SpotifyPlaybackUseCase {}
 
 void main() {
   // Tamanho de tela default do flutter_test (800x600, paisagem) não
@@ -122,5 +133,38 @@ void main() {
     await checkGuidelines(tester);
     handle.dispose();
     viewModel.dispose();
+  });
+
+  testWidgets('PlayerMusicFreeView: botão fechar tem rótulo semântico', (
+    tester,
+  ) async {
+    final previewPlaybackUseCase = _MockPreviewPlaybackUseCase();
+    final spotifyPlaybackUseCase = _MockSpotifyPlaybackUseCase();
+    when(
+      () => previewPlaybackUseCase.load(any()),
+    ).thenAnswer((_) async => const Right(unit));
+    when(
+      () => previewPlaybackUseCase.playerStateStream,
+    ).thenAnswer((_) => const Stream<PlaybackState>.empty());
+    when(() => previewPlaybackUseCase.dispose()).thenAnswer((_) async {});
+
+    final handle = tester.ensureSemantics();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: PlayerMusicFreeView(
+          trackId: 'track123',
+          previewUrl: 'https://preview.example/track.mp3',
+          trackName: 'Some Track',
+          artistName: 'Some Artist',
+          previewPlaybackUseCase: previewPlaybackUseCase,
+          spotifyPlaybackUseCase: spotifyPlaybackUseCase,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final closeButton = tester.getSemantics(find.bySemanticsLabel('Fechar'));
+    expect(closeButton.flagsCollection.isButton, isTrue);
+    handle.dispose();
   });
 }

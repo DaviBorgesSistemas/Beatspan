@@ -25,8 +25,8 @@ void main() {
     // uma resposta que nunca chega.
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(accelerometerMethodChannel, (call) async {
-      return null;
-    });
+          return null;
+        });
   });
 
   tearDown(() {
@@ -78,35 +78,36 @@ void main() {
       }
     });
 
-    testWidgets('modo gyroscope mostra título e instrução específica (smoke test)', (
-      tester,
-    ) async {
-      // Sem mock de EventChannel, `_listenForFaceDown`/`_listenForProximity`
-      // simplesmente assinam streams que não emitem nada durante o teste —
-      // suficiente para verificar que a tela monta e mostra o conteúdo
-      // correto do modo gyroscope, sem completar o fluxo de virar o telefone.
-      await tester.binding.setSurfaceSize(phoneSize);
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+    testWidgets(
+      'modo gyroscope mostra título e instrução específica (smoke test)',
+      (tester) async {
+        // Sem mock de EventChannel, `_listenForFaceDown`/`_listenForProximity`
+        // simplesmente assinam streams que não emitem nada durante o teste —
+        // suficiente para verificar que a tela monta e mostra o conteúdo
+        // correto do modo gyroscope, sem completar o fluxo de virar o telefone.
+        await tester.binding.setSurfaceSize(phoneSize);
+        addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      var readyCalled = false;
-      await tester.pumpWidget(
-        buildSubject(
-          mode: TurnPhoneMode.gyroscope,
-          onReady: () => readyCalled = true,
-        ),
-      );
-      await tester.pump();
+        var readyCalled = false;
+        await tester.pumpWidget(
+          buildSubject(
+            mode: TurnPhoneMode.gyroscope,
+            onReady: () => readyCalled = true,
+          ),
+        );
+        await tester.pump();
 
-      expect(find.text('VIRE O TELEFONE'), findsOneWidget);
-      expect(
-        find.text(
-          'Coloque o dispositivo virado para baixo para começar a música.',
-        ),
-        findsOneWidget,
-      );
-      expect(find.text('Modo Jogo'), findsOneWidget);
-      expect(readyCalled, isFalse);
-    });
+        expect(find.text('VIRE O TELEFONE'), findsOneWidget);
+        expect(
+          find.text(
+            'Coloque o dispositivo virado para baixo para começar a música.',
+          ),
+          findsOneWidget,
+        );
+        expect(find.text('Modo Jogo'), findsOneWidget);
+        expect(readyCalled, isFalse);
+      },
+    );
   });
 
   group('modo countdown', () {
