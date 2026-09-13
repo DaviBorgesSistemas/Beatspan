@@ -168,7 +168,7 @@ lineno,title,artist,status,spotify_track,spotify_artist,uri
 173,Teu Nome é Santo,Fernandinho,already_in_playlist,Teu Nome É Santo - Ao Vivo,"Daniel Souza, Fernandinho",spotify:track:5cyOsPgnNRmM0UVeeIGLUb
 174,Poderoso Ele É,Fernandinho,already_in_playlist,Ele É - Ao Vivo,MORADA,spotify:track:2JVwvpEmIe3G96VJ7A5gAH
 175,Senhor Jesus,Fernandinho,already_in_playlist,Uma Coisa Peço Ao Senhor - Ao Vivo,Fernandinho,spotify:track:5t9SDOb3hmk12yrfFg1TlU
-176,"Jesus, Eu Te Amo",Fernandinho,already_in_playlist,Todas As Coisas - Ao Vivo,Fernandinho,spotify:track:3J90GuVGUoknZwiiGrmqHF
+176,"Jesus, Eu Te Amo",Fernandinho,low_confidence_match,Jesus Eu Te Amo - Ao Vivo,Antonio Cirilo,spotify:track:2DF32XxLY5OZQbahZXwInY
 177,Ele Vem,Nívea Soares,already_in_playlist,Ele Vem - Ao Vivo,Nívea Soares,spotify:track:4Vv7Fp10BKTLSkPBW0UwVf
 178,Tempo de Adorar,Nívea Soares,already_in_playlist,Tempo de Adorar,Nívea Soares,spotify:track:0xz6CjHQnbRYEF32mXrJWq
 179,Me Apaixonar,Nívea Soares,already_in_playlist,Me Apaixonar,Nívea Soares,spotify:track:4N3EGw2A2UifvVKeGyv17f
@@ -182,7 +182,7 @@ lineno,title,artist,status,spotify_track,spotify_artist,uri
 187,Pra Onde Iremos?,Gabriela Rocha,already_in_playlist,Pra Onde Iremos? (feat. Felippe Valadão) - Ao Vivo,"Gabriela Rocha, Felippe Valadão",spotify:track:3eL1SOAEopSLzdzzlHaJ18
 188,Teu Santo Nome,Gabriela Rocha,already_in_playlist,Teu Santo Nome,Gabriela Rocha,spotify:track:3d4fqNr8Skfs5PmxAZSeP0
 189,Eu Sou Teu,Rooftops,already_in_playlist,Eu Sou Teu (Rooftops) - Ao Vivo,Gabriela Rocha,spotify:track:66ukyUZ0ygPwha3SIl7LkH
-190,Creio em Ti,Still Believe,low_confidence_match,Creio em Ti (Still Believe),Gabriela Rocha,spotify:track:42ujPPLU47t8WO5SU7t0c2
+190,Creio em Ti,Still Believe,already_in_playlist,Creio em Ti (Still Believe),Gabriela Rocha,spotify:track:42ujPPLU47t8WO5SU7t0c2
 191,Vou Te Adorar,Gabriela Rocha,already_in_playlist,Vou Te Adorar,Gabriela Rocha,spotify:track:2j3jKZm09BQYgy4ogvPgUF
 192,Tua Chuva,Diante do Trono,already_in_playlist,Tua Chuva - Ao Vivo,Diante do Trono,spotify:track:5u7ouysu6SqIAhVgt2NXNH
 193,De Todo o Coração,Diante do Trono,already_in_playlist,De Todo o Coração - Ao Vivo,Diante do Trono,spotify:track:63uBOsb7DJHZeqf54tEygC
@@ -193,7 +193,7 @@ lineno,title,artist,status,spotify_track,spotify_artist,uri
 198,Amigo,Diante do Trono,already_in_playlist,Amigo Fiel - Ao Vivo,"Diante do Trono, Ana Paula Valadão",spotify:track:5pGdW3HkEm4YwC19OXYkDm
 199,Brasil,Diante do Trono,already_in_playlist,Brasil - Ao Vivo,Diante do Trono,spotify:track:6vxw47qJ3LK9aSce29q7Mr
 200,Eu Sou do Meu Amado,Diante do Trono,already_in_playlist,Eu Sou do Meu Amado - Ao Vivo,Diante do Trono,spotify:track:7DZNEiGDgQlkyDtbMEwmUQ
-201,Sete Vezes Mais,Ministério Apascentar de Nova Iguaçu,low_confidence_match,Deus Esta Exagerando,Chris Duran,spotify:track:6WGCFDC3iSNFK43rKC4qpx
+201,Sete Vezes Mais,Ministério Apascentar de Nova Iguaçu,already_in_playlist,Deus do Impossível - Ao Vivo,"Ministério Apascentar de Nova Iguaçu, Ministério Apascentar de Louvor",spotify:track:7yhCoy4qDIP6KApRKzDero
 202,Não Ficarão,Ministério Apascentar de Nova Iguaçu,already_in_playlist,Deus do Impossível - Ao Vivo,"Ministério Apascentar de Nova Iguaçu, Ministério Apascentar de Louvor",spotify:track:7yhCoy4qDIP6KApRKzDero
 203,Restitui,Ministério Apascentar de Nova Iguaçu,already_in_playlist,Restitui,Ministério Apascentar de Nova Iguaçu,spotify:track:3qCIMsfYc4CDWuWLMgTIlh
 204,Mais,Ministério Apascentar de Nova Iguaçu,already_in_playlist,Mais Que Vencedor - Ao Vivo,"Ministério Apascentar de Nova Iguaçu, Ministério de Louvor Vida Abundante",spotify:track:3QIL9vnlX0V7AFghgwJPaR
@@ -310,7 +310,7 @@ lineno,title,artist,status,spotify_track,spotify_artist,uri
 315,Quero Mais de Ti,Voz da Verdade,already_in_playlist,Quero Mais de Ti - Remastered,Voz da Verdade,spotify:track:6POp7A5XJ6yJXMnQtb791H
 316,Deus,Voz da Verdade,already_in_playlist,Deus Dormiu Lá em Casa,Voz da Verdade,spotify:track:4atMxrsbYBRWFpnXdsNPIT
 317,Chuva de Verão,Rebanhão,already_in_playlist,Chuva De Verão,"DOT (BR), Evokings, Nairo",spotify:track:2yTeuxGO8Vt9ry66nQ4UHo
-318,Fico Pensando,Rebanhão,low_confidence_match,Seu Astral - Ao Vivo,Jorge & Mateus,spotify:track:2TE9rkhJYDctxgzak0AnSb
+318,Fico Pensando,Rebanhão,low_confidence_match,Me Encontra,Charlie Brown Jr.,spotify:track:5yEais1zgeW1MjLrx7tsie
 319,Céu de Luz,Rebanhão,already_in_playlist,Meu Salvador - Ao Vivo,Gabriela Rocha,spotify:track:4ke4rX9bJgBGWNLjPx0A9T
 320,Te Amo Pra Valer,Rebanhão,already_in_playlist,Tem Que Sorrir,Jorge & Mateus,spotify:track:3wNBJf7t6Qs2nCs4KlpKZH
 321,Novo Dia,Rebanhão,already_in_playlist,Novo Dia,"Rebanhão, Mult Media Entretenimento, Mult Media Entertainment Publishing",spotify:track:0ftzniiqVRL0GOZ9479ili
@@ -333,7 +333,7 @@ lineno,title,artist,status,spotify_track,spotify_artist,uri
 338,Semeador,Rebanhão,already_in_playlist,Semeador,"Rebanhão, Mult Media Entretenimento, Mult Media Entertainment Publishing",spotify:track:1RazqvdV4zYMfIqIa0wL0H
 339,Desde o Princípio,Rebanhão,already_in_playlist,Princípio,Rebanhão,spotify:track:51WxLbGKFRwsmXTN4pgBm1
 340,Procurando,Rebanhão,already_in_playlist,Procurando Alguém,"Dorgival Dantas, Mestre Gennaro",spotify:track:39XyHb0zyAl8cCa6sDdVpB
-341,Homem de Nazareth,Rebanhão,low_confidence_match,O Homem de Nazareth,Antonio Marcos,spotify:track:1sc35vwy37XESV5dBQdQpp
+341,Homem de Nazareth,Rebanhão,already_in_playlist,O Homem de Nazareth,Antonio Marcos,spotify:track:1sc35vwy37XESV5dBQdQpp
 342,Além do Rio,Rebanhão,already_in_playlist,Além do Rio Azul - Ao Vivo,"Julia Vitória, One Service Project",spotify:track:7vnA8F8Eu1Wcye76U7CKkh
 343,Até Quando,Rebanhão,already_in_playlist,Eu Vou Orar - Ao Vivo,Nair Nany,spotify:track:5ZjLSG5HRRhksT5n3NdVzX
 344,O Caminho Mais Excelente,Rebanhão,already_in_playlist,LEÃO (LION) (feat. Chris Brown & Thalles Roberto),"Elevation Worship, Chris Brown, Thalles Roberto",spotify:track:2UnJa5chfcRDI60rLvpZKD
@@ -359,7 +359,7 @@ lineno,title,artist,status,spotify_track,spotify_artist,uri
 364,Vem Buscar,Voz da Verdade,already_in_playlist,Vem Buscar,Voz da Verdade,spotify:track:7aRcfpeTKtkPq7T75WYZEX
 365,Magnificado,Voz da Verdade,already_in_playlist,Manifesta-te Senhor,Voz da Verdade,spotify:track:61jhiUiqiEO6gQKcC15kQs
 366,Derrama,Voz da Verdade,already_in_playlist,Derrama,Marina De Oliveira,spotify:track:06iWmtMhWdXPrrFujAULsN
-367,Receba Já,Voz da Verdade,low_confidence_match,Deus dos Impossíveis,Jozyanne,spotify:track:1tBIm3CWWBwHq2lmF5d9qR
+367,Receba Já,Voz da Verdade,already_in_playlist,Deus dos Impossíveis,Jozyanne,spotify:track:1tBIm3CWWBwHq2lmF5d9qR
 368,A Quem Irei,Voz da Verdade,already_in_playlist,A Quem Irei Temer?,"Novo Tempo, Tatiana Costa, Társis Iraídes",spotify:track:3iYPkqww6Gwf9J41i49fwS
 369,Os Meus Dons do Espírito Santo,Voz da Verdade,already_in_playlist,O Escudo,Voz da Verdade,spotify:track:3ZQTVmJmKMzFwrhA6bk6jT
 370,Sou Teu Templo,Voz da Verdade,already_in_playlist,Eu Quero Ser Santo,Eyshila,spotify:track:5sLmKSlC5aDWhTomfobhqK
@@ -391,8 +391,8 @@ lineno,title,artist,status,spotify_track,spotify_artist,uri
 396,Marcando Encontro,Voz da Verdade,already_in_playlist,Marca da Promessa - Ao Vivo,Trazendo a Arca,spotify:track:3UjZjIXgAA8Dz6cnxBN68D
 397,Gesto de Luz,Voz da Verdade,already_in_playlist,Pra Que Outros Possam Viver,Juliano Son,spotify:track:5oStSRrbYuvOEFqQZ3RkWY
 398,Tem Compaixão,Voz da Verdade,already_in_playlist,O Escudo,Voz da Verdade,spotify:track:3ZQTVmJmKMzFwrhA6bk6jT
-399,Você Tem Que Lutar,Voz da Verdade,low_confidence_match,Desperta Samuel - Ao Vivo,Ministério Fogo no Pé,spotify:track:4j7KItaNao4oNNXM8JDCDG
-400,Por Causa Dele,Voz da Verdade,low_confidence_match,Por Causa Dele - Ao Vivo,"Kellen Byanca, Jessé Aguiar, Todah Music",spotify:track:3fpsR525Hmk4eBm5wfJIQW
+399,Você Tem Que Lutar,Voz da Verdade,already_in_playlist,Desperta Samuel - Ao Vivo,Ministério Fogo no Pé,spotify:track:4j7KItaNao4oNNXM8JDCDG
+400,Por Causa Dele,Voz da Verdade,low_confidence_match,Por Causa Dele - Playback,"Kellen Byanca, Jessé Aguiar, Todah Playbacks",spotify:track:1YSCzGJtez3j4wWNAkMErH
 401,Lugar Celestial,Voz da Verdade,already_in_playlist,Desenvolvimento (II Tm 4.14-18),"Marco Telles, Coletivo Candiero, Filipe da Guia",spotify:track:0iEIJ2pwE5iWynIODgIZc4
 402,É Livre,Voz da Verdade,already_in_playlist,Livre,Voz da Verdade,spotify:track:1Ditbh1QADFndEC27zpLmn
 403,O Sábio,Voz da Verdade,already_in_playlist,Pra Que,Voz da Verdade,spotify:track:6tHyD9FHebvcf6Rj3EAk0v
@@ -414,16 +414,16 @@ lineno,title,artist,status,spotify_track,spotify_artist,uri
 419,Rude Cruz,George Bennard,already_in_playlist,Rude Cruz,"George Bennard, Moisés Gonçalves",spotify:track:1tBfr9L7btirj7xq5e2QuZ
 420,Firme nas Promessas,R. Kelso Carter,already_in_playlist,Firme Nas Promessas,"Frederick M. Lehman, William Howard Doane, James McGranaham, Joseph Perry Holbrook, John Hugh McNaughton, George Frederick Root, Compositor Desconhecido, Franklin Edson Belden, William Gould Tomer, Russel Kelso Carter",spotify:track:5yVRKjxlS1CRjAQQa1fldD
 421,Chuvas de Graça,Harpa Cristã,already_in_playlist,Chuvas de Graça,Carlos José e a Harpa Cristã,spotify:track:03h2DcRREdRaV6gVOPgnYw
-422,Vencendo Vem Jesus,Julia Ward Howe,low_confidence_match,TRIUNFANTE AVANÇA O CRISTO - Vencendo Vem Jesus (Julia Ward Howe / Trad. Justus H. Nelson (d. 1937)),Edu Leal,spotify:track:5g4cfNnuz591uCyi0PmCgO
+422,Vencendo Vem Jesus,Julia Ward Howe,low_confidence_match,Vencendo Vem Jesus,"Raiz Worship, Douglas Lira",spotify:track:3HR8mLOnClPCr00sPbOjel
 423,Quão Bondoso Amigo é Cristo,Joseph M. Scriven / Charles C. Converse,already_in_playlist,Bondoso Amigo (159),"Igreja Presbiteriana de Itatiba, Kariston Fiori, Rafael Guerra",spotify:track:59SactdxbGvwnZt4orlVWV
-424,Sossegai,Mary A. Baker,low_confidence_match,Blessings,"Lecrae, Ty Dolla $ign",spotify:track:0waAsYpoKrgP286vYFAshE
-425,Conta as Bênçãos,Johnson Oatman Jr. / Edwin O. Excell,low_confidence_match,MEGA DANCE,DJ Jhonatan Markes,spotify:track:7jKOYWX8RFveIJicANFHEO
+424,Sossegai,Mary A. Baker,already_in_playlist,Blessings,"Lecrae, Ty Dolla $ign",spotify:track:0waAsYpoKrgP286vYFAshE
+425,Conta as Bênçãos,Johnson Oatman Jr. / Edwin O. Excell,low_confidence_match,Conta as Bênçãos,"Eduardo & Silvana, Paulo Cesar Baruk",spotify:track:40Hexa4vjEwwJDH9Pq8WMJ
 426,Grande é Tua Fidelidade,Thomas O. Chisholm / William M. Runyan,already_in_playlist,Praise Hymn,"Big Big Worship, Cool Worship Kids",spotify:track:0dYqBFbhKIKLqd3bYqrOzE
-427,Santo! Santo! Santo!,Reginald Heber / John B. Dykes,low_confidence_match,Santo Santo Santo,Angelo Torres,spotify:track:0z8EH0NMpT7YLVNTxUPFA7
+427,Santo! Santo! Santo!,Reginald Heber / John B. Dykes,low_confidence_match,"Santo, Santo",Maestro Mario Henrique e Orquestra,spotify:track:2ZNNloWoS0w6YKleMq26lU
 428,Castelo Forte,Martinho Lutero,already_in_playlist,Castelo Forte,"Moisés Gonçalves, Martinho Lutero",spotify:track:5q5ITY33d3AL8CHBzCZVC8
 429,Mais Perto Quero Estar,Sarah Flower Adams,already_in_playlist,Mais Perto Quero Estar,"Marcelo Gois, Sarah Flower Adams, Nívea Soares",spotify:track:3ARzeaBYzhYrIyjvK78DSP
 430,Sou Feliz com Jesus,Harpa Cristã,already_in_playlist,Sou Feliz,Carlos José e a Harpa Cristã,spotify:track:52ON6hle4eJXFdfHkSHY8j
-431,Bendita Segurança,Fanny Crosby / Phoebe Knapp,low_confidence_match,Happy End,Tom Zé,spotify:track:2dCBXxXNur85q9gGIpsAdr
+431,Bendita Segurança,Fanny Crosby / Phoebe Knapp,low_confidence_match,Panis Et Circenses,Os Mutantes,spotify:track:0Dmnb3C3GaGdyjlyWaWLDr
 432,Tal Como Estou,Charlotte Elliott,already_in_playlist,Forte Mão,Projeto Sola,spotify:track:1l4Gvvb0m9fhdQ5cm9NiK8
 433,Saudai o Nome de Jesus,Edward Perronet,already_in_playlist,Saudai o Nome de Jesus,Igreja Cristã Maranata,spotify:track:5v2AYR3WXWNprfJ1mPrOqE
 434,Alvo Mais que a Neve,James Nicholson / William G. Fischer,already_in_playlist,Alvo Mais Que a Neve,"Cena Sonora, Marcelli Soeiro",spotify:track:7ix4STGUjp74oR3m12NhMQ
@@ -431,16 +431,16 @@ lineno,title,artist,status,spotify_track,spotify_artist,uri
 436,Vem Cear,Harpa Cristã,already_in_playlist,Vem Cear,Carlos José e a Harpa Cristã,spotify:track:3Ez5Jdu2v9hdp50tJ5bHBQ
 437,Com Tua Mão Segura Bem a Minha,Hinário,already_in_playlist,N. 153 Com Tua Mão Segura Bem a Minha,Denise Falavinha,spotify:track:05IohleaLA10bNstP8JnYh
 438,Quão Grande És Tu,Carl Boberg,already_in_playlist,Aos Pés da Cruz,Oficina G3,spotify:track:2Ab8zrDctK010iNqBGCrUt
-439,Rocha Eterna,Augustus Toplady,low_confidence_match,Rocha Eterna - Ao Vivo,Nívea Soares,spotify:track:1xmRJdP9z9GngYIWN9GnQj
+439,Rocha Eterna,Augustus Toplady,low_confidence_match,Gentle Air,August Cole,spotify:track:6c0HYnt1CQmoK29ubDi8Zv
 440,Ao Pé da Cruz,Cantor Cristão,already_in_playlist,Ao Pé da Cruz,Raul Veiga,spotify:track:2QsFerscC4yYdFWZxGv0G1
 441,A Deus Seja a Glória,Fanny Crosby / William H. Doane,already_in_playlist,A CRISTO SEJA A GLÓRIA,"Julliany Souza, Gabriela Rocha",spotify:track:3R92iO0RYDUBUeRCBmt2ll
 442,Tudo Entregarei,Judson W. Van DeVenter / Winfield S. Weeden,already_in_playlist,Tudo Entregarei - Ao Vivo,Fernandinho,spotify:track:6AQW8JZmdUpHoW1tdEahPN
 443,Há Poder no Sangue,Lewis E. Jones,already_in_playlist,Há Poder no Sangue de Jesus,Cassiane,spotify:track:4NSTdRyk65cJJLKQL75Zqz
-444,Deus Velará por Ti,Civilla D. Martin / W. Stillman Martin,low_confidence_match,Deus Velará por Ti,J Neto,spotify:track:3kBP93a8bCVEyFSfmRdd0k
-445,"Marchai, Soldados de Cristo",Sabine Baring-Gould / Arthur Sullivan,already_in_playlist,"Onward, Christian Soldiers","Arthur Sullivan, The Tabernacle Choir at Temple Square, Richard P. Condie, Alexander Schreiner, The Philadelphia Brass Ensemble & Percussion",spotify:track:00rVVr8xS9u2rUov5uZrm8
-446,A Cristo Coroai,Matthew Bridges / George J. Elvey,confident_match,"Messiah, HMV 56","George Frideric Handel, Carlos Slivskin",spotify:track:7IQt42wR7VoUla04BoObP4
+444,Deus Velará por Ti,Civilla D. Martin / W. Stillman Martin,already_in_playlist,Deus Velará por Ti,J Neto,spotify:track:3kBP93a8bCVEyFSfmRdd0k
+445,"Marchai, Soldados de Cristo",Sabine Baring-Gould / Arthur Sullivan,low_confidence_match,"Marchai, Soldados de Cristo",Coral Orlando V.N.,spotify:track:0QLh6MzMhCgLB8aaMH2u58
+446,A Cristo Coroai,Matthew Bridges / George J. Elvey,low_confidence_match,A Cristo Coroai,Coral Orlando V.N.,spotify:track:6TH7bx93HlKw0ag2ITfwtb
 447,Solta o Cabo da Nau,Harpa Cristã,already_in_playlist,SOLTA O CABO DA NAU,HARPA CRISTÃ INFANTIL BR,spotify:track:4jiJ4ZFXtgof1L5UeKD5EZ
-448,Fonte És Tu de Toda Bênção,Robert Robinson,already_in_playlist,Ele Faz,"Robert Lucas, Urban Music",spotify:track:3rxiJFHRD6ZptvsRS6rCy7
+448,Fonte És Tu de Toda Bênção,Robert Robinson,low_confidence_match,Fonte És Tu de Toda Bênção,Eduardo Mano,spotify:track:1b6LhsZu7cjs1vQw3ZXVqm
 449,Noite Feliz,Joseph Mohr / Franz Gruber,already_in_playlist,Noite Feliz,"Franz Xaver Gruber, Joseph Mohr, Adionan Pitta, Yonan Daniel",spotify:track:5dYRaka5fbzJQsdkBSm4cK
 450,"Ó Vinde, Fiéis",John Francis Wade (atrib.),already_in_playlist,Ó Vinde Fiéis (Adeste Fidelis),"John Francis Wade, Marcio Rocha",spotify:track:5qJsq50W4jtAcEtwjiVCVo
 451,Confiar e Obedecer,John H. Sammis / Daniel B. Towner,already_in_playlist,Confiança,Projeto Sola,spotify:track:6BIeuwkNMd150ORCEUWCHO
