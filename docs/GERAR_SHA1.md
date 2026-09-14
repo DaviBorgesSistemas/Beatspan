@@ -11,11 +11,11 @@ keytool -list -v -alias androiddebugkey -keystore "C:\Users\davi_\.android\debug
 
 ### O que cada parte faz
 
-- `-list -v` → lista os detalhes do certificado (modo verboso)
-- `-alias androiddebugkey` → alias padrão usado no keystore de debug do Android
-- `-keystore "..."` → caminho do keystore de debug, gerado automaticamente em
+- `-list -v`  lista os detalhes do certificado (modo verboso)
+- `-alias androiddebugkey`  alias padrão usado no keystore de debug do Android
+- `-keystore "..."`  caminho do keystore de debug, gerado automaticamente em
   `C:\Users\<seu-usuario>\.android\debug.keystore`
-- `-storepass android -keypass android` → senha padrão do keystore de debug
+- `-storepass android -keypass android`  senha padrão do keystore de debug
   (sempre `android` — não é segredo, é igual em qualquer máquina/projeto)
 
 ## Resultado obtido (2026-08-27)

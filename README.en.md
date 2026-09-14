@@ -122,7 +122,7 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-The job runs `flutter analyze`/`flutter test` before building, reconstructs `android/key.properties`, the keystore and `env.json` from repository secrets (none of these files are committed), then deletes them from the runner afterwards. Required secrets under **Settings → Secrets and variables → Actions**:
+The job runs `flutter analyze`/`flutter test` before building, reconstructs `android/key.properties`, the keystore and `env.json` from repository secrets (none of these files are committed), then deletes them from the runner afterwards. Required secrets under **Settings  Secrets and variables  Actions**:
 
 | Secret | Content |
 |---|---|
@@ -131,7 +131,7 @@ The job runs `flutter analyze`/`flutter test` before building, reconstructs `and
 | `ANDROID_KEY_PASSWORD` | key password (`keyPassword`) |
 | `ANDROID_KEY_ALIAS` | key alias (`keyAlias`) |
 | `SPOTIFY_CLIENT_ID` / `SPOTIFY_REDIRECT_URL` | same credentials as the local `env.json` |
-| `FIREBASE_APP_ID` | Firebase App ID (Project settings → General → Android section) |
+| `FIREBASE_APP_ID` | Firebase App ID (Project settings  General  Android section) |
 | `FIREBASE_SERVICE_ACCOUNT` | service account JSON with Firebase App Distribution permission |
 
 The Firebase App Distribution tester group used is `testers` (configurable in `.github/workflows/cd.yml`).

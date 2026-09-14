@@ -10,9 +10,7 @@ const fs     = require("fs");
 const path   = require("path");
 const crypto = require("crypto");
 
-// ─────────────────────────────────────────────
 //  CONFIGURAÇÃO — edite esta seção
-// ─────────────────────────────────────────────
 const CONFIG = {
   author:      "Davi Borges",
   email:       "daviborges.sistemas@gmail.com",
@@ -34,9 +32,7 @@ const CONFIG = {
   ],
 };
 
-// ─────────────────────────────────────────────
 //  FINGERPRINT
-// ─────────────────────────────────────────────
 const FINGERPRINT = crypto
   .createHash("sha256")
   .update(`${CONFIG.author}|${CONFIG.email}|${CONFIG.projectName}`)
@@ -45,9 +41,7 @@ const FINGERPRINT = crypto
 const TOKEN = FINGERPRINT.substring(0, 16).toUpperCase();
 const SIGNATURE_MARKER = `@wm:${TOKEN}`;
 
-// ─────────────────────────────────────────────
 //  TEMPLATES DE CABEÇALHO por linguagem
-// ─────────────────────────────────────────────
 
 // JS / TS — bloco /** */
 function jsHeader() {
@@ -137,9 +131,7 @@ function cssHeader() {
   );
 }
 
-// ─────────────────────────────────────────────
 //  MÓDULOS DE ASSINATURA CENTRALIZADOS
-// ─────────────────────────────────────────────
 function jsSignatureModule() {
   return `// ${SIGNATURE_MARKER} — NÃO REMOVA
 const _COPYRIGHT = Object.freeze({
@@ -234,9 +226,7 @@ final class AppCopyright {
 `;
 }
 
-// ─────────────────────────────────────────────
 //  UTILITÁRIOS
-// ─────────────────────────────────────────────
 function getAllFiles(dir, extensions) {
   if (!dir || !fs.existsSync(dir)) return [];
   const results = [];
@@ -309,9 +299,7 @@ function removeHeader(filePath) {
   return true;
 }
 
-// ─────────────────────────────────────────────
 //  ESTEGANOGRAFIA EM PNG (chunk tEXt — sem deps)
-// ─────────────────────────────────────────────
 function embedInPNG(filePath, message) {
   const buf = fs.readFileSync(filePath);
   const PNG_SIG = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
@@ -355,35 +343,31 @@ function readFromPNG(filePath) {
   return msgs;
 }
 
-// ─────────────────────────────────────────────
 //  PROCESSADORES POR LINGUAGEM
-// ─────────────────────────────────────────────
 function processLang({ label, dir, extensions, headerFn, addFn }) {
   if (!dir) return 0;
-  log("cyan", "→", `Processando ${label}...`);
+  log("cyan", "", `Processando ${label}...`);
   const files = getAllFiles(dir, extensions);
   let count = 0;
   for (const f of files) {
     const marked = addFn
       ? addFn(f)
       : addHeader(f, headerFn());
-    if (marked) { log("green", "  ✓", path.relative(".", f)); count++; }
+    if (marked) { log("green", "  ", path.relative(".", f)); count++; }
   }
   log("dim", "  ", `${count}/${files.length} arquivos marcados\n`);
   return count;
 }
 
-// ─────────────────────────────────────────────
 //  MÓDULOS DE ASSINATURA
-// ─────────────────────────────────────────────
 function generateSignatureFiles() {
-  log("cyan", "→", "Gerando módulos de assinatura...");
+  log("cyan", "", "Gerando módulos de assinatura...");
 
   const write = (p, content) => {
     if (fs.existsSync(p)) return;
     fs.mkdirSync(path.dirname(p), { recursive: true });
     fs.writeFileSync(p, content, "utf8");
-    log("green", "  ✓", path.relative(".", p));
+    log("green", "  ", path.relative(".", p));
   };
 
   if (CONFIG.backendPath)  write(path.join(CONFIG.backendPath, "_copyright.js"),         jsSignatureModule());
@@ -403,9 +387,7 @@ function generateSignatureFiles() {
   if (CONFIG.phpPath) write(path.join(CONFIG.phpPath, "_copyright.php"), phpSignatureFile());
 }
 
-// ─────────────────────────────────────────────
 //  ARQUIVO .copyright
-// ─────────────────────────────────────────────
 function generateCopyrightFile() {
   const sig = {
     author:      CONFIG.author,
@@ -419,14 +401,12 @@ function generateCopyrightFile() {
     proof: crypto.createHash("sha256").update(FINGERPRINT + TOKEN + CONFIG.email).digest("hex"),
   };
   fs.writeFileSync(".copyright", JSON.stringify(sig, null, 2) + "\n", "utf8");
-  log("green", "✓", ".copyright gerado");
+  log("green", "", ".copyright gerado");
 }
 
-// ─────────────────────────────────────────────
 //  PIPELINE PRINCIPAL
-// ─────────────────────────────────────────────
 function applyWatermarks() {
-  log("cyan", "\n🔐", "Iniciando watermarking...\n");
+  log("cyan", "\n", "Iniciando watermarking...\n");
   log("dim", "  ", `Autor      : ${CONFIG.author}`);
   log("dim", "  ", `Token      : ${TOKEN}`);
   log("dim", "  ", `Fingerprint: ${FINGERPRINT.substring(0, 32)}...\n`);
@@ -485,7 +465,7 @@ function applyWatermarks() {
   generateSignatureFiles();
 
   // PNGs
-  log("cyan", "\n→", "Buscando assets PNG para esteganografia...");
+  log("cyan", "\n", "Buscando assets PNG para esteganografia...");
   const pngDirs = [
     CONFIG.frontendPath && path.join(CONFIG.frontendPath, "assets"),
     CONFIG.frontendPath && path.join(CONFIG.frontendPath, "images"),
@@ -503,37 +483,35 @@ function applyWatermarks() {
     for (const png of getAllFiles(dir, [".png"])) {
       try {
         embedInPNG(png, pngMsg);
-        log("green", "  ✓", `PNG: ${path.relative(".", png)}`);
+        log("green", "  ", `PNG: ${path.relative(".", png)}`);
         pngCount++;
       } catch (e) {
-        log("yellow", "  ⚠", `Ignorado: ${path.relative(".", png)} — ${e.message}`);
+        log("yellow", "  ", `Ignorado: ${path.relative(".", png)} — ${e.message}`);
       }
     }
   }
   if (pngCount === 0) log("dim", "  ", "Nenhum PNG encontrado nos diretórios de assets");
 
   // .copyright
-  log("cyan", "\n→", "Gerando arquivo de evidência...");
+  log("cyan", "\n", "Gerando arquivo de evidência...");
   generateCopyrightFile();
 
-  log("green", "\n✅", `Concluído! ${total} arquivos marcados, ${pngCount} PNGs processados.`);
-  log("yellow", "\n📋", "Fingerprint completo:");
+  log("green", "\n", `Concluído! ${total} arquivos marcados, ${pngCount} PNGs processados.`);
+  log("yellow", "\n", "Fingerprint completo:");
   log("dim",    "   ", FINGERPRINT);
   log("dim",    "   ", "(salvo em .copyright)\n");
 }
 
-// ─────────────────────────────────────────────
 //  VERIFICAÇÃO
-// ─────────────────────────────────────────────
 function verifyWatermarks() {
-  log("cyan", "\n🔍", "Verificando marcas d'água...\n");
+  log("cyan", "\n", "Verificando marcas d'água...\n");
   let ok = 0, missing = 0;
 
   const check = (files, label) => {
     for (const f of files) {
       const content = fs.readFileSync(f, "utf8");
-      if (alreadyWatermarked(content)) { log("green", "  ✓", `${label}: ${path.relative(".", f)}`); ok++; }
-      else { log("red", "  ✗", `${label}: ${path.relative(".", f)} — SEM MARCA`); missing++; }
+      if (alreadyWatermarked(content)) { log("green", "  ", `${label}: ${path.relative(".", f)}`); ok++; }
+      else { log("red", "  ", `${label}: ${path.relative(".", f)} — SEM MARCA`); missing++; }
     }
   };
 
@@ -546,19 +524,17 @@ function verifyWatermarks() {
   if (fs.existsSync(".copyright")) {
     const data  = JSON.parse(fs.readFileSync(".copyright", "utf8"));
     const valid = data.fingerprint === FINGERPRINT && data.token === TOKEN;
-    log(valid ? "green" : "red", valid ? "  ✓" : "  ✗", `.copyright — ${valid ? "válido" : "INVÁLIDO"}`);
+    log(valid ? "green" : "red", valid ? "  " : "  ", `.copyright — ${valid ? "válido" : "INVÁLIDO"}`);
   } else {
-    log("red", "  ✗", ".copyright não encontrado");
+    log("red", "  ", ".copyright não encontrado");
   }
 
-  log(ok > 0 ? "green" : "red", "\n📊", `${ok} marcados | ${missing} sem marca`);
+  log(ok > 0 ? "green" : "red", "\n", `${ok} marcados | ${missing} sem marca`);
 }
 
-// ─────────────────────────────────────────────
 //  REMOÇÃO
-// ─────────────────────────────────────────────
 function removeWatermarks() {
-  log("yellow", "\n⚠️ ", "Removendo marcas d'água...\n");
+  log("yellow", "\n ", "Removendo marcas d'água...\n");
   const all = [
     ...getAllFiles(CONFIG.backendPath, [".js",".ts",".mjs",".cjs"]),
     ...getAllFiles(CONFIG.frontendPath ? path.join(CONFIG.frontendPath,"lib") : null, [".dart"]),
@@ -573,15 +549,11 @@ function removeWatermarks() {
   log("yellow", "\n~", `${count} arquivos desmarcados`);
 }
 
-// ─────────────────────────────────────────────
 //  LOG COLORIDO
-// ─────────────────────────────────────────────
 const COLORS = { red:"\x1b[31m", green:"\x1b[32m", yellow:"\x1b[33m", cyan:"\x1b[36m", dim:"\x1b[2m", reset:"\x1b[0m" };
 function log(color, prefix, msg) { console.log(`${COLORS[color]||""}${prefix} ${msg}${COLORS.reset}`); }
 
-// ─────────────────────────────────────────────
 //  ENTRY POINT
-// ─────────────────────────────────────────────
 const args = process.argv.slice(2);
 if      (args.includes("--verify")) verifyWatermarks();
 else if (args.includes("--remove")) removeWatermarks();

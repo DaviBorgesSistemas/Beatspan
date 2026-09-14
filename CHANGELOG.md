@@ -19,9 +19,9 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ### Adicionado
 
-- Analytics de produto (Firebase Analytics) instrumentando o funil de escaneamento→reprodução: `qr_scanned`, `qr_invalid`, `musica_lookup_failed`, `playback_started` (com fonte: faixa completa Premium vs. prévia de 30s), `playback_failed` e `itunes_fallback_used` quando a prévia é resolvida via iTunes em vez do Spotify.
+- Analytics de produto (Firebase Analytics) instrumentando o funil de escaneamentoreprodução: `qr_scanned`, `qr_invalid`, `musica_lookup_failed`, `playback_started` (com fonte: faixa completa Premium vs. prévia de 30s), `playback_failed` e `itunes_fallback_used` quando a prévia é resolvida via iTunes em vez do Spotify.
 - CD (`.github/workflows/cd.yml`): build de APK assinado e publicação no Firebase App Distribution disparados por tag `vX.Y.Z`.
-- Tela de privacidade/LGPD (`PrivacyConsentView`), exibida antes do primeiro uso, com links para a Política de Privacidade e os Termos de Uso e consentimento opcional (opt-in) para o Firebase Analytics; consentimento revogável a qualquer momento em Configurações → Privacidade.
+- Tela de privacidade/LGPD (`PrivacyConsentView`), exibida antes do primeiro uso, com links para a Política de Privacidade e os Termos de Uso e consentimento opcional (opt-in) para o Firebase Analytics; consentimento revogável a qualquer momento em Configurações  Privacidade.
 
 ### Alterado
 

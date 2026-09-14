@@ -9,11 +9,11 @@
 
 ### Se sim: evidência reproduzível por item marcado
 
-> Regra (ver `docs/4-ACTION_PLAN.md`, lição da v1.4 → v2.0): nenhum item é marcado `[x]`
+> Regra (ver `docs/4-ACTION_PLAN.md`, lição da v1.4  v2.0): nenhum item é marcado `[x]`
 > só porque "lembro que fiz isso". Cole abaixo, para cada item marcado neste PR, o comando
 > e a saída (ou o link) que comprova o estado atual do código — não a intenção.
 
-- **`[ID-000]`**: `comando rodado` → resultado colado aqui
+- **`[ID-000]`**: `comando rodado`  resultado colado aqui
 
 ## Checklist do revisor
 

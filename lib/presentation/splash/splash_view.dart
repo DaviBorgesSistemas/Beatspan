@@ -6,7 +6,7 @@
 //
 // Todos os direitos reservados.
 
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../../app/app_prefs.dart';
 import '../resource/assets_manager.dart';
 import '../resource/color_manager.dart';

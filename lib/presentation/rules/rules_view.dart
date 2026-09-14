@@ -90,7 +90,7 @@ class _RulesViewState extends State<RulesView> {
                         child: _InfoCard(
                           title: 'Spotify Free',
                           items: const [
-                            '🔄 Sensor de giro — a música toca ao virar o celular',
+                            ' Sensor de giro — a música toca ao virar o celular',
                             '⏳ Contagem regressiva — 3 segundos e a música começa',
                           ],
                         ),
@@ -100,8 +100,8 @@ class _RulesViewState extends State<RulesView> {
                         child: _InfoCard(
                           title: 'Spotify Premium',
                           items: const [
-                            '🎵 Faixas completas — a música inteira',
-                            '⚡ Prévias de 30s — modo rápido',
+                            ' Faixas completas — a música inteira',
+                            ' Prévias de 30s — modo rápido',
                           ],
                         ),
                       ),

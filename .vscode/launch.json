@@ -22,7 +22,11 @@
             "request": "launch",
             "type": "dart",
             "flutterMode": "release",
-            "toolArgs": ["--dart-define-from-file=env.json"]
+            "toolArgs": [
+                "--dart-define-from-file=env.json",
+                "--obfuscate",
+                "--split-debug-info=build/symbols"
+            ]
         }
     ]
 }

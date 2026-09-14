@@ -8,7 +8,7 @@
 
 import 'package:firebase_analytics/firebase_analytics.dart';
 
-/// Nomes de evento do funil de escaneamento→reprodução (`OPS-004`).
+/// Nomes de evento do funil de escaneamentoreprodução (`OPS-004`).
 ///
 /// Mantidos como constantes (em vez de um enum) porque `FirebaseAnalytics`
 /// já valida nome/parâmetros de evento em runtime — um enum só duplicaria

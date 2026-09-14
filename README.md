@@ -128,7 +128,7 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-O job roda `flutter analyze`/`flutter test` antes de compilar, reconstrói `android/key.properties`, a keystore e o `env.json` a partir de secrets do repositório (nenhum desses arquivos é versionado) e depois remove esses arquivos do runner. Secrets necessários em **Settings → Secrets and variables → Actions**:
+O job roda `flutter analyze`/`flutter test` antes de compilar, reconstrói `android/key.properties`, a keystore e o `env.json` a partir de secrets do repositório (nenhum desses arquivos é versionado) e depois remove esses arquivos do runner. Secrets necessários em **Settings  Secrets and variables  Actions**:
 
 | Secret | Conteúdo |
 |---|---|
@@ -137,7 +137,7 @@ O job roda `flutter analyze`/`flutter test` antes de compilar, reconstrói `andr
 | `ANDROID_KEY_PASSWORD` | senha da chave (`keyPassword`) |
 | `ANDROID_KEY_ALIAS` | alias da chave (`keyAlias`) |
 | `SPOTIFY_CLIENT_ID` / `SPOTIFY_REDIRECT_URL` | mesmas credenciais do `env.json` local |
-| `FIREBASE_APP_ID` | App ID do Firebase (Project settings → General → seção Android) |
+| `FIREBASE_APP_ID` | App ID do Firebase (Project settings  General  seção Android) |
 | `FIREBASE_SERVICE_ACCOUNT` | JSON da service account com permissão de Firebase App Distribution |
 
 O grupo de testers do Firebase App Distribution usado é `testers` (configurável em `.github/workflows/cd.yml`).

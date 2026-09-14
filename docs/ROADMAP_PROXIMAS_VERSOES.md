@@ -11,7 +11,7 @@
 
 ## Ponto de partida (estado atual, resumido)
 
-- Jogo hoje é **100% local com cartas físicas**: o app só resolve QR code → música via Firestore e toca a faixa (Premium via Spotify App Remote, Free via preview 30s + fallback iTunes). Pontuação, rodadas e linha do tempo são geridas pelos jogadores fisicamente.
+- Jogo hoje é **100% local com cartas físicas**: o app só resolve QR code  música via Firestore e toca a faixa (Premium via Spotify App Remote, Free via preview 30s + fallback iTunes). Pontuação, rodadas e linha do tempo são geridas pelos jogadores fisicamente.
 - Backend é só **Firestore de leitura pública** (coleção `musicas`, sem autenticação de usuário) — não existe conceito de "sessão de jogo", "sala" ou "jogador" no backend.
 - App é **Android-only**, só em português (pt-BR), sem seleção de idioma/país (decisão de produto já tomada).
 - Débito técnico crítico (arquitetura, segurança, cobertura de teste, CI/CD, analytics, LGPD) já foi trabalhado nas últimas sessões — a base está sólida o suficiente para investir em produto sem reabrir essas frentes.
@@ -51,7 +51,7 @@ Todos os outros eixos (modos de jogo, modo digital, multiplayer) ficam mais inte
 ### Escopo proposto
 
 - **Modo Equipes**: interface para registrar 2+ times, com placar simples mantido no app (hoje o placar é 100% manual/físico). Precisa de uma tela de "configurar partida" antes de começar a escanear.
-- **Modo Contra-relógio / Blitz**: cada carta tem um tempo limite para o time acertar música/artista/ano antes de tocar a próxima; usa o cronômetro só como utilidade de apoio, sem mudar a mecânica central de QR→Spotify.
+- **Modo Contra-relógio / Blitz**: cada carta tem um tempo limite para o time acertar música/artista/ano antes de tocar a próxima; usa o cronômetro só como utilidade de apoio, sem mudar a mecânica central de QRSpotify.
 - **Modo Desafio temático**: uma partida restrita a um pack específico (depende de v1.1) — ex: "só anos 2000", jogável como sessão fechada.
 - **Persistência de partida em andamento**: como o app hoje não guarda nenhum estado de "jogo atual", isso é a mudança de maior risco desta versão — decidir se o estado vive só em memória (perde ao fechar o app) ou se vale persistir localmente (`shared_preferences` ou um store mais estruturado) para retomar uma partida interrompida.
 
@@ -73,7 +73,7 @@ Hoje a linha do tempo é física (cartas sobre a mesa) e o app só toca a músic
 ### Escopo proposto
 
 - **Motor de linha do tempo digital**: estrutura de dados e UI para representar a sequência de cartas já reveladas (ano + música), permitindo inserir uma nova carta em qualquer posição por toque/arraste. Este é o componente novo mais complexo do roadmap até aqui — não existe hoje nenhuma representação de "linha do tempo" em código, físico ou digital.
-- **Fluxo de rodada digital**: sorteia uma música do catálogo (reaproveita packs da v1.1) → toca a prévia/faixa → jogador toca a posição → app revela e valida automaticamente (comparando o ano) → atualiza a linha do tempo e o placar.
+- **Fluxo de rodada digital**: sorteia uma música do catálogo (reaproveita packs da v1.1)  toca a prévia/faixa  jogador toca a posição  app revela e valida automaticamente (comparando o ano)  atualiza a linha do tempo e o placar.
 - **UI otimizada para tela grande / tablet**: layout responsivo pensado para uma superfície compartilhada (várias pessoas ao redor de um tablet ou tela), diferente do layout atual do app, desenhado para uso individual em smartphone.
 - **Decisão de plataforma**: avaliar se este modo roda como parte do mesmo app Flutter (Flutter já compila para web e tem suporte a tablet/Android sem grandes mudanças) ou como um app/target separado. **Recomendação**: manter no mesmo código Flutter e usar `flutter build web` como novo target, em vez de criar um projeto separado — evita duplicar lógica de domínio (catálogo, playback, packs) que já existe e será reaproveitada.
 - **Playback no modo digital**: como não há carta física para ditar o momento de tocar, este modo precisa decidir a fonte de áudio por rodada (prévia Free vs. faixa completa Premium) dentro do próprio fluxo — reaproveita `MusicaPlaybackUsecase`/`SpotifyPlaybackUsecase` já existentes, mas exige uma orquestração de "próxima rodada automática" que hoje não existe (hoje cada música é disparada por um scan manual).
