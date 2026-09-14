@@ -93,7 +93,7 @@ class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorManager.bagroundColor,
+      backgroundColor: ColorManager.backgroundColor,
       body: SafeArea(
         child: _isLoading
             ? const BeatspanLoadingOverlay(
@@ -139,19 +139,23 @@ class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
         children: [
           Align(
             alignment: Alignment.topRight,
-            child: GestureDetector(
-              onTap: () => Navigator.of(context).pop(),
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.08),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.15),
+            child: Semantics(
+              button: true,
+              label: 'Fechar',
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.08),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.15),
+                    ),
                   ),
+                  child: const Icon(Icons.close, color: Colors.white),
                 ),
-                child: const Icon(Icons.close, color: Colors.white),
               ),
             ),
           ),
@@ -188,7 +192,10 @@ class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
                   children: [
                     Text(
                       widget.artistName ?? '',
-                      style: TextStyle(fontSize: 18, color: ColorManager.textMuted),
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: ColorManager.textMuted,
+                      ),
                     ),
                     SizedBox(width: 8),
                     Container(

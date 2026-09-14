@@ -1,19 +1,40 @@
 scripts:
+  # Baixa/atualiza as dependências do pubspec.yaml
   get: flutter pub get
+  # Apaga as pastas de build (build/, .dart_tool/ etc)
   clean: flutter clean
+  # Limpa tudo e reinstala as dependências do zero
   reset: flutter clean;flutter pub get
 
 
-  run: flutter run
-  run:release: flutter run --release
+  # Roda o app em modo debug, injetando as variáveis do env.json (--dart-define)
+  run: flutter run --dart-define-from-file=env.json
+  # Roda o app em modo release, injetando as variáveis do env.json
+  run:release: flutter run --release --dart-define-from-file=env.json
 
-  build:apk: flutter build apk --release
-  build:appbundle: flutter build appbundle --release
+  # Gera um .apk de release (instalação direta/sideload)
+  build:apk: flutter build apk --release --dart-define-from-file=env.json
+  # Gera um .aab de release (formato exigido pela Play Store)
+  build:appbundle: flutter build appbundle --release --dart-define-from-file=env.json
 
+  # Roda a suíte de testes
   test: flutter test
+  # Roda o linter/analisador estático do Dart
   analyze: flutter analyze
+  # Formata todo o código do projeto
   format: dart format .
 
+  # Gera os ícones do app a partir de flutter_launcher_icons.yaml
   icons: dart run flutter_launcher_icons -f flutter_launcher_icons.yaml
-  splash: dart run flutter_native_splash:create --path=flutter_native_splash.yaml 
- 
+  # Gera a splash screen nativa a partir de flutter_native_splash.yaml
+  splash: dart run flutter_native_splash:create --path=flutter_native_splash.yaml
+
+  # Lê variáveis de ambiente e gera o env.json usado por run/build
+  env: python scripts/env_to_json.py
+  # Audita as dependências do projeto
+  deps:scan: bash scripts/scan_dependencies.sh
+
+  # Adiciona as músicas na playlist Beatspan do Spotify
+  spotify:sync: python scripts/spotify_playlist_sync.py
+  # Simula a sincronização com o Spotify sem alterar a playlist
+  spotify:sync:dry: python scripts/spotify_playlist_sync.py --dry-run

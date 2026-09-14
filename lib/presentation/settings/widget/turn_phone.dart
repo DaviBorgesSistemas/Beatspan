@@ -174,7 +174,9 @@ class _TurnPhoneState extends State<TurnPhone> {
                                   ),
                                   Text(
                                     'A faixa começa a tocar quando você vira o telefone.',
-                                    style: TextStyle(color: ColorManager.textMuted),
+                                    style: TextStyle(
+                                      color: ColorManager.textMuted,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -215,7 +217,9 @@ class _TurnPhoneState extends State<TurnPhone> {
                                   ),
                                   Text(
                                     'A faixa começa a tocar quando você vira o telefone.',
-                                    style: TextStyle(color: ColorManager.textMuted),
+                                    style: TextStyle(
+                                      color: ColorManager.textMuted,
+                                    ),
                                   ),
                                 ],
                               ),

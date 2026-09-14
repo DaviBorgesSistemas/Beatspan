@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../resource/color_manager.dart';
-
-const _privacyPolicyUrl = 'https://beatspan.web.app/privacidade';
+import '../../resource/legal_links.dart';
 
 class SpotifyConsentDialog extends StatelessWidget {
   const SpotifyConsentDialog({super.key});
@@ -20,7 +19,7 @@ class SpotifyConsentDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: ColorManager.bagroundColor,
+      backgroundColor: ColorManager.backgroundColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
@@ -59,12 +58,12 @@ class SpotifyConsentDialog extends StatelessWidget {
               label: 'Leia a Política de Privacidade completa',
               excludeSemantics: true,
               onTap: () => launchUrl(
-                Uri.parse(_privacyPolicyUrl),
+                Uri.parse(privacyPolicyUrl),
                 mode: LaunchMode.externalApplication,
               ),
               child: GestureDetector(
                 onTap: () => launchUrl(
-                  Uri.parse(_privacyPolicyUrl),
+                  Uri.parse(privacyPolicyUrl),
                   mode: LaunchMode.externalApplication,
                 ),
                 child: Text(

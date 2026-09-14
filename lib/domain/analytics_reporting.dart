@@ -34,3 +34,15 @@ void reportAnalyticsEvent(String name, [Map<String, Object>? parameters]) {
     // fluxo real do app.
   }
 }
+
+/// Liga/desliga a coleta do Firebase Analytics conforme o consentimento de
+/// privacidade do usuário (LGPD). Mesmo tratamento de falha silenciosa de
+/// [reportAnalyticsEvent] — não pode quebrar o fluxo de consentimento nem
+/// `flutter test` (Firebase não inicializado).
+Future<void> setAnalyticsCollectionEnabled(bool enabled) async {
+  try {
+    await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(enabled);
+  } catch (_) {
+    // Silencioso de propósito — mesma justificativa de reportAnalyticsEvent.
+  }
+}

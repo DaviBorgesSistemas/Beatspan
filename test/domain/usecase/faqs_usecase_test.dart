@@ -17,15 +17,18 @@ void main() {
     useCase = FaqsUseCase(repository);
   });
 
-  test('delega a busca ao repositório e repassa o resultado de sucesso', () async {
-    final faqs = [Faq(title: 'FAQ', session: [])];
-    when(() => repository.getFaqs()).thenAnswer((_) async => Right(faqs));
+  test(
+    'delega a busca ao repositório e repassa o resultado de sucesso',
+    () async {
+      final faqs = [Faq(title: 'FAQ', session: [])];
+      when(() => repository.getFaqs()).thenAnswer((_) async => Right(faqs));
 
-    final result = await useCase.execute(null);
+      final result = await useCase.execute(null);
 
-    expect(result, Right(faqs));
-    verify(() => repository.getFaqs()).called(1);
-  });
+      expect(result, Right(faqs));
+      verify(() => repository.getFaqs()).called(1);
+    },
+  );
 
   test('repassa a falha do repositório sem alterá-la', () async {
     final failure = FaqErroInesperado('erro ao ler asset');

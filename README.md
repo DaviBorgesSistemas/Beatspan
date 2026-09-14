@@ -21,7 +21,7 @@ Beatspan é um app em Flutter que acompanha um jogo de cartas de música no esti
 | Injeção de dependência | `get_it` |
 | Result/Either | `dartz` |
 | Persistência local | `shared_preferences` |
-| Configuração por ambiente | `flutter_dotenv` |
+| Configuração por ambiente | `--dart-define-from-file` (compile-time) |
 | Backend / catálogo de músicas | `firebase_core`, `cloud_firestore` |
 | Rede / conectividade | `http`, `connectivity_plus` |
 | Integração Spotify | `spotify_sdk` (App Remote + Auth), Web API via `http` |
@@ -76,7 +76,7 @@ lib/
 
 O app precisa de credenciais do Spotify (Client ID e Redirect URI) para autenticar e tocar as faixas.
 
-- Copie `.env.example` para `.env` e preencha `SPOTIFY_CLIENT_ID` e `SPOTIFY_REDIRECT_URL` com suas credenciais. O app carrega esse arquivo via `flutter_dotenv` na inicialização ([lib/main.dart](lib/main.dart)) e lê as variáveis em [lib/app/di.dart](lib/app/di.dart) — sem elas definidas, o app lança um erro claro ao iniciar.
+- Copie `env.json.example` para `env.json` e preencha `SPOTIFY_CLIENT_ID` e `SPOTIFY_REDIRECT_URL` com suas credenciais. O app lê essas variáveis em tempo de compilação via `String.fromEnvironment` em [lib/app/di.dart](lib/app/di.dart) — sem elas definidas, o app lança um erro claro ao iniciar. Rode/compile passando o arquivo: `flutter run --dart-define-from-file=env.json` (o VS Code já faz isso nas configurações em `.vscode/launch.json`). `env.json` está no `.gitignore` e nunca deve ser versionado nem empacotado como asset — diferente da abordagem anterior com `.env`, os valores de `--dart-define` não são incluídos como arquivo extraível no APK/IPA.
 
 ## Configuração do Firebase
 
@@ -119,6 +119,29 @@ Exemplo: `fix: valida corretamente links de faixa sem prefixo de locale`.
 git config core.hooksPath .githooks
 ```
 
+## Release (CD)
+
+O workflow `.github/workflows/cd.yml` gera o APK de release e publica automaticamente no Firebase App Distribution sempre que uma tag no formato `vX.Y.Z` (semver) é enviada ao repositório:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+O job roda `flutter analyze`/`flutter test` antes de compilar, reconstrói `android/key.properties`, a keystore e o `env.json` a partir de secrets do repositório (nenhum desses arquivos é versionado) e depois remove esses arquivos do runner. Secrets necessários em **Settings → Secrets and variables → Actions**:
+
+| Secret | Conteúdo |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | `upload-keystore.jks` codificado em base64 (`base64 -w0 upload-keystore.jks`) |
+| `ANDROID_STORE_PASSWORD` | senha da keystore (`storePassword` do `key.properties`) |
+| `ANDROID_KEY_PASSWORD` | senha da chave (`keyPassword`) |
+| `ANDROID_KEY_ALIAS` | alias da chave (`keyAlias`) |
+| `SPOTIFY_CLIENT_ID` / `SPOTIFY_REDIRECT_URL` | mesmas credenciais do `env.json` local |
+| `FIREBASE_APP_ID` | App ID do Firebase (Project settings → General → seção Android) |
+| `FIREBASE_SERVICE_ACCOUNT` | JSON da service account com permissão de Firebase App Distribution |
+
+O grupo de testers do Firebase App Distribution usado é `testers` (configurável em `.github/workflows/cd.yml`).
+
 ## Estrutura de documentação
 
 A pasta [docs/](docs/) contém uma análise arquitetural completa (fundamentos, segurança, experiência, operações, documentação, performance), gerada a partir de `guides/prompts/PROMPT_ANALISE_ARQUITETURAL.md`:
@@ -133,7 +156,7 @@ A pasta [docs/](docs/) contém uma análise arquitetural completa (fundamentos, 
 
 Projeto em desenvolvimento ativo, pré-lançamento (ainda não publicado nas lojas). Pontos conhecidos em aberto:
 
-- Ainda não há modelo de jogo (rodadas, pontuação, timeline, vitória) implementado — o app cobre hoje o fluxo de escanear e tocar a música.
+- Rodadas, pontuação e linha do tempo são geridas pelos próprios jogadores com as cartas físicas (o ano vem impresso na carta) — por design, o app só cobre o fluxo de escanear e tocar a música, sem precisar modelar isso digitalmente.
 - Sem suporte a multiplayer ou estado sincronizado entre dispositivos.
 - Cobertura de testes ainda inicial (ver `test/`) — falta cobrir `GameView`/players.
 - Build iOS não configurado — apenas Android está funcional hoje.

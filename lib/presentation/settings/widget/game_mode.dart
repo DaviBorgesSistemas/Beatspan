@@ -100,7 +100,9 @@ class _GameModeState extends State<GameMode> {
                               ? buttonRadio(trackMode == 0)
                               : Text(
                                   'Indisponível',
-                                  style: TextStyle(color: ColorManager.textMuted),
+                                  style: TextStyle(
+                                    color: ColorManager.textMuted,
+                                  ),
                                 ),
                           SizedBox(width: 24),
                           Expanded(

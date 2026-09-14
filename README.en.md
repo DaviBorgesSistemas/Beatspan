@@ -21,7 +21,7 @@ Beatspan is a Flutter app that companions a **Hitster**-style music card game: e
 | Dependency injection | `get_it` |
 | Result/Either | `dartz` |
 | Local persistence | `shared_preferences` |
-| Environment configuration | `flutter_dotenv` |
+| Environment configuration | `--dart-define-from-file` (compile-time) |
 | Backend / music catalog | `firebase_core`, `cloud_firestore` |
 | Network / connectivity | `http`, `connectivity_plus` |
 | Spotify integration | `spotify_sdk` (App Remote + Auth), Web API via `http` |
@@ -76,7 +76,7 @@ lib/
 
 The app needs Spotify credentials (Client ID and Redirect URI) to authenticate and play tracks.
 
-- Copy `.env.example` to `.env` and fill in `SPOTIFY_CLIENT_ID` and `SPOTIFY_REDIRECT_URL` with your credentials. The app loads this file via `flutter_dotenv` on startup ([lib/main.dart](lib/main.dart)) and reads the variables in [lib/app/di.dart](lib/app/di.dart) — without them defined, the app throws a clear error on launch.
+- Copy `env.json.example` to `env.json` and fill in `SPOTIFY_CLIENT_ID` and `SPOTIFY_REDIRECT_URL` with your credentials. The app reads these at compile time via `String.fromEnvironment` in [lib/app/di.dart](lib/app/di.dart) — without them defined, the app throws a clear error on launch. Run/build passing the file: `flutter run --dart-define-from-file=env.json` (already wired into the VS Code configurations in `.vscode/launch.json`). `env.json` is gitignored and must never be committed or packaged as an asset — unlike the previous `.env` approach, `--dart-define` values are not shipped as an extractable file inside the APK/IPA.
 
 ## Firebase setup
 
@@ -113,6 +113,29 @@ The project follows [Conventional Commits](https://www.conventionalcommits.org/)
 
 Example: `fix: correctly validates track links without a locale prefix`.
 
+## Release (CD)
+
+The `.github/workflows/cd.yml` workflow builds a release APK and automatically publishes it to Firebase App Distribution whenever a `vX.Y.Z` (semver) tag is pushed:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The job runs `flutter analyze`/`flutter test` before building, reconstructs `android/key.properties`, the keystore and `env.json` from repository secrets (none of these files are committed), then deletes them from the runner afterwards. Required secrets under **Settings → Secrets and variables → Actions**:
+
+| Secret | Content |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | `upload-keystore.jks` base64-encoded (`base64 -w0 upload-keystore.jks`) |
+| `ANDROID_STORE_PASSWORD` | keystore password (`storePassword` in `key.properties`) |
+| `ANDROID_KEY_PASSWORD` | key password (`keyPassword`) |
+| `ANDROID_KEY_ALIAS` | key alias (`keyAlias`) |
+| `SPOTIFY_CLIENT_ID` / `SPOTIFY_REDIRECT_URL` | same credentials as the local `env.json` |
+| `FIREBASE_APP_ID` | Firebase App ID (Project settings → General → Android section) |
+| `FIREBASE_SERVICE_ACCOUNT` | service account JSON with Firebase App Distribution permission |
+
+The Firebase App Distribution tester group used is `testers` (configurable in `.github/workflows/cd.yml`).
+
 ## Documentation
 
 The [docs/](docs/) folder contains a full architectural analysis (fundamentals, security, experience, operations, documentation, performance):
@@ -127,7 +150,7 @@ The [docs/](docs/) folder contains a full architectural analysis (fundamentals, 
 
 Actively under development, pre-launch (not yet published on app stores). Known open points:
 
-- No game logic yet (rounds, scoring, timeline, winning) — the app currently covers the scan-and-play flow only.
+- Rounds, scoring and the timeline are managed by the players themselves with the physical cards (the year is printed on the card) — by design, the app only covers the scan-and-play flow and doesn't need to model that digitally.
 - No multiplayer or state sync across devices.
 - Test coverage still early-stage (see `test/`) — `GameView`/players still need coverage.
 - iOS build not configured — only Android is functional today.

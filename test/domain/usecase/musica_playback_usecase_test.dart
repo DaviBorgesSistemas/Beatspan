@@ -62,28 +62,25 @@ void main() {
     verify(() => repository.resolvePreview('abc123')).called(1);
   });
 
-  test(
-    'retorna PreviewPlayback para plano premium em modo prévia',
-    () async {
-      const preview = PreviewPlayback(
-        trackId: 'abc123',
-        previewUrl: 'https://preview',
-      );
-      when(
-        () => repository.resolvePreview('abc123'),
-      ).thenAnswer((_) async => preview);
+  test('retorna PreviewPlayback para plano premium em modo prévia', () async {
+    const preview = PreviewPlayback(
+      trackId: 'abc123',
+      previewUrl: 'https://preview',
+    );
+    when(
+      () => repository.resolvePreview('abc123'),
+    ).thenAnswer((_) async => preview);
 
-      final result = await useCase.execute(
-        const MusicaPlaybackInput(
-          spotifyUri: spotifyUri,
-          plan: PlanType.premium,
-          gameMode: GameModeType.preview,
-        ),
-      );
+    final result = await useCase.execute(
+      const MusicaPlaybackInput(
+        spotifyUri: spotifyUri,
+        plan: PlanType.premium,
+        gameMode: GameModeType.preview,
+      ),
+    );
 
-      expect(result, const Right(preview));
-    },
-  );
+    expect(result, const Right(preview));
+  });
 
   test('retorna falha de URI inválida sem consultar o repositório', () async {
     final result = await useCase.execute(
@@ -122,9 +119,9 @@ void main() {
   test(
     'retorna falha de conexão quando repositório lança PlaybackNetworkException',
     () async {
-      when(() => repository.resolvePreview('abc123')).thenThrow(
-        const PlaybackNetworkException('Tempo de conexão esgotado.'),
-      );
+      when(
+        () => repository.resolvePreview('abc123'),
+      ).thenThrow(const PlaybackNetworkException('Tempo de conexão esgotado.'));
 
       final result = await useCase.execute(
         const MusicaPlaybackInput(
@@ -143,9 +140,9 @@ void main() {
   test(
     'retorna falha de autorização do Spotify quando repositório lança PlaybackAuthException',
     () async {
-      when(() => repository.resolvePreview('abc123')).thenThrow(
-        const PlaybackAuthException('Falha ao autorizar o Spotify.'),
-      );
+      when(
+        () => repository.resolvePreview('abc123'),
+      ).thenThrow(const PlaybackAuthException('Falha ao autorizar o Spotify.'));
 
       final result = await useCase.execute(
         const MusicaPlaybackInput(

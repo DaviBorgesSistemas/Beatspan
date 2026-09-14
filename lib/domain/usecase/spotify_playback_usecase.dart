@@ -81,9 +81,7 @@ class SpotifyPlaybackUseCase {
     }
   }
 
-  Future<Either<SpotifyPlaybackFailure, bool>> saveTrack(
-    String trackId,
-  ) async {
+  Future<Either<SpotifyPlaybackFailure, bool>> saveTrack(String trackId) async {
     try {
       final saved = await _repository.saveTrack(trackId);
       return Right(saved);

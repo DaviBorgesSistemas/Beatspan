@@ -19,7 +19,7 @@ class TurnPhoneReadyView extends StatefulWidget {
   final TurnPhoneMode mode;
   final VoidCallback onReady;
 
-  static final _background = ColorManager.bagroundColor;
+  static final _background = ColorManager.backgroundColor;
 
   @override
   State<TurnPhoneReadyView> createState() => _TurnPhoneReadyViewState();

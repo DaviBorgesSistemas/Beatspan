@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../app/app_prefs.dart';
 import '../app/di.dart';
 import '../domain/usecase/musica_playback_usecase.dart';
+import '../domain/usecase/preview_playback_usecase.dart';
 import '../domain/usecase/spotify_playback_usecase.dart';
 import 'change_spotify/change_spotify_view.dart';
 import 'change_spotify/connect_spotify_premium_view_model.dart';
@@ -13,6 +14,7 @@ import 'first_time/first_time_view.dart';
 import 'game/game_view.dart';
 import 'game/game_viewmodel.dart';
 import 'home/home_view.dart';
+import 'privacy_consent/privacy_consent_view.dart';
 import 'rules/rules_view.dart';
 import 'settings/settings_view.dart';
 import 'splash/splash_view.dart';
@@ -20,6 +22,7 @@ import 'spotify_free_transition/spotify_free_transition.dart';
 
 class Routes {
   static const String splashRoute = '/splash';
+  static const String privacyConsentRoute = '/privacy-consent';
   static const String firstTimeRoute = '/first';
   static const String rulesRoute = '/rules';
   static const String changeSpotifyRoute = '/change-spotify';
@@ -38,6 +41,10 @@ class RouteGenerator {
         return MaterialPageRoute(
           builder: (_) =>
               SplashView(appPreferences: instance<AppPreferences>()),
+        );
+      case Routes.privacyConsentRoute:
+        return _fadeRoute(
+          PrivacyConsentView(appPreferences: instance<AppPreferences>()),
         );
       case Routes.firstTimeRoute:
         return _fadeRoute(const FirstTimeView());
@@ -81,6 +88,8 @@ class RouteGenerator {
             viewModel: instance<GameViewModel>(),
             spotifyPlaybackUseCase: instance<SpotifyPlaybackUseCase>(),
             musicaPlaybackUseCase: instance<MusicaPlaybackUseCase>(),
+            previewPlaybackUseCaseFactory: () =>
+                instance<PreviewPlaybackUseCase>(),
           ),
         );
       default:

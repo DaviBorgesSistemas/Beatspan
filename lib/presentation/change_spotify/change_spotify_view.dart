@@ -72,7 +72,7 @@ class _ChangeSpotifyViewState extends State<ChangeSpotifyView> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: ColorManager.bagroundColor,
+          backgroundColor: ColorManager.backgroundColor,
           leading: Semantics(
             button: true,
             label: 'Voltar',

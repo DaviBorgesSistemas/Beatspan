@@ -21,7 +21,7 @@ class CameraPermissionView extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: ColorManager.bagroundColor,
+        backgroundColor: ColorManager.backgroundColor,
         body: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Stack(

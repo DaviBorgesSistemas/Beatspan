@@ -16,7 +16,7 @@ class SpotifyFreeTransition extends StatelessWidget {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: ColorManager.bagroundColor,
+          backgroundColor: ColorManager.backgroundColor,
           leading: GestureDetector(
             onTap: () {
               Navigator.of(context).pop();

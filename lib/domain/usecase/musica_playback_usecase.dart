@@ -36,8 +36,7 @@ class MusicaPlaybackUseCase
     MusicaPlaybackInput input,
   ) async {
     final usePreview =
-        input.plan == PlanType.free ||
-        input.gameMode == GameModeType.preview;
+        input.plan == PlanType.free || input.gameMode == GameModeType.preview;
 
     if (!usePreview) {
       return Right(FullTrackPlayback(input.spotifyUri));
@@ -62,7 +61,9 @@ class MusicaPlaybackUseCase
       reportNonFatalError(
         e,
         s,
-        information: const ['MusicaPlaybackUseCase.execute: erro não classificado'],
+        information: const [
+          'MusicaPlaybackUseCase.execute: erro não classificado',
+        ],
       );
       return Left(MusicaPlaybackErroInesperado('Erro inesperado: $e'));
     }

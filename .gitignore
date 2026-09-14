@@ -49,6 +49,14 @@ app.*.map.json
 
 # Credenciais locais — nunca versionar (ver docs/2-SECURITY_REPORT.md, SEC-S2)
 .env
+env.json
+
+# Cache de token OAuth do spotipy (scripts/*.py) — contém access/refresh token
+.cache
+
+# Service account keys do Firebase Admin SDK — nunca versionar
+*firebase-adminsdk*.json
+serviceAccountKey*.json
 
 # Keystore de release Android — nunca versionar (ver docs/2-SECURITY_REPORT.md, SEC-S2)
 /android/key.properties

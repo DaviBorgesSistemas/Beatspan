@@ -8,6 +8,7 @@ import '../change_spotify/connect_spotify_premium_view_model.dart';
 import '../change_spotify/widgets/spotify_consent_dialog.dart';
 import 'widget/game_mode.dart';
 import 'widget/general_settings.dart';
+import 'widget/privacy_settings.dart';
 import 'widget/turn_phone.dart';
 
 class SettingsView extends StatefulWidget {
@@ -70,7 +71,7 @@ class _SettingsViewState extends State<SettingsView> {
     final isPremium = _planType == PlanType.premium;
     return SafeArea(
       child: Scaffold(
-        backgroundColor: ColorManager.bagroundColor,
+        backgroundColor: ColorManager.backgroundColor,
         appBar: AppBar(
           centerTitle: true,
           title: Text(
@@ -155,6 +156,8 @@ class _SettingsViewState extends State<SettingsView> {
                   appPreferences: _appPreferences,
                   isTurnPhoneEnabled: _isTurnPhoneEnabled,
                 ),
+                SizedBox(height: 32),
+                PrivacySettings(appPreferences: _appPreferences),
               ],
             ),
           ),

@@ -62,7 +62,8 @@ void main() {
         spotifyPlaybackUseCase: spotifyPlaybackUseCase,
         musicaPlaybackUseCase: musicaPlaybackUseCase,
         previewPlaybackUseCaseFactory:
-            previewPlaybackUseCaseFactory ?? () => _MockPreviewPlaybackUseCase(),
+            previewPlaybackUseCaseFactory ??
+            () => _MockPreviewPlaybackUseCase(),
         isPlatformSupportedForTest: isPlatformSupportedForTest,
       ),
     );
@@ -72,9 +73,7 @@ void main() {
     testWidgets(
       'mostra erro de plataforma não suportada e botão Voltar, sem chamar o use case',
       (tester) async {
-        await tester.pumpWidget(
-          buildSubject(isPlatformSupportedForTest: null),
-        );
+        await tester.pumpWidget(buildSubject(isPlatformSupportedForTest: null));
         await tester.pumpAndSettle();
 
         expect(find.byIcon(Icons.error_outline), findsOneWidget);
@@ -155,26 +154,27 @@ void main() {
   });
 
   group('falha de autorização (SpotifyPlaybackNaoAutorizado)', () {
-    testWidgets('sem fallback disponível mostra erro com a mensagem e botão Voltar', (
-      tester,
-    ) async {
-      when(() => spotifyPlaybackUseCase.startPlayback(any())).thenAnswer(
-        (_) async => const Left(
-          SpotifyPlaybackNaoAutorizado('Sessão do Spotify expirada.'),
-        ),
-      );
-      when(() => musicaPlaybackUseCase.execute(any())).thenAnswer(
-        (_) async => const Left(MusicaPlaybackPreviaIndisponivel()),
-      );
+    testWidgets(
+      'sem fallback disponível mostra erro com a mensagem e botão Voltar',
+      (tester) async {
+        when(() => spotifyPlaybackUseCase.startPlayback(any())).thenAnswer(
+          (_) async => const Left(
+            SpotifyPlaybackNaoAutorizado('Sessão do Spotify expirada.'),
+          ),
+        );
+        when(() => musicaPlaybackUseCase.execute(any())).thenAnswer(
+          (_) async => const Left(MusicaPlaybackPreviaIndisponivel()),
+        );
 
-      await tester.pumpWidget(buildSubject());
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(buildSubject());
+        await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.error_outline), findsOneWidget);
-      expect(find.text('Sessão do Spotify expirada.'), findsOneWidget);
-      expect(find.widgetWithText(ElevatedButton, 'Voltar'), findsOneWidget);
-      verify(() => musicaPlaybackUseCase.execute(any())).called(1);
-    });
+        expect(find.byIcon(Icons.error_outline), findsOneWidget);
+        expect(find.text('Sessão do Spotify expirada.'), findsOneWidget);
+        expect(find.widgetWithText(ElevatedButton, 'Voltar'), findsOneWidget);
+        verify(() => musicaPlaybackUseCase.execute(any())).called(1);
+      },
+    );
 
     testWidgets(
       'com fallback disponível navega para PlayerMusicFreeView mostrando antes a mensagem de fallback',
@@ -277,7 +277,9 @@ void main() {
         () => spotifyPlaybackUseCase.subscribePlayerState(),
       ).thenAnswer((_) => controller.stream);
       when(
-        () => spotifyPlaybackUseCase.togglePlayback(isPaused: any(named: 'isPaused')),
+        () => spotifyPlaybackUseCase.togglePlayback(
+          isPaused: any(named: 'isPaused'),
+        ),
       ).thenAnswer((_) async {});
 
       await tester.pumpWidget(buildSubject());
@@ -323,9 +325,7 @@ void main() {
     },
   );
 
-  testWidgets('dispose() chama spotifyPlaybackUseCase.pause()', (
-    tester,
-  ) async {
+  testWidgets('dispose() chama spotifyPlaybackUseCase.pause()', (tester) async {
     when(
       () => spotifyPlaybackUseCase.startPlayback(any()),
     ).thenAnswer((_) async => const Right(unit));

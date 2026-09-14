@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:beatspan/app/app_prefs.dart';
 import 'package:beatspan/domain/enum/settings_enum.dart';
 import 'package:beatspan/domain/failure.dart';
@@ -99,6 +101,29 @@ void main() {
     test('retorna null para string que não é uma URL válida', () {
       expect(viewModel.extractCodigo('não é uma url'), isNull);
     });
+
+    test('extrai código com exatamente 100 caracteres', () {
+      final codigo = 'a' * 100;
+      expect(
+        viewModel.extractCodigo('https://beatspangame.com/$codigo'),
+        codigo,
+      );
+    });
+
+    test('retorna null para código com mais de 100 caracteres', () {
+      final codigo = 'a' * 101;
+      expect(
+        viewModel.extractCodigo('https://beatspangame.com/$codigo'),
+        isNull,
+      );
+    });
+
+    test('retorna null para código com caracteres não alfanuméricos', () {
+      expect(
+        viewModel.extractCodigo('https://beatspangame.com/0006-drop-table'),
+        isNull,
+      );
+    });
   });
 
   group('validate', () {
@@ -137,9 +162,9 @@ void main() {
     test(
       'emite NavigateToError "música não encontrada" para failure 404',
       () async {
-        when(() => getMusicaUseCase.execute(codigo)).thenAnswer(
-          (_) async => const Left(MusicaNaoEncontrada()),
-        );
+        when(
+          () => getMusicaUseCase.execute(codigo),
+        ).thenAnswer((_) async => const Left(MusicaNaoEncontrada()));
 
         await viewModel.handleDetectedCode('https://beatspangame.com/$codigo');
 
@@ -151,9 +176,9 @@ void main() {
     test(
       'emite NavigateToError de conexão para outra falha do GetMusicaUseCase',
       () async {
-        when(() => getMusicaUseCase.execute(codigo)).thenAnswer(
-          (_) async => Left(MusicaConsultaErro('erro de rede')),
-        );
+        when(
+          () => getMusicaUseCase.execute(codigo),
+        ).thenAnswer((_) async => Left(MusicaConsultaErro('erro de rede')));
 
         await viewModel.handleDetectedCode('https://beatspangame.com/$codigo');
 
@@ -228,15 +253,35 @@ void main() {
           () => getMusicaUseCase.execute(codigo),
         ).thenAnswer((_) async => Right(musica));
         when(() => musicaPlaybackUseCase.execute(any())).thenAnswer(
-          (_) async => Left(
-            MusicaPlaybackSpotifyNaoAutorizado('sem autorização'),
-          ),
+          (_) async =>
+              Left(MusicaPlaybackSpotifyNaoAutorizado('sem autorização')),
         );
 
         await viewModel.handleDetectedCode('https://beatspangame.com/$codigo');
 
         final event = viewModel.navigationEvent.value as NavigateToError;
         expect(event.title, 'SPOTIFY NÃO AUTORIZADO');
+      },
+    );
+  });
+
+  group('dispose', () {
+    test(
+      'não lança FlutterError ao emitir navegação após dispose durante busca ativa',
+      () async {
+        final completer = Completer<Either<MusicaFailure, Musica>>();
+        when(
+          () => getMusicaUseCase.execute(codigo),
+        ).thenAnswer((_) => completer.future);
+
+        final future = viewModel.handleDetectedCode(
+          'https://beatspangame.com/$codigo',
+        );
+
+        viewModel.dispose();
+        completer.complete(Right(musica));
+
+        await expectLater(future, completes);
       },
     );
   });

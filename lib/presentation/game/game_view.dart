@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../app/app_prefs.dart';
-import '../../app/di.dart';
 import '../../domain/model/musica_playback_result.dart';
 import '../../domain/usecase/musica_playback_usecase.dart';
 import '../../domain/usecase/preview_playback_usecase.dart';
@@ -21,6 +20,7 @@ class GameView extends StatefulWidget {
   final GameViewModel viewModel;
   final SpotifyPlaybackUseCase spotifyPlaybackUseCase;
   final MusicaPlaybackUseCase musicaPlaybackUseCase;
+  final PreviewPlaybackUseCase Function() previewPlaybackUseCaseFactory;
 
   const GameView({
     super.key,
@@ -28,6 +28,7 @@ class GameView extends StatefulWidget {
     required this.viewModel,
     required this.spotifyPlaybackUseCase,
     required this.musicaPlaybackUseCase,
+    required this.previewPlaybackUseCaseFactory,
   });
 
   @override
@@ -114,8 +115,7 @@ class _GameViewState extends State<GameView> {
           initialUri: spotifyUri,
           spotifyPlaybackUseCase: widget.spotifyPlaybackUseCase,
           musicaPlaybackUseCase: widget.musicaPlaybackUseCase,
-          previewPlaybackUseCaseFactory: () =>
-              instance<PreviewPlaybackUseCase>(),
+          previewPlaybackUseCaseFactory: widget.previewPlaybackUseCaseFactory,
         ),
       ),
       PreviewPlayback() => _navigateToPlayer(
@@ -125,7 +125,7 @@ class _GameViewState extends State<GameView> {
           trackName: playback.trackName,
           artistName: playback.artistName,
           albumArtUrl: playback.albumArtUrl,
-          previewPlaybackUseCase: instance<PreviewPlaybackUseCase>(),
+          previewPlaybackUseCase: widget.previewPlaybackUseCaseFactory(),
           spotifyPlaybackUseCase: widget.spotifyPlaybackUseCase,
         ),
       ),

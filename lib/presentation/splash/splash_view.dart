@@ -43,6 +43,10 @@ class _SplashViewState extends State<SplashView>
 
     if (_didNavigate || !mounted) return;
     _didNavigate = true;
+    if (!_appPreferences.hasAcceptedPrivacyConsent()) {
+      navigator.pushReplacementNamed(Routes.privacyConsentRoute);
+      return;
+    }
     _appPreferences.getAppPlanType().then((plan) {
       if (plan != null) {
         navigator.pushReplacementNamed(Routes.homeRoute);
@@ -144,7 +148,7 @@ class _SplashViewState extends State<SplashView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorManager.bagroundColor,
+      backgroundColor: ColorManager.backgroundColor,
       body: AnimatedBuilder(
         animation: _c,
         builder: (context, _) {
