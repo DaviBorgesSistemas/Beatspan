@@ -17,6 +17,9 @@ class GameViewModel {
     'beatspan.firebaseapp.com',
   ];
 
+  static const int _codigoMaxLength = 100;
+  static final RegExp _codigoFormat = RegExp(r'^[a-zA-Z0-9]+$');
+
   final AppPreferences _appPreferences;
   final GetMusicaUseCase _getMusicaUseCase;
   final MusicaPlaybackUseCase _musicaPlaybackUseCase;
@@ -65,7 +68,10 @@ class GameViewModel {
     if (segments.isEmpty) return null;
 
     final codigo = segments.last;
-    return codigo.isEmpty ? null : codigo;
+    if (codigo.isEmpty || codigo.length > _codigoMaxLength) return null;
+    if (!_codigoFormat.hasMatch(codigo)) return null;
+
+    return codigo;
   }
 
   Future<void> handleDetectedCode(String rawValue) async {

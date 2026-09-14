@@ -20,7 +20,7 @@ class _RulesViewState extends State<RulesView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorManager.bagroundColor,
+      backgroundColor: ColorManager.backgroundColor,
       appBar: AppBar(
         leading: GestureDetector(
           onTap: () {
@@ -40,7 +40,7 @@ class _RulesViewState extends State<RulesView> {
             ),
           ),
         ),
-        backgroundColor: ColorManager.bagroundColor,
+        backgroundColor: ColorManager.backgroundColor,
         title: SizedBox(
           width: context.percentWidth(.5),
           child: Image.asset(ImageAssets.splashWordmark),

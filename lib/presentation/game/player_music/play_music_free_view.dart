@@ -93,7 +93,7 @@ class _PlayerMusicFreeViewState extends State<PlayerMusicFreeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorManager.bagroundColor,
+      backgroundColor: ColorManager.backgroundColor,
       body: SafeArea(
         child: _isLoading
             ? const BeatspanLoadingOverlay(

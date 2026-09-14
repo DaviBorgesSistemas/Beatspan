@@ -67,4 +67,26 @@ void main() {
       expect(appPreferences.hasAcceptedSpotifyConsent(), isTrue);
     },
   );
+
+  test(
+    'consentimento de privacidade é false por padrão e persiste quando aceito',
+    () async {
+      expect(appPreferences.hasAcceptedPrivacyConsent(), isFalse);
+
+      await appPreferences.setPrivacyConsentAccepted(true);
+
+      expect(appPreferences.hasAcceptedPrivacyConsent(), isTrue);
+    },
+  );
+
+  test(
+    'consentimento de analytics é false (opt-in) por padrão e persiste quando alterado',
+    () async {
+      expect(appPreferences.getAnalyticsConsentEnabled(), isFalse);
+
+      await appPreferences.setAnalyticsConsentEnabled(true);
+
+      expect(appPreferences.getAnalyticsConsentEnabled(), isTrue);
+    },
+  );
 }

@@ -6,7 +6,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'app/app.dart';
+import 'app/app_prefs.dart';
 import 'app/di.dart';
+import 'domain/analytics_reporting.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -22,6 +24,7 @@ void main() async {
       );
       await _setupCrashlytics();
       await initAppModule();
+      await _syncAnalyticsConsent();
       runApp(const MyApp());
       FlutterNativeSplash.remove();
     },
@@ -29,6 +32,14 @@ void main() async {
       FirebaseCrashlytics.instance.recordError(error, stackTrace, fatal: true);
     },
   );
+}
+
+Future<void> _syncAnalyticsConsent() async {
+  final appPreferences = instance<AppPreferences>();
+  final collectionEnabled =
+      appPreferences.hasAcceptedPrivacyConsent() &&
+      appPreferences.getAnalyticsConsentEnabled();
+  await setAnalyticsCollectionEnabled(collectionEnabled);
 }
 
 Future<void> _setupCrashlytics() async {

@@ -1,0 +1,64 @@
+name: CD
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+jobs:
+  build-and-distribute:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.35.7"
+          channel: "stable"
+          cache: true
+
+      - name: Instalar dependências
+        run: flutter pub get
+
+      - name: Analisar (flutter analyze)
+        run: flutter analyze --fatal-infos
+
+      - name: Rodar testes
+        run: flutter test
+
+      - name: Restaurar keystore de release
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/upload-keystore.jks
+
+      - name: Restaurar android/key.properties
+        run: |
+          cat > android/key.properties <<EOF
+          storePassword=${{ secrets.ANDROID_STORE_PASSWORD }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          storeFile=../upload-keystore.jks
+          EOF
+
+      - name: Restaurar env.json
+        run: |
+          cat > env.json <<EOF
+          {
+            "SPOTIFY_CLIENT_ID": "${{ secrets.SPOTIFY_CLIENT_ID }}",
+            "SPOTIFY_REDIRECT_URL": "${{ secrets.SPOTIFY_REDIRECT_URL }}"
+          }
+          EOF
+
+      - name: Build APK de release
+        run: flutter build apk --release --dart-define-from-file=env.json
+
+      - name: Publicar no Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          groups: testers
+          file: build/app/outputs/flutter-apk/app-release.apk
+          releaseNotes: "Release ${{ github.ref_name }}"
+
+      - name: Remover segredos do runner
+        if: always()
+        run: rm -f android/upload-keystore.jks android/key.properties env.json

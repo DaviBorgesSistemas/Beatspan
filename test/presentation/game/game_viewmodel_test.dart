@@ -101,6 +101,29 @@ void main() {
     test('retorna null para string que não é uma URL válida', () {
       expect(viewModel.extractCodigo('não é uma url'), isNull);
     });
+
+    test('extrai código com exatamente 100 caracteres', () {
+      final codigo = 'a' * 100;
+      expect(
+        viewModel.extractCodigo('https://beatspangame.com/$codigo'),
+        codigo,
+      );
+    });
+
+    test('retorna null para código com mais de 100 caracteres', () {
+      final codigo = 'a' * 101;
+      expect(
+        viewModel.extractCodigo('https://beatspangame.com/$codigo'),
+        isNull,
+      );
+    });
+
+    test('retorna null para código com caracteres não alfanuméricos', () {
+      expect(
+        viewModel.extractCodigo('https://beatspangame.com/0006-drop-table'),
+        isNull,
+      );
+    });
   });
 
   group('validate', () {

@@ -13,7 +13,7 @@ void main() {
       ColorManager.quaternaryLight,
       ColorManager.black,
       ColorManager.white,
-      ColorManager.bagroundColor,
+      ColorManager.backgroundColor,
       ColorManager.yellowLink,
       ColorManager.warning,
       ColorManager.gradientPurple,

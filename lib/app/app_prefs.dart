@@ -8,6 +8,10 @@ const String prefsKeyTurnPhoneMode = 'PREFS_KEY_TURN_PHONE_MODE';
 const String prefsKeyGameMode = 'PREFS_KEY_GAME_MODE';
 const String prefsKeySpotifyConsentAccepted =
     'PREFS_KEY_SPOTIFY_CONSENT_ACCEPTED';
+const String prefsKeyPrivacyConsentAccepted =
+    'PREFS_KEY_PRIVACY_CONSENT_ACCEPTED';
+const String prefsKeyAnalyticsConsentEnabled =
+    'PREFS_KEY_ANALYTICS_CONSENT_ENABLED';
 
 class AppPreferences {
   final SharedPreferences _sharedPreferences;
@@ -63,5 +67,21 @@ class AppPreferences {
 
   bool hasAcceptedSpotifyConsent() {
     return _sharedPreferences.getBool(prefsKeySpotifyConsentAccepted) ?? false;
+  }
+
+  Future<void> setPrivacyConsentAccepted(bool accepted) async {
+    await _sharedPreferences.setBool(prefsKeyPrivacyConsentAccepted, accepted);
+  }
+
+  bool hasAcceptedPrivacyConsent() {
+    return _sharedPreferences.getBool(prefsKeyPrivacyConsentAccepted) ?? false;
+  }
+
+  Future<void> setAnalyticsConsentEnabled(bool enabled) async {
+    await _sharedPreferences.setBool(prefsKeyAnalyticsConsentEnabled, enabled);
+  }
+
+  bool getAnalyticsConsentEnabled() {
+    return _sharedPreferences.getBool(prefsKeyAnalyticsConsentEnabled) ?? false;
   }
 }

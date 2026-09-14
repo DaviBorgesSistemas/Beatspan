@@ -7,7 +7,7 @@
 0007;2015;Fernandinho;Galileu
 0008;2001;Diante do Trono;Preciso de Ti
 0009;2017;Gabriela Rocha;Lugar Secreto
-0010;2018;Cory Asbury (versão pt-BR: Isaias Saad);Ousado Amor
+0010;2018;Isaias Saad;Ousado Amor
 0011;1998;Diante do Trono;Quero Celebrar
 0012;1998;Diante do Trono;A Quem Temerei
 0013;1998;Diante do Trono;Não Temas

@@ -46,9 +46,9 @@ class _FirstTimeViewState extends State<FirstTimeView> {
           }
         },
         child: Scaffold(
-          backgroundColor: ColorManager.bagroundColor,
+          backgroundColor: ColorManager.backgroundColor,
           appBar: AppBar(
-            backgroundColor: ColorManager.bagroundColor,
+            backgroundColor: ColorManager.backgroundColor,
             automaticallyImplyLeading: false,
             centerTitle: true,
             title: SizedBox(

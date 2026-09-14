@@ -36,7 +36,7 @@ class _FaqsViewState extends State<FaqsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorManager.bagroundColor,
+      backgroundColor: ColorManager.backgroundColor,
       appBar: AppBar(
         leading: GestureDetector(
           onTap: () {
@@ -56,7 +56,7 @@ class _FaqsViewState extends State<FaqsView> {
             ),
           ),
         ),
-        backgroundColor: ColorManager.bagroundColor,
+        backgroundColor: ColorManager.backgroundColor,
         title: SizedBox(
           width: context.percentWidth(.5),
           child: Image.asset(ImageAssets.splashWordmark),

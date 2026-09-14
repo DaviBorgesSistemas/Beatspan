@@ -27,7 +27,7 @@ class MusicNoteBadge extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: ColorManager.bagroundColor,
+          color: ColorManager.backgroundColor,
         ),
         child: Icon(
           Icons.music_note,

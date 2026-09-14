@@ -71,7 +71,7 @@ class _HomeViewState extends State<HomeView> {
           }
         },
         child: Scaffold(
-          backgroundColor: ColorManager.bagroundColor,
+          backgroundColor: ColorManager.backgroundColor,
           body: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Stack(

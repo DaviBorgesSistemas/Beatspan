@@ -1,2 +1,0 @@
-﻿[OK] flutter pub outdated -> pub-outdated.json (exit code 0)
-[OK] Relatorio de cobertura pre-existente encontrado: coverage/lcov.info

@@ -119,6 +119,29 @@ Exemplo: `fix: valida corretamente links de faixa sem prefixo de locale`.
 git config core.hooksPath .githooks
 ```
 
+## Release (CD)
+
+O workflow `.github/workflows/cd.yml` gera o APK de release e publica automaticamente no Firebase App Distribution sempre que uma tag no formato `vX.Y.Z` (semver) é enviada ao repositório:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+O job roda `flutter analyze`/`flutter test` antes de compilar, reconstrói `android/key.properties`, a keystore e o `env.json` a partir de secrets do repositório (nenhum desses arquivos é versionado) e depois remove esses arquivos do runner. Secrets necessários em **Settings → Secrets and variables → Actions**:
+
+| Secret | Conteúdo |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | `upload-keystore.jks` codificado em base64 (`base64 -w0 upload-keystore.jks`) |
+| `ANDROID_STORE_PASSWORD` | senha da keystore (`storePassword` do `key.properties`) |
+| `ANDROID_KEY_PASSWORD` | senha da chave (`keyPassword`) |
+| `ANDROID_KEY_ALIAS` | alias da chave (`keyAlias`) |
+| `SPOTIFY_CLIENT_ID` / `SPOTIFY_REDIRECT_URL` | mesmas credenciais do `env.json` local |
+| `FIREBASE_APP_ID` | App ID do Firebase (Project settings → General → seção Android) |
+| `FIREBASE_SERVICE_ACCOUNT` | JSON da service account com permissão de Firebase App Distribution |
+
+O grupo de testers do Firebase App Distribution usado é `testers` (configurável em `.github/workflows/cd.yml`).
+
 ## Estrutura de documentação
 
 A pasta [docs/](docs/) contém uma análise arquitetural completa (fundamentos, segurança, experiência, operações, documentação, performance), gerada a partir de `guides/prompts/PROMPT_ANALISE_ARQUITETURAL.md`:

@@ -53,7 +53,7 @@ class _PlayerMusicPremiumViewState extends State<PlayerMusicPremiumView> {
 
   Stream<PlaybackState>? _playerStateStream;
 
-  static final _background = ColorManager.bagroundColor;
+  static final _background = ColorManager.backgroundColor;
   static final _purple = ColorManager.gradientPurple;
   static final _pink = ColorManager.gradientPink;
 
@@ -397,7 +397,7 @@ class _VisualGlyphsCardState extends State<_VisualGlyphsCard>
             ),
             DecoratedBox(
               decoration: BoxDecoration(
-                color: ColorManager.bagroundColor.withValues(alpha: 0.3),
+                color: ColorManager.backgroundColor.withValues(alpha: 0.3),
               ),
             ),
             Container(
@@ -415,7 +415,7 @@ class _VisualGlyphsCardState extends State<_VisualGlyphsCard>
               ),
               child: Icon(
                 widget.playing ? Icons.pause : Icons.play_arrow,
-                color: ColorManager.bagroundColor,
+                color: ColorManager.backgroundColor,
                 size: 36,
               ),
             ),

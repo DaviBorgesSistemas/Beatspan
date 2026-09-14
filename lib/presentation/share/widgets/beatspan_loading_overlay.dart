@@ -85,7 +85,7 @@ class _BeatspanLoadingOverlayState extends State<BeatspanLoadingOverlay>
       label: widget.message,
       excludeSemantics: true,
       child: widget.fillBackground
-          ? ColoredBox(color: ColorManager.bagroundColor, child: content)
+          ? ColoredBox(color: ColorManager.backgroundColor, child: content)
           : ColoredBox(
               color: Colors.black.withValues(alpha: 0.75),
               child: content,
