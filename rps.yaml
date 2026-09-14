@@ -12,10 +12,15 @@ scripts:
   # Roda o app em modo release, injetando as variáveis do env.json
   run:release: flutter run --release --dart-define-from-file=env.json
 
-  # Gera um .apk de release (instalação direta/sideload)
-  build:apk: flutter build apk --release --dart-define-from-file=env.json
-  # Gera um .aab de release (formato exigido pela Play Store)
-  build:appbundle: flutter build appbundle --release --dart-define-from-file=env.json
+  # Gera um .apk de debug (sem ofuscacao/minify, para instalação/testes locais)
+  build:apk:debug: flutter build apk --debug --dart-define-from-file=env.json
+  # Gera um .apk de release (instalação direta/sideload), ofuscando o codigo Dart.
+  # Os simbolos de debug vao para build/symbols (fora do APK) e sao necessarios
+  # para decodificar stack traces do Crashlytics depois - guarde-os, nao versione.
+  build:apk: flutter build apk --release --dart-define-from-file=env.json --obfuscate --split-debug-info=build/symbols
+  # Gera um .aab de release (formato exigido pela Play Store), ofuscando o codigo Dart.
+  # Mesma observacao acima sobre build/symbols.
+  build:appbundle: flutter build appbundle --release --dart-define-from-file=env.json --obfuscate --split-debug-info=build/symbols
 
   # Roda a suíte de testes
   test: flutter test
