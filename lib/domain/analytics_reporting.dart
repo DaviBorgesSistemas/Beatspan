@@ -1,3 +1,11 @@
+// © 2026 Davi Borges <daviborges.sistemas@gmail.com>
+// Projeto : Beatspan
+// Website : 
+// Token   : AFA32A23171530AD
+// @wm:AFA32A23171530AD
+//
+// Todos os direitos reservados.
+
 import 'package:firebase_analytics/firebase_analytics.dart';
 
 /// Nomes de evento do funil de escaneamento→reprodução (`OPS-004`).

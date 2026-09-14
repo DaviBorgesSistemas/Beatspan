@@ -1,3 +1,11 @@
+// © 2026 Davi Borges <daviborges.sistemas@gmail.com>
+// Projeto : Beatspan
+// Website : 
+// Token   : AFA32A23171530AD
+// @wm:AFA32A23171530AD
+//
+// Todos os direitos reservados.
+
 /// Base de toda falha de domínio. Cada use case declara sua própria sealed
 /// subclass (ex.: [MusicaPlaybackFailure]) com as variantes possíveis —
 /// evita que códigos numéricos de use cases distintos colidam ou sejam
