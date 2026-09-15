@@ -1,6 +1,6 @@
 // © 2026 Davi Borges <daviborges.sistemas@gmail.com>
 // Projeto : Beatspan
-// Website : 
+// Website :
 // Token   : AFA32A23171530AD
 // @wm:AFA32A23171530AD
 //
@@ -20,13 +20,13 @@ import 'domain/analytics_reporting.dart';
 import 'firebase_options.dart';
 
 void main() async {
-  final WidgetsBinding widgetsBinding =
-      WidgetsFlutterBinding.ensureInitialized();
-  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  systemChromeConfigure();
-
   await runZonedGuarded(
     () async {
+      final WidgetsBinding widgetsBinding =
+          WidgetsFlutterBinding.ensureInitialized();
+      FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+      systemChromeConfigure();
+
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );

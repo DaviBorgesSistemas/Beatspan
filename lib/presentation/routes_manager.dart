@@ -1,6 +1,6 @@
 // © 2026 Davi Borges <daviborges.sistemas@gmail.com>
 // Projeto : Beatspan
-// Website : 
+// Website :
 // Token   : AFA32A23171530AD
 // @wm:AFA32A23171530AD
 //
@@ -16,6 +16,7 @@ import '../domain/usecase/spotify_playback_usecase.dart';
 import 'change_spotify/change_spotify_view.dart';
 import 'change_spotify/connect_spotify_premium_view_model.dart';
 import 'contact/contact_view.dart';
+import 'contact/contact_view_model.dart';
 import 'faqs/faqs_view.dart';
 import 'faqs/faqs_view_model.dart';
 import 'first_time/first_time_view.dart';
@@ -88,7 +89,10 @@ class RouteGenerator {
           ),
         );
       case Routes.contactRoute:
-        return MaterialPageRoute(builder: (_) => const ContactView());
+        initContactModule();
+        return MaterialPageRoute(
+          builder: (_) => ContactView(viewModel: instance<ContactViewModel>()),
+        );
       case Routes.gameRoute:
         return MaterialPageRoute(
           builder: (_) => GameView(

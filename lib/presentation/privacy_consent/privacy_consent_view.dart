@@ -1,6 +1,6 @@
 // © 2026 Davi Borges <daviborges.sistemas@gmail.com>
 // Projeto : Beatspan
-// Website : 
+// Website :
 // Token   : AFA32A23171530AD
 // @wm:AFA32A23171530AD
 //
@@ -48,116 +48,120 @@ class _PrivacyConsentViewState extends State<PrivacyConsentView> {
         canPop: false,
         child: Scaffold(
           backgroundColor: ColorManager.backgroundColor,
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'PRIVACIDADE E TERMOS',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 24,
-                    color: ColorManager.textLight,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Para funcionar, o BEATSPAN consulta o catálogo de músicas '
-                  'no Firestore e conecta com sua conta Spotify para tocar as '
-                  'faixas das cartas. Também usamos o Firebase Crashlytics '
-                  'para diagnosticar erros e manter o app estável.',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.7),
-                    fontSize: 15,
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Semantics(
-                  link: true,
-                  label: 'Leia a Política de Privacidade completa',
-                  excludeSemantics: true,
-                  onTap: () => _openLink(privacyPolicyUrl),
-                  child: GestureDetector(
-                    onTap: () => _openLink(privacyPolicyUrl),
-                    child: Text(
-                      'Leia a Política de Privacidade completa',
-                      style: TextStyle(
-                        color: ColorManager.yellowLink,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Semantics(
-                  link: true,
-                  label: 'Leia os Termos de Uso completos',
-                  excludeSemantics: true,
-                  onTap: () => _openLink(termsOfUseUrl),
-                  child: GestureDetector(
-                    onTap: () => _openLink(termsOfUseUrl),
-                    child: Text(
-                      'Leia os Termos de Uso completos',
-                      style: TextStyle(
-                        color: ColorManager.yellowLink,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: ColorManager.cardBackground,
-                    border: Border.all(
-                      width: 1,
-                      color: Colors.white.withValues(alpha: 0.15),
-                    ),
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  child: Row(
+          body: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(24, 32, 24, 0),
+                  child: Column(
                     children: [
-                      GradientSwitch(
-                        value: _analyticsEnabled,
-                        onChanged: (value) {
-                          setState(() => _analyticsEnabled = value);
-                        },
+                      _PrivacyGraphic(),
+                      const SizedBox(height: 24),
+                      Text(
+                        'PRIVACIDADE E TERMOS',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 24,
+                          color: ColorManager.textLight,
+                        ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Compartilhar dados de uso anônimos',
+                      const SizedBox(height: 12),
+                      Text(
+                        'Para funcionar, o BEATSPAN consulta o catálogo de '
+                        'músicas no Firestore e conecta com sua conta '
+                        'Spotify para tocar as faixas das cartas. Também '
+                        'usamos o Firebase Crashlytics para diagnosticar '
+                        'erros e manter o app estável.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: ColorManager.textLight.withValues(alpha: 0.70),
+                          fontSize: 15,
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          _LegalLink(
+                            label: 'Política de Privacidade',
+                            onTap: () => _openLink(privacyPolicyUrl),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: Text(
+                              '•',
                               style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16,
-                                color: ColorManager.textLight,
+                                color: ColorManager.textMuted,
+                                fontSize: 14,
                               ),
                             ),
-                            Text(
-                              'Opcional. Ajuda a melhorar o app via Firebase '
-                              'Analytics. Pode ser alterado depois em '
-                              'Configurações.',
-                              style: TextStyle(color: ColorManager.textMuted),
+                          ),
+                          _LegalLink(
+                            label: 'Termos de Uso',
+                            onTap: () => _openLink(termsOfUseUrl),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: ColorManager.cardBackground,
+                          border: Border.all(
+                            width: 1,
+                            color: Colors.white.withValues(alpha: 0.15),
+                          ),
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        child: Row(
+                          children: [
+                            GradientSwitch(
+                              value: _analyticsEnabled,
+                              onChanged: (value) {
+                                setState(() => _analyticsEnabled = value);
+                              },
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Compartilhar dados de uso anônimos',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16,
+                                      color: ColorManager.textLight,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Opcional. Ajuda a melhorar o app via '
+                                    'Firebase Analytics. Pode ser alterado '
+                                    'depois em Configurações.',
+                                    style: TextStyle(
+                                      color: ColorManager.textMuted,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       ),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
-                Semantics(
-                  button: true,
+              ), 
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Semantics(
+                  button: true, 
                   label: 'Aceitar e continuar',
                   excludeSemantics: true,
                   onTap: _accept,
@@ -194,9 +198,71 @@ class _PrivacyConsentViewState extends State<PrivacyConsentView> {
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LegalLink extends StatelessWidget {
+  const _LegalLink({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      link: true,
+      label: 'Leia $label',
+      excludeSemantics: true,
+      onTap: onTap,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Text(
+          label,
+          style: TextStyle(
+            color: ColorManager.yellowLink,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            decoration: TextDecoration.underline,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PrivacyGraphic extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 96,
+      height: 96,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(width: 2, color: ColorManager.gradientPink),
+        boxShadow: [
+          BoxShadow(
+            color: ColorManager.gradientPink,
+            blurRadius: 15,
+            spreadRadius: 0,
+            offset: Offset(0, 0),
+          ),
+        ],
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: ColorManager.cardBackground,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          Icons.shield_outlined,
+          size: 44,
+          color: ColorManager.primary,
         ),
       ),
     );

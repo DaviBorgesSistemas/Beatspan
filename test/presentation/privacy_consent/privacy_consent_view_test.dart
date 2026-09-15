@@ -35,11 +35,8 @@ void main() {
       await tester.pumpWidget(buildSubject());
 
       expect(find.text('PRIVACIDADE E TERMOS'), findsOneWidget);
-      expect(
-        find.text('Leia a Política de Privacidade completa'),
-        findsOneWidget,
-      );
-      expect(find.text('Leia os Termos de Uso completos'), findsOneWidget);
+      expect(find.text('Política de Privacidade'), findsOneWidget);
+      expect(find.text('Termos de Uso'), findsOneWidget);
       expect(find.text('Compartilhar dados de uso anônimos'), findsOneWidget);
     },
   );

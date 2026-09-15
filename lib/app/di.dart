@@ -1,6 +1,6 @@
 // © 2026 Davi Borges <daviborges.sistemas@gmail.com>
 // Projeto : Beatspan
-// Website : 
+// Website :
 // Token   : AFA32A23171530AD
 // @wm:AFA32A23171530AD
 //
@@ -13,15 +13,18 @@ import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/data_source/faq_local_data_source.dart';
+import '../data/network/contact_firestore_data_source.dart';
 import '../data/network/itunes_search_api.dart';
 import '../data/network/musica_firestore_data_source.dart';
 import '../data/network/network_info.dart';
 import '../data/network/spotify_service.dart';
+import '../data/repository/contact_repository_impl.dart';
 import '../data/repository/faq_repository_impl.dart';
 import '../data/repository/musica_playback_repository_impl.dart';
 import '../data/repository/musica_repository_impl.dart';
 import '../data/repository/preview_playback_control_repository_impl.dart';
 import '../data/repository/spotify_playback_control_repository_impl.dart';
+import '../domain/repository/contact_repository.dart';
 import '../domain/repository/faq_repository.dart';
 import '../domain/repository/musica_playback_repository.dart';
 import '../domain/repository/musica_repository.dart';
@@ -30,8 +33,10 @@ import '../domain/usecase/faqs_usecase.dart';
 import '../domain/usecase/get_musica_usecase.dart';
 import '../domain/usecase/musica_playback_usecase.dart';
 import '../domain/usecase/preview_playback_usecase.dart';
+import '../domain/usecase/send_contact_message_usecase.dart';
 import '../domain/usecase/spotify_playback_usecase.dart';
 import '../presentation/change_spotify/connect_spotify_premium_view_model.dart';
+import '../presentation/contact/contact_view_model.dart';
 import '../presentation/faqs/faqs_view_model.dart';
 import '../presentation/game/game_viewmodel.dart';
 import 'app_prefs.dart';
@@ -156,6 +161,28 @@ void initFaqsModule() {
   instance.registerFactoryIfAbsent<FaqsViewModel>(
     () => FaqsViewModel(instance()),
   );
+}
+
+void initContactModule() {
+  instance.registerLazySingletonIfAbsent<ContactFirestoreDataSource>(
+    () => ContactFirestoreDataSource(),
+  );
+  instance.registerLazySingletonIfAbsent<ContactRepository>(
+    () => ContactRepositoryImpl(instance()),
+  );
+  instance.registerFactoryIfAbsent<SendContactMessageUseCase>(
+    () => SendContactMessageUseCase(instance()),
+  );
+  instance.registerFactoryIfAbsent<ContactViewModel>(
+    () => ContactViewModel(instance()),
+  );
+}
+
+void disposeContactModule() {
+  instance.unregisterIfRegistered<ContactViewModel>();
+  instance.unregisterIfRegistered<SendContactMessageUseCase>();
+  instance.unregisterIfRegistered<ContactRepository>();
+  instance.unregisterIfRegistered<ContactFirestoreDataSource>();
 }
 
 void initSpotifyModule() {

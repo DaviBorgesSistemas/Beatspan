@@ -1,6 +1,6 @@
 // © 2026 Davi Borges <daviborges.sistemas@gmail.com>
 // Projeto : Beatspan
-// Website : 
+// Website :
 // Token   : AFA32A23171530AD
 // @wm:AFA32A23171530AD
 //
@@ -138,4 +138,16 @@ class FaqErroInesperado extends FaqFailure {
   final String message;
 
   const FaqErroInesperado(this.message);
+}
+
+/// Falhas de [SendContactMessageUseCase]/`ContactRepository`.
+sealed class ContactFailure implements Failure {
+  const ContactFailure();
+}
+
+class ContactEnvioErro extends ContactFailure {
+  @override
+  final String message;
+
+  const ContactEnvioErro(this.message);
 }

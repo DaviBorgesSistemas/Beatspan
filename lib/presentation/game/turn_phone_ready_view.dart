@@ -13,6 +13,7 @@ import 'package:proximity_sensor/proximity_sensor.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
 import '../../domain/enum/settings_enum.dart';
+import '../resource/assets_manager.dart';
 import '../resource/color_manager.dart';
 import '../resource/screen_manager.dart';
 import '../routes_manager.dart';
@@ -208,7 +209,7 @@ class _TurnPhoneReadyViewState extends State<TurnPhoneReadyView>
   Widget _phoneIllustration() {
     return SizedBox(
       width: context.screenWidth,
-      child: Image.asset('assets/images/neon-phone-music-waves.png'),
+      child: Image.asset(ImageAssets.turnThePhone),
     );
   }
 
