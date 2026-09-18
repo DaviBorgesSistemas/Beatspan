@@ -6,13 +6,15 @@ Beatspan é um app em Flutter que acompanha um jogo de cartas de música no esti
 
 ## Funcionalidades
 
-- **Splash** no primeiro acesso, com persistência local das preferências. App em português (pt-BR) apenas — sem seleção de idioma/país.
+- **Splash** e onboarding no primeiro acesso (`first_time`, `privacy_consent`), com persistência local das preferências. App em português (pt-BR) apenas — sem seleção de idioma/país.
+- **Permissão de câmera** tratada em uma tela dedicada (`camera_permission`) antes de abrir o scanner.
 - **Leitura de QR code** via câmera (`mobile_scanner`), validando links do domínio `beatspangame.com` (e dos domínios do Firebase Hosting usados durante o desenvolvimento).
 - **Resolução da faixa via Firestore** — o código extraído da URL é buscado na coleção `musicas`, que retorna o `spotify_uri` da faixa (ver `docs/2-SECURITY_REPORT.md` para o schema e as regras de segurança).
-- **Reprodução da faixa via Spotify** — usuários Premium tocam a música completa pelo Spotify App Remote (`spotify_sdk`); usuários do plano Free buscam a prévia de 30s via Spotify Web API, com fallback para iTunes Search API.
+- **Reprodução da faixa via Spotify** — usuários Premium tocam a música completa pelo Spotify App Remote (`spotify_sdk`); usuários do plano Free buscam a prévia de 30s via Spotify Web API, com fallback para iTunes Search API (`spotify_free_transition` cobre a transição entre os dois modos).
 - **Tela de regras** do jogo com ilustrações.
 - **FAQ** carregado de um JSON local (`assets/json/faq.json`), com repositório e use case dedicados.
 - **Configurações**: troca de conta Spotify, upgrade para Premium, contato e compartilhamento do app.
+- **Crash reporting e analytics** via `firebase_crashlytics` e `firebase_analytics`.
 
 ## Stack técnica
 
@@ -23,10 +25,15 @@ Beatspan é um app em Flutter que acompanha um jogo de cartas de música no esti
 | Persistência local | `shared_preferences` |
 | Configuração por ambiente | `--dart-define-from-file` (compile-time) |
 | Backend / catálogo de músicas | `firebase_core`, `cloud_firestore` |
+| Observabilidade | `firebase_crashlytics`, `firebase_analytics` |
 | Rede / conectividade | `http`, `connectivity_plus` |
 | Integração Spotify | `spotify_sdk` (App Remote + Auth), Web API via `http` |
 | Leitura de QR code | `mobile_scanner` |
+| Permissões | `permission_handler` |
+| Sensores (giroscópio / proximidade) | `sensors_plus`, `proximity_sensor` |
 | Áudio (preview local) | `just_audio` |
+| Imagens em cache | `cached_network_image` |
+| Notificações in-app | `fluttertoast` |
 | Splash / ícone do app | `flutter_native_splash`, `flutter_launcher_icons` |
 
 ## Arquitetura
@@ -38,29 +45,36 @@ lib/
 ├── app/            # App widget, AppPreferences (shared_preferences), configuração de DI (get_it)
 ├── data/
 │   ├── data_source/    # ex.: FaqLocalDataSource (lê assets/json/faq.json)
-│   ├── network/         # SpotifyService (App Remote), SpotifyWebApi (REST), MusicaFirestoreDataSource, ItunesSearchApi, NetworkInfo
-│   └── repository/      # implementações dos repositórios (FaqRepositoryImpl, MusicaRepositoryImpl)
+│   ├── network/         # SpotifyService (App Remote), SpotifyWebApi (REST), MusicaFirestoreDataSource,
+│   │                     # ContactFirestoreDataSource, ItunesSearchApi, NetworkInfo, Retry
+│   └── repository/      # implementações dos repositórios (Faq, Musica, MusicaPlayback,
+│                         # PreviewPlaybackControl, SpotifyPlaybackControl, Contact)
 ├── domain/
 │   ├── enum/            # FlowState, PlanType, TurnPhoneMode, GameModeType
-│   ├── exception/        # exceções de domínio (ex.: MusicaNaoEncontradaException)
-│   ├── model/            # modelos de domínio (ex.: Faqs, Musica)
-│   ├── repository/       # contratos abstratos (FaqRepository, MusicaRepository)
-│   └── usecase/          # casos de uso (ex.: FaqsUsecase, GetMusicaUseCase)
+│   ├── exception/        # exceções de domínio (contato, música)
+│   ├── exceptions/       # exceções de reprodução, rate limit e consentimento Spotify
+│   ├── model/            # modelos de domínio (Faqs, Musica, MusicaPlaybackResult, PlaybackState, ContactMessage)
+│   ├── repository/       # contratos abstratos
+│   └── usecase/          # casos de uso (FaqsUsecase, GetMusicaUseCase, MusicaPlaybackUseCase,
+│                         # SpotifyPlaybackUseCase, PreviewPlaybackUseCase, SendContactMessageUseCase)
 └── presentation/
-    ├── splash, home, game, rules, settings, faqs, contact,
-    │   change_spotify, connect_spotify_premium, share
+    ├── splash, first_time, privacy_consent, camera_permission, home, game, rules,
+    │   settings, faqs, contact, change_spotify, spotify_free_transition, share
     └── resource/         # gerenciadores de cor, fonte, estilo, tema, tela e assets
 ```
 
-> Observação: as features de FAQ e de busca de música por código (Firestore) implementam a stack completa (repository + usecase + datasource). O fluxo de reprodução Spotify/iTunes dentro de `GameView` ainda conversa diretamente com `SpotifyService`/`SpotifyWebApi`/`ItunesSearchApi`, sem repository/usecase — ver `docs/1-ARCHITECTURAL_REVIEW.md`, achado `ARQ-001`.
+> A reprodução de faixas (Spotify App Remote, Web API e fallback iTunes) já passa por repository + usecase (`MusicaPlaybackUseCase`), assim como contato e FAQ — `GameViewModel` não fala mais diretamente com os services de rede.
+>
+> Observação: existem duas pastas de exceções (`domain/exception/` e `domain/exceptions/`) por herança histórica; ao adicionar novas exceções de domínio, prefira consolidar em uma só.
 
 ## Fluxo principal do jogo
 
-1. Na `HomeView`, o jogador toca em "Começar um jogo".
-2. A `GameView` abre a câmera para escanear o QR code da carta.
-3. O app valida se a URL escaneada é do domínio `beatspangame.com` e extrai o código curto (ex.: `0006`).
-4. O código é buscado na coleção `musicas` do Firestore, que retorna o `spotify_uri` da faixa.
-5. Conforme o plano salvo (`PlanType`):
+1. No primeiro acesso, o app passa por `first_time`/`privacy_consent` e, ao abrir a câmera pela primeira vez, por `camera_permission`.
+2. Na `HomeView`, o jogador toca em "Começar um jogo".
+3. A `GameView` abre a câmera para escanear o QR code da carta.
+4. O app valida se a URL escaneada é do domínio `beatspangame.com` e extrai o código curto (ex.: `0006`).
+5. O código é resolvido pelo `GetMusicaUseCase`, que busca na coleção `musicas` do Firestore e retorna o `spotify_uri` da faixa.
+6. O `MusicaPlaybackUseCase` decide a reprodução conforme o plano salvo (`PlanType`):
    - **Premium**: conecta ao Spotify App Remote e reproduz a faixa completa.
    - **Free**: busca a URL de prévia (30s) via Spotify Web API, com fallback para iTunes Search API se a prévia não estiver disponível.
 
@@ -113,11 +127,20 @@ O projeto adota [Conventional Commits](https://www.conventionalcommits.org/pt-br
 
 Exemplo: `fix: valida corretamente links de faixa sem prefixo de locale`.
 
-**Verificação automática:** o CI rejeita PRs com commits fora do padrão (step "Verificar Conventional Commits" em `.github/workflows/ci.yml`). Para receber o mesmo aviso já no `git commit`, local, ative o hook versionado uma vez por clone:
+O CI rejeita PRs com commits fora do padrão (ver seção abaixo). Para receber o mesmo aviso já no `git commit` local, ative o hook versionado uma vez por clone:
 
 ```bash
 git config core.hooksPath .githooks
 ```
+
+## Integração contínua (CI)
+
+O workflow `.github/workflows/ci.yml` roda em todo PR e push para `master`/`beatspan_v2`:
+
+- **gitleaks** — verifica segredos vazados no histórico do PR.
+- Conventional Commits (ver acima), `flutter analyze --fatal-infos` e `dart format --set-exit-if-changed`.
+- `flutter test --coverage`, com **gate de cobertura mínima de 60%** das linhas (`coverage/lcov.info`).
+- **osv-scanner** — varre `pubspec.lock` em busca de vulnerabilidades conhecidas nas dependências, publicando o SARIF no Code Scanning.
 
 ## Release (CD)
 
@@ -158,7 +181,7 @@ Projeto em desenvolvimento ativo, pré-lançamento (ainda não publicado nas loj
 
 - Rodadas, pontuação e linha do tempo são geridas pelos próprios jogadores com as cartas físicas (o ano vem impresso na carta) — por design, o app só cobre o fluxo de escanear e tocar a música, sem precisar modelar isso digitalmente.
 - Sem suporte a multiplayer ou estado sincronizado entre dispositivos.
-- Cobertura de testes ainda inicial (ver `test/`) — falta cobrir `GameView`/players.
+- Cobertura de testes já cobre `GameView`/viewmodel/players (ver `test/presentation/game/`), mas ainda não é completa em todas as features.
 - Build iOS não configurado — apenas Android está funcional hoje.
 
 Consulte [docs/1-ARCHITECTURAL_REVIEW.md](docs/1-ARCHITECTURAL_REVIEW.md) para o levantamento técnico completo e [docs/4-ACTION_PLAN.md](docs/4-ACTION_PLAN.md) para o plano de correção priorizado, com checklist de progresso.
