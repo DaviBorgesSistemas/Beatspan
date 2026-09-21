@@ -1,0 +1,28 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Coleção `musicas`: catálogo de faixas do jogo, indexado pelo
+    // código curto impresso/gerado no QR code da carta (ex: doc "0006").
+    //
+    // Schema de cada documento:
+    // {
+    //   spotify_id:  string  // id da faixa no Spotify, ex: "3n3Ppam7vgaVa1iaRUc9Lp"
+    //   spotify_uri: string  // ex: "spotify:track:3n3Ppam7vgaVa1iaRUc9Lp"
+    // }
+    //
+    // Leitura pública (o app não autentica o usuário para tocar uma
+    // música), escrita bloqueada — o catálogo é gerenciado só pelo
+    // Firebase Console / Admin SDK / scripts de importação.
+    match /musicas/{codigo} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Bloqueia qualquer outra coleção por padrão.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

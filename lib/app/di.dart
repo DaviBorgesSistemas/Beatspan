@@ -1,3 +1,11 @@
+// © 2026 Davi Borges <daviborges.sistemas@gmail.com>
+// Projeto : Beatspan
+// Website :
+// Token   : AFA32A23171530AD
+// @wm:AFA32A23171530AD
+//
+// Todos os direitos reservados.
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -5,13 +13,32 @@ import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/data_source/faq_local_data_source.dart';
+import '../data/network/contact_firestore_data_source.dart';
+import '../data/network/itunes_search_api.dart';
+import '../data/network/musica_firestore_data_source.dart';
 import '../data/network/network_info.dart';
 import '../data/network/spotify_service.dart';
+import '../data/repository/contact_repository_impl.dart';
 import '../data/repository/faq_repository_impl.dart';
+import '../data/repository/musica_playback_repository_impl.dart';
+import '../data/repository/musica_repository_impl.dart';
+import '../data/repository/preview_playback_control_repository_impl.dart';
+import '../data/repository/spotify_playback_control_repository_impl.dart';
+import '../domain/repository/contact_repository.dart';
 import '../domain/repository/faq_repository.dart';
+import '../domain/repository/musica_playback_repository.dart';
+import '../domain/repository/musica_repository.dart';
+import '../domain/repository/spotify_playback_control_repository.dart';
 import '../domain/usecase/faqs_usecase.dart';
-import '../presentation/connect_spotify_premium/connect_spotify_premium_view_model.dart';
+import '../domain/usecase/get_musica_usecase.dart';
+import '../domain/usecase/musica_playback_usecase.dart';
+import '../domain/usecase/preview_playback_usecase.dart';
+import '../domain/usecase/send_contact_message_usecase.dart';
+import '../domain/usecase/spotify_playback_usecase.dart';
+import '../presentation/change_spotify/connect_spotify_premium_view_model.dart';
+import '../presentation/contact/contact_view_model.dart';
 import '../presentation/faqs/faqs_view_model.dart';
+import '../presentation/game/game_viewmodel.dart';
 import 'app_prefs.dart';
 
 void systemChromeConfigure() async {
@@ -34,85 +61,158 @@ void systemChromeConfigure() async {
 
 final instance = GetIt.instance;
 
+/// Registro idempotente: registra apenas se [T] ainda não estiver
+/// registrado em [GetIt]. Cada módulo de DI pode ser chamado mais de uma
+/// vez (ex.: `initAppModule` seguido de um teste que também o chama, ou
+/// `initFaqsModule`/`initSpotifyModule` acionados por navegação repetida)
+/// sem lançar `StateError` de registro duplicado.
+extension _IdempotentRegistration on GetIt {
+  void registerLazySingletonIfAbsent<T extends Object>(
+    T Function() factoryFunc,
+  ) {
+    if (!isRegistered<T>()) registerLazySingleton<T>(factoryFunc);
+  }
+
+  void registerFactoryIfAbsent<T extends Object>(T Function() factoryFunc) {
+    if (!isRegistered<T>()) registerFactory<T>(factoryFunc);
+  }
+
+  void unregisterIfRegistered<T extends Object>() {
+    if (isRegistered<T>()) unregister<T>();
+  }
+}
+
 Future<void> initAppModule() async {
   final sharedPrefs = await SharedPreferences.getInstance();
-  if (!instance.isRegistered<SharedPreferences>()) {
-    instance.registerLazySingleton<SharedPreferences>(() => sharedPrefs);
-  }
+  instance.registerLazySingletonIfAbsent<SharedPreferences>(() => sharedPrefs);
 
-  if (!instance.isRegistered<AppPreferences>()) {
-    instance.registerLazySingleton<AppPreferences>(
-      () => AppPreferences(instance<SharedPreferences>()),
-    );
-  }
+  instance.registerLazySingletonIfAbsent<AppPreferences>(
+    () => AppPreferences(instance<SharedPreferences>()),
+  );
 
-  if (!instance.isRegistered<NetworkInfo>()) {
-    instance.registerLazySingleton<NetworkInfo>(
-      () => NetworkInfoImpl(Connectivity()),
-    );
-  }
-  final clientId = '8e1f4c38cf5543f5929e19c1d503205c';
-  final redirectUrl = 'https://hitster-d8ac4.firebaseapp.com/';
+  instance.registerLazySingletonIfAbsent<NetworkInfo>(
+    () => NetworkInfoImpl(Connectivity()),
+  );
+  instance.registerLazySingletonIfAbsent<SpotifyService>(
+    () => SpotifyService(
+      clientId: _requiredEnv(
+        'SPOTIFY_CLIENT_ID',
+        const String.fromEnvironment('SPOTIFY_CLIENT_ID'),
+      ),
+      redirectUrl: _requiredEnv(
+        'SPOTIFY_REDIRECT_URL',
+        const String.fromEnvironment('SPOTIFY_REDIRECT_URL'),
+      ),
+      appPreferences: instance<AppPreferences>(),
+    ),
+  );
 
-  if (!instance.isRegistered<SpotifyService>()) {
-    instance.registerLazySingleton<SpotifyService>(
-      () => SpotifyService(clientId: clientId, redirectUrl: redirectUrl),
-    );
-  }
+  instance.registerLazySingletonIfAbsent<MusicaFirestoreDataSource>(
+    () => MusicaFirestoreDataSource(),
+  );
+  instance.registerLazySingletonIfAbsent<MusicaRepository>(
+    () => MusicaRepositoryImpl(instance()),
+  );
+  instance.registerFactoryIfAbsent<GetMusicaUseCase>(
+    () => GetMusicaUseCase(instance()),
+  );
+
+  instance.registerLazySingletonIfAbsent<ItunesSearchApi>(
+    () => ItunesSearchApi(),
+  );
+  instance.registerLazySingletonIfAbsent<MusicaPlaybackRepository>(
+    () => MusicaPlaybackRepositoryImpl(
+      instance<SpotifyService>(),
+      instance<ItunesSearchApi>(),
+    ),
+  );
+  instance.registerFactoryIfAbsent<MusicaPlaybackUseCase>(
+    () => MusicaPlaybackUseCase(instance()),
+  );
+
+  instance.registerLazySingletonIfAbsent<SpotifyPlaybackControlRepository>(
+    () => SpotifyPlaybackControlRepositoryImpl(instance<SpotifyService>()),
+  );
+  instance.registerFactoryIfAbsent<SpotifyPlaybackUseCase>(
+    () => SpotifyPlaybackUseCase(instance()),
+  );
+
+  instance.registerFactoryIfAbsent<PreviewPlaybackUseCase>(
+    () => PreviewPlaybackUseCase(PreviewPlaybackControlRepositoryImpl()),
+  );
+
+  instance.registerFactoryIfAbsent<GameViewModel>(
+    () => GameViewModel(
+      appPreferences: instance<AppPreferences>(),
+      getMusicaUseCase: instance<GetMusicaUseCase>(),
+      musicaPlaybackUseCase: instance<MusicaPlaybackUseCase>(),
+    ),
+  );
 }
 
 void initFaqsModule() {
-  // 1) Data source
-  if (!instance.isRegistered<FaqLocalDataSource>()) {
-    instance.registerLazySingleton<FaqLocalDataSource>(
-      () => FaqLocalDataSourceImpl(),
-    );
-  }
-  // 2) Repository
-  if (!instance.isRegistered<FaqRepository>()) {
-    instance.registerLazySingleton<FaqRepository>(
-      () => FaqRepositoryImpl(instance()),
-    );
-  }
-  // 3) UseCase
-  if (!instance.isRegistered<FaqsUseCase>()) {
-    instance.registerFactory<FaqsUseCase>(() => FaqsUseCase(instance()));
-  }
-  // 4) ViewModel
-  if (!instance.isRegistered<FaqsViewModel>()) {
-    instance.registerFactory<FaqsViewModel>(() => FaqsViewModel(instance()));
-  }
+  instance.registerLazySingletonIfAbsent<FaqLocalDataSource>(
+    () => FaqLocalDataSourceImpl(),
+  );
+  instance.registerLazySingletonIfAbsent<FaqRepository>(
+    () => FaqRepositoryImpl(instance()),
+  );
+  instance.registerFactoryIfAbsent<FaqsUseCase>(() => FaqsUseCase(instance()));
+  instance.registerFactoryIfAbsent<FaqsViewModel>(
+    () => FaqsViewModel(instance()),
+  );
+}
+
+void initContactModule() {
+  instance.registerLazySingletonIfAbsent<ContactFirestoreDataSource>(
+    () => ContactFirestoreDataSource(),
+  );
+  instance.registerLazySingletonIfAbsent<ContactRepository>(
+    () => ContactRepositoryImpl(instance()),
+  );
+  instance.registerFactoryIfAbsent<SendContactMessageUseCase>(
+    () => SendContactMessageUseCase(instance()),
+  );
+  instance.registerFactoryIfAbsent<ContactViewModel>(
+    () => ContactViewModel(instance()),
+  );
+}
+
+void disposeContactModule() {
+  instance.unregisterIfRegistered<ContactViewModel>();
+  instance.unregisterIfRegistered<SendContactMessageUseCase>();
+  instance.unregisterIfRegistered<ContactRepository>();
+  instance.unregisterIfRegistered<ContactFirestoreDataSource>();
 }
 
 void initSpotifyModule() {
-  if (!instance.isRegistered<ConnectSpotifyPremiumViewModel>()) {
-    instance.registerFactory<ConnectSpotifyPremiumViewModel>(
-      () => ConnectSpotifyPremiumViewModel(instance<SpotifyService>()),
-    );
-  }
+  instance.registerFactoryIfAbsent<ConnectSpotifyPremiumViewModel>(
+    () => ConnectSpotifyPremiumViewModel(
+      instance<SpotifyService>(),
+      instance<AppPreferences>(),
+    ),
+  );
 }
 
 void disposeFaqsModule() {
-  // ordem inversa da criação
-
-  if (instance.isRegistered<FaqsViewModel>()) {
-    instance.unregister<FaqsViewModel>();
-  }
-
-  if (instance.isRegistered<FaqsUseCase>()) {
-    instance.unregister<FaqsUseCase>();
-  }
-
-  if (instance.isRegistered<FaqRepository>()) {
-    instance.unregister<FaqRepository>();
-  }
-
-  if (instance.isRegistered<FaqLocalDataSource>()) {
-    instance.unregister<FaqLocalDataSource>();
-  }
+  instance.unregisterIfRegistered<FaqsViewModel>();
+  instance.unregisterIfRegistered<FaqsUseCase>();
+  instance.unregisterIfRegistered<FaqRepository>();
+  instance.unregisterIfRegistered<FaqLocalDataSource>();
 }
 
 Future<void> resetModules() async {
-  await instance.reset(); // zera tudo
-  await initAppModule(); // ou re-registra o que precisar
+  await instance.reset();
+  await initAppModule();
+}
+
+String _requiredEnv(String name, String value) {
+  if (value.isEmpty) {
+    throw StateError(
+      'Variável de ambiente "$name" não definida. Rode o app com '
+      '--dart-define=$name=valor ou --dart-define-from-file=env.json '
+      '(veja env.json.example para a lista completa de variáveis esperadas).',
+    );
+  }
+  return value;
 }

@@ -1,14 +1,17 @@
+// © 2026 Davi Borges <daviborges.sistemas@gmail.com>
+// Projeto : Beatspan
+// Website : 
+// Token   : AFA32A23171530AD
+// @wm:AFA32A23171530AD
+//
+// Todos os direitos reservados.
+
 import 'package:flutter/material.dart';
 import '../presentation/routes_manager.dart';
 import '../presentation/resource/theme_manager.dart';
 
-// ignore: must_be_immutable
 class MyApp extends StatefulWidget {
-  MyApp._internal();
-  int appState = 0;
-  static MyApp get instance => MyApp._internal();
-
-  factory MyApp() => instance;
+  const MyApp({super.key});
 
   @override
   State<MyApp> createState() => _MyAppState();

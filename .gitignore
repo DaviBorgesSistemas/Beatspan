@@ -43,3 +43,22 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local tooling binaries (baixados sob demanda, ex.: scripts/scan_dependencies.sh)
+/.tools/
+
+# Credenciais locais — nunca versionar (ver docs/2-SECURITY_REPORT.md, SEC-S2)
+.env
+env.json
+
+# Cache de token OAuth do spotipy (scripts/*.py) — contém access/refresh token
+.cache
+
+# Service account keys do Firebase Admin SDK — nunca versionar
+*firebase-adminsdk*.json
+serviceAccountKey*.json
+
+# Keystore de release Android — nunca versionar (ver docs/2-SECURITY_REPORT.md, SEC-S2)
+/android/key.properties
+*.jks
+*.keystore

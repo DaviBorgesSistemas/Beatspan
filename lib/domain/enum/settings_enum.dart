@@ -1,5 +1,13 @@
+// © 2026 Davi Borges <daviborges.sistemas@gmail.com>
+// Projeto : Beatspan
+// Website : 
+// Token   : AFA32A23171530AD
+// @wm:AFA32A23171530AD
+//
+// Todos os direitos reservados.
+
 enum PlanType { free, premium }
 
-enum CountryType { brasil, estadosunidos }
+enum TurnPhoneMode { gyroscope, countdown }
 
-enum LanguageType { portugues, english }
+enum GameModeType { fullTrack, preview }

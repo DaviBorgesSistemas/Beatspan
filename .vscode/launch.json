@@ -7,19 +7,26 @@
         {
             "name": "Beatspan",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "toolArgs": ["--dart-define-from-file=env.json"]
         },
         {
             "name": "Beatspan (profile mode)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "profile"
+            "flutterMode": "profile",
+            "toolArgs": ["--dart-define-from-file=env.json"]
         },
         {
             "name": "Beatspan (release mode)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "release"
+            "flutterMode": "release",
+            "toolArgs": [
+                "--dart-define-from-file=env.json",
+                "--obfuscate",
+                "--split-debug-info=build/symbols"
+            ]
         }
     ]
 }

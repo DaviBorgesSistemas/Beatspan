@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  pull_request:
+    branches: ["**"]
+  push:
+    branches: [master, beatspan_v2]
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verificar segredos vazados (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verificar Conventional Commits
+        run: |
+          pattern='^(feat|fix|refactor|docs|test|chore|security|style|perf)(\([a-z0-9_-]+\))?(!)?: .+'
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            range="origin/${{ github.event.pull_request.base.ref }}..HEAD"
+          else
+            range="HEAD~1..HEAD"
+          fi
+          status=0
+          while IFS= read -r line; do
+            hash="${line%% *}"
+            msg="${line#* }"
+            if ! echo "$msg" | grep -qE "$pattern"; then
+              echo "Commit inválido ($hash): $msg"
+              status=1
+            fi
+          done <<EOF
+          $(git log --format='%h %s' "$range")
+          EOF
+          if [ "$status" -ne 0 ]; then
+            echo ""
+            echo "Mensagens de commit devem seguir Conventional Commits: <tipo>(<escopo opcional>): <descrição>"
+            echo "Tipos aceitos: feat fix refactor docs test chore security style perf"
+            exit 1
+          fi
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.35.7"
+          channel: "stable"
+          cache: true
+
+      - name: Instalar dependências
+        run: flutter pub get
+
+      - name: Analisar (flutter analyze)
+        run: flutter analyze --fatal-infos
+
+      - name: Verificar formatação
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Rodar testes com cobertura
+        run: flutter test --coverage
+
+      - name: Verificar cobertura mínima (60%)
+        run: |
+          awk '
+            /^LF:/ { lf += substr($0, 4) }
+            /^LH:/ { lh += substr($0, 4) }
+            END {
+              pct = (lf > 0) ? (100 * lh / lf) : 0
+              printf "Cobertura de linhas: %d/%d (%.1f%%)\n", lh, lf, pct
+              if (pct < 60) {
+                print "Abaixo da meta mínima de 60%."
+                exit 1
+              }
+            }
+          ' coverage/lcov.info
+
+      - name: Publicar relatório de cobertura
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/lcov.info
+
+  osv-scan:
+    permissions:
+      # Necessário para publicar o SARIF no CodeQL/Code Scanning.
+      actions: read
+      security-events: write
+      contents: read
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.5.1"
+    with:
+      scan-args: |-
+        --lockfile=pubspec.lock

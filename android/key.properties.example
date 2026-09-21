@@ -1,0 +1,8 @@
+# Config da keystore de release do Android.
+# Copie este arquivo para android/key.properties e preencha com valores reais.
+# NUNCA versione android/key.properties nem o arquivo .jks/.keystore em si.
+
+storePassword=
+keyPassword=
+keyAlias=upload
+storeFile=../upload-keystore.jks

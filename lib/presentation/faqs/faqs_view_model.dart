@@ -1,6 +1,15 @@
+// © 2026 Davi Borges <daviborges.sistemas@gmail.com>
+// Projeto : Beatspan
+// Website : 
+// Token   : AFA32A23171530AD
+// @wm:AFA32A23171530AD
+//
+// Todos os direitos reservados.
+
 import 'package:flutter/material.dart';
 import 'dart:ffi';
 import '../../domain/enum/flow_state.dart';
+import '../../domain/error_reporting.dart';
 import '../../domain/model/faqs.dart';
 import '../../domain/usecase/faqs_usecase.dart';
 
@@ -22,12 +31,22 @@ class FaqsViewModel {
 
   void _getFaqs() async {
     state.value = FlowState.loading;
-    (await _faqsUseCase.execute(Void)).fold((failure) {
-      debugPrint('Erro:${failure.message}');
-      state.value = FlowState.error;
-    }, (success) {
-      faqs.value = success;
-      state.value = FlowState.success;
-    });
+    (await _faqsUseCase.execute(Void)).fold(
+      (failure) {
+        reportNonFatalError(
+          Exception(failure.message),
+          StackTrace.current,
+          information: [
+            'FaqsViewModel._getFaqs',
+            'Failure.runtimeType=${failure.runtimeType}',
+          ],
+        );
+        state.value = FlowState.error;
+      },
+      (success) {
+        faqs.value = success;
+        state.value = FlowState.success;
+      },
+    );
   }
 }

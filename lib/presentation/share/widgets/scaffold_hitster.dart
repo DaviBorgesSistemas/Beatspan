@@ -1,3 +1,11 @@
+// © 2026 Davi Borges <daviborges.sistemas@gmail.com>
+// Projeto : Beatspan
+// Website : 
+// Token   : AFA32A23171530AD
+// @wm:AFA32A23171530AD
+//
+// Todos os direitos reservados.
+
 import 'package:flutter/material.dart';
 
 import '../../../app/di.dart';
@@ -41,7 +49,7 @@ class _ScaffoldHitsterState extends State<ScaffoldHitster> {
           _ => AppSize.zero,
         },
         'position': switch (widget.bubbles) {
-          2 => [null, 235.0, -96.0, null], //left, top, right, bottom
+          2 => [null, 235.0, -96.0, null],
           3 => [57.0, 13.0, null, null],
           4 => [8.0, 64.0, null, null],
           _ => 0,
@@ -55,7 +63,7 @@ class _ScaffoldHitsterState extends State<ScaffoldHitster> {
           _ => AppSize.zero,
         },
         'position': switch (widget.bubbles) {
-          2 => [0.0, null, 0.0, 85.0], //left, top, right, bottom
+          2 => [0.0, null, 0.0, 85.0],
           3 => [null, 0.0, 64.0, 100.0],
           4 => [null, 32.0, 12.0, 0.0],
           _ => 0,
@@ -69,7 +77,7 @@ class _ScaffoldHitsterState extends State<ScaffoldHitster> {
           _ => AppSize.zero,
         },
         'position': switch (widget.bubbles) {
-          2 => [null, null, null, null], //left, top, right, bottom
+          2 => [null, null, null, null],
           3 => [0.0, null, 0.0, 0.0],
           4 => [null, null, 20.0, 64.0],
           _ => 0,
@@ -90,6 +98,7 @@ class _ScaffoldHitsterState extends State<ScaffoldHitster> {
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         leading: IconButton(
+          tooltip: 'Ajuda',
           icon: Icon(Icons.help_outline, color: ColorManager.white, size: 42),
           onPressed: () {
             initFaqsModule();
@@ -99,6 +108,7 @@ class _ScaffoldHitsterState extends State<ScaffoldHitster> {
         elevation: 0,
         actions: [
           IconButton(
+            tooltip: widget.sndRoute == '/close' ? 'Fechar' : 'Configurações',
             onPressed: () {
               widget.sndRoute == '/close'
                   ? Navigator.pop(context)
@@ -116,7 +126,9 @@ class _ScaffoldHitsterState extends State<ScaffoldHitster> {
       ),
       body: Stack(
         children: [
-          buildBackground(widget.colorFst, widget.colorSnd),
+          ExcludeSemantics(
+            child: buildBackground(widget.colorFst, widget.colorSnd),
+          ),
           widget.child != null ? widget.child! : const SizedBox(),
         ],
       ),

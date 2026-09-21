@@ -1,0 +1,22 @@
+#!/bin/sh
+# Valida que a mensagem de commit segue Conventional Commits.
+# Instalado via `git config core.hooksPath .githooks` (ver README).
+
+commit_msg_file="$1"
+first_line=$(head -n 1 "$commit_msg_file")
+
+pattern='^(feat|fix|refactor|docs|test|chore|security|style|perf)(\([a-z0-9_-]+\))?(!)?: .+'
+
+if echo "$first_line" | grep -qE "$pattern"; then
+  exit 0
+fi
+
+echo "Commit rejeitado: mensagem não segue Conventional Commits." >&2
+echo "" >&2
+echo "  Recebido:  $first_line" >&2
+echo "  Esperado:  <tipo>(<escopo opcional>): <descrição>" >&2
+echo "  Tipos:     feat fix refactor docs test chore security style perf" >&2
+echo "  Exemplo:   fix(spotify): tratar consentimento ausente no reconnect" >&2
+echo "" >&2
+echo "Veja a seção \"Convenção de commits\" no README.md." >&2
+exit 1

@@ -1,6 +1,15 @@
+// © 2026 Davi Borges <daviborges.sistemas@gmail.com>
+// Projeto : Beatspan
+// Website : 
+// Token   : AFA32A23171530AD
+// @wm:AFA32A23171530AD
+//
+// Todos os direitos reservados.
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import '../../../domain/error_reporting.dart';
 import '../../../domain/model/faqs.dart';
 import '../../resource/color_manager.dart';
 import '../../resource/font_manager.dart';
@@ -48,17 +57,12 @@ class _SessionTileState extends State<SessionTile> {
             ),
           ),
         ),
-        children: [
-          getContent(
-            widget.s.content ?? '',
-          ),
-        ],
+        children: [getContent(widget.s.content ?? '')],
       ),
     );
   }
 
   Widget getContent(String content) {
-    // Novo padrão Markdown-like: [texto](alvo)
     final regex = RegExp(r'\[([^\]]*)\]\(([^)]+)\)');
     final spans = <TextSpan>[];
     int lastIndex = 0;
@@ -84,13 +88,12 @@ class _SessionTileState extends State<SessionTile> {
       spans.add(
         TextSpan(
           text: displayText,
-          style: getRegularStyle(
-            color: ColorManager.yellowLink,
-            fontSize: 14,
-          ).copyWith(
-            decoration:
-                isExternal ? TextDecoration.underline : TextDecoration.none,
-          ),
+          style: getRegularStyle(color: ColorManager.yellowLink, fontSize: 14)
+              .copyWith(
+                decoration: isExternal
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
+              ),
           recognizer: TapGestureRecognizer()
             ..onTap = () async {
               if (isExternal) {
@@ -104,7 +107,11 @@ class _SessionTileState extends State<SessionTile> {
                   Navigator.pushNamed(context, '/$route');
                 }
               } else {
-                debugPrint('Formato de link não reconhecido: $target');
+                reportNonFatalError(
+                  Exception('Formato de link não reconhecido: $target'),
+                  StackTrace.current,
+                  information: const ['SessionTile.getContent'],
+                );
               }
             },
         ),
@@ -113,7 +120,6 @@ class _SessionTileState extends State<SessionTile> {
       lastIndex = match.end;
     }
 
-    // Texto final (sem links)
     if (lastIndex < content.length) {
       spans.add(
         TextSpan(

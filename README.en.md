@@ -1,0 +1,187 @@
+# Beatspan
+
+*[Leia em português](README.md)*
+
+Beatspan is a Flutter app that companions a **Hitster**-style music card game: each physical card has a QR code pointing to `beatspangame.com/<code>`. Scanned inside the app, the code is resolved on Firestore (`musicas` collection) to the corresponding Spotify track and played; scanned by any other QR reader, it opens the download landing page hosted on Firebase Hosting (`hosting/`). Players try to guess the song, artist and year by placing the card on a timeline.
+
+## Features
+
+- **Splash screen** and first-launch onboarding (`first_time`, `privacy_consent`), with local persistence of preferences. App is Portuguese (pt-BR) only — no language/country selection.
+- **Camera permission** handled in a dedicated screen (`camera_permission`) before opening the scanner.
+- **QR code scanning** via camera (`mobile_scanner`), validating links from the `beatspangame.com` domain (and the Firebase Hosting domains used during development).
+- **Track resolution via Firestore** — the code extracted from the URL is looked up in the `musicas` collection, which returns the track's `spotify_uri` (see `docs/2-SECURITY_REPORT.md` for the schema and security rules).
+- **Track playback via Spotify** — Premium users play the full track through Spotify App Remote (`spotify_sdk`); Free plan users fetch the 30s preview via the Spotify Web API, with a fallback to the iTunes Search API (`spotify_free_transition` covers the transition between the two modes).
+- **Rules screen** with illustrations.
+- **FAQ** loaded from a local JSON file (`assets/json/faq.json`), with a dedicated repository and use case.
+- **Settings**: switch Spotify account, upgrade to Premium, contact, and app sharing.
+- **Crash reporting and analytics** via `firebase_crashlytics` and `firebase_analytics`.
+
+## Tech stack
+
+| Category | Package |
+|---|---|
+| Dependency injection | `get_it` |
+| Result/Either | `dartz` |
+| Local persistence | `shared_preferences` |
+| Environment configuration | `--dart-define-from-file` (compile-time) |
+| Backend / music catalog | `firebase_core`, `cloud_firestore` |
+| Observability | `firebase_crashlytics`, `firebase_analytics` |
+| Network / connectivity | `http`, `connectivity_plus` |
+| Spotify integration | `spotify_sdk` (App Remote + Auth), Web API via `http` |
+| QR code scanning | `mobile_scanner` |
+| Permissions | `permission_handler` |
+| Sensors (gyroscope / proximity) | `sensors_plus`, `proximity_sensor` |
+| Audio (local preview) | `just_audio` |
+| Cached images | `cached_network_image` |
+| In-app toasts | `fluttertoast` |
+| App splash / icon | `flutter_native_splash`, `flutter_launcher_icons` |
+
+## Architecture
+
+Simplified Clean Architecture, with `presentation/` organized by feature and generic `data/`/`domain/` layers:
+
+```
+lib/
+├── app/            # App widget, AppPreferences (shared_preferences), DI setup (get_it)
+├── data/
+│   ├── data_source/    # e.g. FaqLocalDataSource (reads assets/json/faq.json)
+│   ├── network/         # SpotifyService (App Remote), SpotifyWebApi (REST), MusicaFirestoreDataSource,
+│   │                     # ContactFirestoreDataSource, ItunesSearchApi, NetworkInfo, Retry
+│   └── repository/      # repository implementations (Faq, Musica, MusicaPlayback,
+│                         # PreviewPlaybackControl, SpotifyPlaybackControl, Contact)
+├── domain/
+│   ├── enum/            # FlowState, PlanType, TurnPhoneMode, GameModeType
+│   ├── exception/        # domain exceptions (contact, music)
+│   ├── exceptions/       # playback, rate-limit and Spotify consent exceptions
+│   ├── model/            # domain models (Faqs, Musica, MusicaPlaybackResult, PlaybackState, ContactMessage)
+│   ├── repository/       # abstract contracts
+│   └── usecase/          # use cases (FaqsUsecase, GetMusicaUseCase, MusicaPlaybackUseCase,
+│                         # SpotifyPlaybackUseCase, PreviewPlaybackUseCase, SendContactMessageUseCase)
+└── presentation/
+    ├── splash, first_time, privacy_consent, camera_permission, home, game, rules,
+    │   settings, faqs, contact, change_spotify, spotify_free_transition, share
+    └── resource/         # color, font, style, theme, screen and asset managers
+```
+
+> Track playback (Spotify App Remote, Web API and iTunes fallback) already goes through a repository + use case (`MusicaPlaybackUseCase`), same as contact and FAQ — `GameViewModel` no longer talks directly to the network services.
+>
+> Note: there are two exception folders (`domain/exception/` and `domain/exceptions/`) for historical reasons; when adding new domain exceptions, prefer consolidating into one.
+
+## Main game flow
+
+1. On first launch, the app walks through `first_time`/`privacy_consent`, and through `camera_permission` the first time the camera is opened.
+2. From `HomeView`, the player taps "Start a game".
+3. `GameView` opens the camera to scan the card's QR code.
+4. The app validates that the scanned URL belongs to the `beatspangame.com` domain and extracts the short code (e.g. `0006`).
+5. The code is resolved by `GetMusicaUseCase`, which looks it up in the `musicas` Firestore collection and returns the track's `spotify_uri`.
+6. `MusicaPlaybackUseCase` decides playback based on the saved plan (`PlanType`):
+   - **Premium**: connects to Spotify App Remote and plays the full track.
+   - **Free**: fetches the 30s preview URL via the Spotify Web API, with a fallback to the iTunes Search API if the preview is unavailable.
+
+## Prerequisites
+
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) `^3.9.2`
+- A developer account on [Spotify for Developers](https://developer.spotify.com/) to obtain a `Client ID` and `Redirect URI`
+- Spotify app installed on the test device (required for App Remote)
+- A [Firebase Console](https://console.firebase.google.com/) project with Firestore and Hosting enabled
+- Android Studio / Xcode configured to run on an emulator or physical device
+
+## Spotify setup
+
+The app needs Spotify credentials (Client ID and Redirect URI) to authenticate and play tracks.
+
+- Copy `env.json.example` to `env.json` and fill in `SPOTIFY_CLIENT_ID` and `SPOTIFY_REDIRECT_URL` with your credentials. The app reads these at compile time via `String.fromEnvironment` in [lib/app/di.dart](lib/app/di.dart) — without them defined, the app throws a clear error on launch. Run/build passing the file: `flutter run --dart-define-from-file=env.json` (already wired into the VS Code configurations in `.vscode/launch.json`). `env.json` is gitignored and must never be committed or packaged as an asset — unlike the previous `.env` approach, `--dart-define` values are not shipped as an extractable file inside the APK/IPA.
+
+## Firebase setup
+
+The app uses Firestore to resolve the QR code's short code into a Spotify track (`musicas` collection) and Firebase Hosting for the landing page served to anyone who scans the card outside the app.
+
+```bash
+dart pub global activate flutterfire_cli
+firebase login
+flutterfire configure
+```
+
+This generates `lib/firebase_options.dart` and the native config files. See `firestore.rules` for the already-versioned security rules.
+
+## Getting started
+
+```bash
+# install dependencies
+flutter pub get
+
+# run on a connected device/emulator
+flutter run
+```
+
+### Generate app icon and splash screen
+
+```bash
+dart run flutter_launcher_icons
+dart run flutter_native_splash:create
+```
+
+## Commit convention
+
+The project follows [Conventional Commits](https://www.conventionalcommits.org/): `<type>: <description>`, with types `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `security`, `style`, `perf`. Generic messages (`...`, `..`, bare screen names) should no longer be used — commits predating this convention were not rewritten (see `docs/1-ARCHITECTURAL_REVIEW.md`, finding `DOC-004`).
+
+Example: `fix: correctly validates track links without a locale prefix`.
+
+CI rejects PRs with commits that don't follow the pattern (see the section below). To get the same warning locally on `git commit`, enable the versioned hook once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+## Continuous integration (CI)
+
+The `.github/workflows/ci.yml` workflow runs on every PR and push to `master`/`beatspan_v2`:
+
+- **gitleaks** — scans the PR history for leaked secrets.
+- Conventional Commits check (see above), `flutter analyze --fatal-infos` and `dart format --set-exit-if-changed`.
+- `flutter test --coverage`, gated on a **minimum 60% line coverage** (`coverage/lcov.info`).
+- **osv-scanner** — scans `pubspec.lock` for known dependency vulnerabilities, publishing the SARIF to Code Scanning.
+
+## Release (CD)
+
+The `.github/workflows/cd.yml` workflow builds a release APK and automatically publishes it to Firebase App Distribution whenever a `vX.Y.Z` (semver) tag is pushed:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The job runs `flutter analyze`/`flutter test` before building, reconstructs `android/key.properties`, the keystore and `env.json` from repository secrets (none of these files are committed), then deletes them from the runner afterwards. Required secrets under **Settings  Secrets and variables  Actions**:
+
+| Secret | Content |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | `upload-keystore.jks` base64-encoded (`base64 -w0 upload-keystore.jks`) |
+| `ANDROID_STORE_PASSWORD` | keystore password (`storePassword` in `key.properties`) |
+| `ANDROID_KEY_PASSWORD` | key password (`keyPassword`) |
+| `ANDROID_KEY_ALIAS` | key alias (`keyAlias`) |
+| `SPOTIFY_CLIENT_ID` / `SPOTIFY_REDIRECT_URL` | same credentials as the local `env.json` |
+| `FIREBASE_APP_ID` | Firebase App ID (Project settings  General  Android section) |
+| `FIREBASE_SERVICE_ACCOUNT` | service account JSON with Firebase App Distribution permission |
+
+The Firebase App Distribution tester group used is `testers` (configurable in `.github/workflows/cd.yml`).
+
+## Documentation
+
+The [docs/](docs/) folder contains a full architectural analysis (fundamentals, security, experience, operations, documentation, performance):
+
+- [1-ARCHITECTURAL_REVIEW.md](docs/1-ARCHITECTURAL_REVIEW.md) — full technical report, all findings with an ID (Portuguese)
+- [2-SECURITY_REPORT.md](docs/2-SECURITY_REPORT.md) — security findings, LGPD/GDPR checklist, supply chain status (Portuguese)
+- [3-TECH_DEBT_REGISTER.md](docs/3-TECH_DEBT_REGISTER.md) — prioritized technical debt catalog (Portuguese)
+- [4-ACTION_PLAN.md](docs/4-ACTION_PLAN.md) — action plan by timeframe, with a progress checklist (Portuguese)
+- [5-IMPROVEMENT_ROADMAP.md](docs/5-IMPROVEMENT_ROADMAP.md) — improvement roadmap by phase (Portuguese)
+
+## Project status
+
+Actively under development, pre-launch (not yet published on app stores). Known open points:
+
+- Rounds, scoring and the timeline are managed by the players themselves with the physical cards (the year is printed on the card) — by design, the app only covers the scan-and-play flow and doesn't need to model that digitally.
+- No multiplayer or state sync across devices.
+- Test coverage already covers `GameView`/viewmodel/players (see `test/presentation/game/`), but is not yet complete across every feature.
+- iOS build not configured — only Android is functional today.
+
+See [docs/1-ARCHITECTURAL_REVIEW.md](docs/1-ARCHITECTURAL_REVIEW.md) for the full technical breakdown and [docs/4-ACTION_PLAN.md](docs/4-ACTION_PLAN.md) for the prioritized fix plan, with a progress checklist.
